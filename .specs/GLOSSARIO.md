@@ -1,8 +1,8 @@
-# Glossário do One
+# Glossário do Esclari
 
 Termos do domínio com valor gravado no banco ou lido da configuração. Cada valor gravado é declarado
-uma vez no código, num grupo de constantes de `One.Api/Dados/Entidades.cs`; cada prazo é lido uma vez de
-`Prazos:*` em `One.Api/Prazos.cs`. Mudar um valor gravado pede migração dos dados já gravados.
+uma vez no código, num grupo de constantes de `Esclari.Api/Dados/Entidades.cs`; cada prazo é lido uma vez de
+`Prazos:*` em `Esclari.Api/Prazos.cs`. Mudar um valor gravado pede migração dos dados já gravados.
 
 ## Tipos de evento do chamado (`TiposEvento`, coluna `evento_chamado.tipo`)
 
@@ -61,7 +61,7 @@ uma vez no código, num grupo de constantes de `One.Api/Dados/Entidades.cs`; cad
 
 | Termo | Chave | Significado |
 | --- | --- | --- |
-| `Armazenamento` | `Armazenamento:Endpoint`, `Chave`, `Segredo`, `Bucket` | o único código que fala com o MinIO (`One.Api/Armazenamento.cs`): grava os bytes de anexos e PDFs sob chave nova `{instituicaoId}/{anexos ou documentos}/{guid}`, lê pela chave da linha e nunca apaga; o banco guarda só chave, hash SHA-256 e tamanho |
+| `Armazenamento` | `Armazenamento:Endpoint`, `Chave`, `Segredo`, `Bucket` | o único código que fala com o MinIO (`Esclari.Api/Armazenamento.cs`): grava os bytes de anexos e PDFs sob chave nova `{instituicaoId}/{anexos ou documentos}/{guid}`, lê pela chave da linha e nunca apaga; o banco guarda só chave, hash SHA-256 e tamanho |
 | `AnexoConversa` | `anexo_conversa` | o arquivo (PDF, JPG ou PNG, até 10 MB, até 3 por conversa) que o aluno anexou a uma mensagem da conversa com o assistente; vive em `{instituicaoId}/anexos-conversa/{guid}`, é lido pela IA só como contexto (nunca como fonte) e a equipe o recebe na transcrição do chamado transferido. O `Anexo` continua sendo só o do chamado |
 
 ## Tempo real (`/api/tempo-real`)
@@ -76,11 +76,11 @@ uma vez no código, num grupo de constantes de `One.Api/Dados/Entidades.cs`; cad
 | --- | --- | --- |
 | `SubscricaoPush` | `Push:ChavePublica`, `ChavePrivada`, `Assunto` | inscrição de um navegador de um usuário para receber avisos; o `endpoint` é único no banco inteiro e um novo `POST` do mesmo endpoint a move para quem ativou por último |
 | `PushSaida` | `Push:*` | aviso a enviar a uma `SubscricaoPush`, com tentativas e próxima tentativa como o `EmailSaida`; o texto não é guardado, o agendador monta o JSON a partir do número do chamado |
-| `Aparência` | `instituicao.nome_curto`, `cor`, `login_*`, `assistente_*`, `contato_*` | o que a instituição personaliza: cor (contraste 4,5:1 com o branco), textos do login, nome e perguntas do assistente, contato do atendimento e as imagens; todo campo é opcional e nulo é o padrão do One; vive em `One.Api/Instituicoes/` |
+| `Aparência` | `instituicao.nome_curto`, `cor`, `login_*`, `assistente_*`, `contato_*` | o que a instituição personaliza: cor (contraste 4,5:1 com o branco), textos do login, nome e perguntas do assistente, contato do atendimento e as imagens; todo campo é opcional e nulo é o padrão do Esclari; vive em `Esclari.Api/Instituicoes/` |
 | `ImagemInstituicao` | `Armazenamento:*` | uma imagem da instituição por `tipo` (`logo`, `icone`, `login`, `assistente`), no máximo uma por tipo; trocar sobe a `versao` e grava objeto novo, remover só apaga a linha e o objeto fica no bucket |
 
 ## Papéis (`Papeis`, coluna `usuario_papel.papel`)
 
 | Valor gravado | Grupo | Significado |
 | --- | --- | --- |
-| `OPERADOR` | papel | quem na equipe do One gerencia todas as instituições pela área `/api/plataforma` e pela tela Instituições; vive no usuário da própria instituição e só é dado ou tirado por `dotnet api.dll instituicao operador --slug <slug> --cpf <cpf> [--remover]`, nunca pela tela Usuários |
+| `OPERADOR` | papel | quem na equipe do Esclari gerencia todas as instituições pela área `/api/plataforma` e pela tela Instituições; vive no usuário da própria instituição e só é dado ou tirado por `dotnet api.dll instituicao operador --slug <slug> --cpf <cpf> [--remover]`, nunca pela tela Usuários |

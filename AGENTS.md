@@ -3,14 +3,14 @@
      Não crie CLAUDE.md; se uma ferramenta exigir, deixe nele só a linha @AGENTS.md. -->
 
 ## Projeto
-One: helpdesk acadêmico multi-instituição. O aluno conversa com um assistente de IA que responde só com
+Esclari: helpdesk acadêmico multi-instituição. O aluno conversa com um assistente de IA que responde só com
 fontes publicadas da instituição (RAG) e pode falar com um atendente a qualquer momento; a equipe atende
 os chamados (protocolo ONE-n), mantém a base de conhecimento e acompanha os indicadores. Univag é a primeira instituição.
 
-- Backend: .NET 10 / ASP.NET Core minimal APIs / EF Core 10 + Npgsql / PostgreSQL 18 + pgvector, pasta `One.Api/`
+- Backend: .NET 10 / ASP.NET Core minimal APIs / EF Core 10 + Npgsql / PostgreSQL 18 + pgvector, pasta `Esclari.Api/`
 - Web: React 19 + Vite 8 + TypeScript, PWA (`vite-plugin-pwa`), Tailwind v4 + shadcn/ui, pasta `web/`
-- Infra local: `docker-compose.yml` (postgres, mailpit, minio, api). Solução: `One.slnx`
-- Requisitos `RF-NN`/`RNF-NN`/`UC-NN`: repositório de requisitos One, `docs/requisitos/conteudo.md` (AD-003)
+- Infra local: `docker-compose.yml` (postgres, mailpit, minio, api). Solução: `Esclari.slnx`
+- Requisitos `RF-NN`/`RNF-NN`/`UC-NN`: repositório de requisitos Esclari, `docs/requisitos/conteudo.md` (AD-003)
 - Decisões do projeto: `.specs/STATE.md` (`AD-NNN`). Uma decisão ativa vale mais do que o código antigo.
 
 ## Comandos (rode e mostre a saída; não presuma que funciona)
@@ -18,16 +18,16 @@ os chamados (protocolo ONE-n), mantém a base de conhecimento e acompanha os ind
 | O quê | Comando |
 |---|---|
 | Subir dependências | `docker compose up -d postgres mailpit minio` (os testes da API usam 5432, 9000 e 1025) |
-| Build .NET | `dotnet build One.slnx` (complexidade ciclomática > 10 quebra o build: CA1502, AD-018) |
-| Testes .NET | `dotnet test One.Api.Tests` (cada classe cria o próprio banco `one_teste_*` no Postgres do compose) |
-| Rodar API | `dotnet run --project One.Api` → http://localhost:5226 (aplica as migrations na subida) |
+| Build .NET | `dotnet build Esclari.slnx` (complexidade ciclomática > 10 quebra o build: CA1502, AD-018) |
+| Testes .NET | `dotnet test Esclari.Api.Tests` (cada classe cria o próprio banco `esclari_teste_*` no Postgres do compose) |
+| Rodar API | `dotnet run --project Esclari.Api` → http://localhost:5226 (aplica as migrations na subida) |
 | Web: instalar | `npm --prefix web ci` |
 | Web: dev | `npm --prefix web run dev` (proxy de `/api` e do hub para a 5226) |
-| Web: tipos + build | `npm --prefix web run build` (gera `One.Api/wwwroot`) |
+| Web: tipos + build | `npm --prefix web run build` (gera `Esclari.Api/wwwroot`) |
 | Web: testes | `npm --prefix web test` (Vitest + Testing Library) |
 | Web: cobertura | `npm --prefix web run coverage` |
 | E2E | `docker compose up -d --build` e depois `npm --prefix web run e2e` (Playwright contra :8080, 1 worker) |
-| Nova migration | `dotnet ef migrations add <Nome> --project One.Api --output-dir Dados/Migracoes` (`dotnet tool restore` antes) |
+| Nova migration | `dotnet ef migrations add <Nome> --project Esclari.Api --output-dir Dados/Migracoes` (`dotnet tool restore` antes) |
 
 - Gates do `web/` (AD-018): `crapper` abaixo de CRAP 10 e `dryer` sem candidato a 0.8, rodados dentro de `web/`.
   `mutator` está suspenso (AD-025): não rode; check de mutação fica aberto como "suspenso por decisão do usuário".
@@ -81,22 +81,22 @@ budget: 150k
   arquivos; escreva a lição no `verification.md` e quem tiver a skill registra.
 
 ## Arquitetura da API (AD-017, AD-019, AD-024, AD-056)
-- Fatias verticais por assunto: `One.Api/<Fatia>/`, namespace `One.Api.<Fatia>` (`Acesso`, `Administracao`,
-  `Assistente`, `Chamados`, `Conhecimento`, `Indicadores`, `Instituicoes`). Compartilhado só em `One.Api/Dados/` e `One.Api/*.cs`.
+- Fatias verticais por assunto: `Esclari.Api/<Fatia>/`, namespace `Esclari.Api.<Fatia>` (`Acesso`, `Administracao`,
+  `Assistente`, `Chamados`, `Conhecimento`, `Indicadores`, `Instituicoes`). Compartilhado só em `Esclari.Api/Dados/` e `Esclari.Api/*.cs`.
 - Subpasta por assunto (AD-056): `Chamados`, `Administracao`, `Assistente`, `Conhecimento` e `Instituicoes` se dividem em
-  `One.Api/<Fatia>/<Subpasta>/` (um nível só, nomes da lista fechada do AD-056, no máximo 12 arquivos por subpasta e 4 na raiz da
-  fatia); o namespace segue a pasta (`One.Api.<Fatia>.<Subpasta>`). `Acesso`, `Mcp` e `Indicadores` ficam planas.
+  `Esclari.Api/<Fatia>/<Subpasta>/` (um nível só, nomes da lista fechada do AD-056, no máximo 12 arquivos por subpasta e 4 na raiz da
+  fatia); o namespace segue a pasta (`Esclari.Api.<Fatia>.<Subpasta>`). `Acesso`, `Mcp` e `Indicadores` ficam planas.
 - Um arquivo por caso de uso: `record` de request com `static Mapear(RouteGroupBuilder)` da própria rota,
   `Entrada`/resposta nomeadas no mesmo arquivo e o `...Handler` (`IRequestHandler`, pacote `Mediator` 3.x, não MediatR).
-  Modelo: `One.Api/Chamados/Acoes/ResolverChamado.cs`. Sem objeto anônimo na resposta, sem DTO compartilhado entre fatias.
-- Domínio rico em `One.Api/Dados/<Agregado>/`, uma entidade por arquivo: transições de estado são métodos com setter
+  Modelo: `Esclari.Api/Chamados/Acoes/ResolverChamado.cs`. Sem objeto anônimo na resposta, sem DTO compartilhado entre fatias.
+- Domínio rico em `Esclari.Api/Dados/<Agregado>/`, uma entidade por arquivo: transições de estado são métodos com setter
   privado; o domínio não referencia ASP.NET Core, Mediator nem handlers. Handler só orquestra dados e efeitos.
 - Sem camadas Domain/Application/Infrastructure, sem repositório sobre o EF Core, sem `Common`/`Utils`;
   compartilhe só no terceiro uso.
 - Multi-instituição (AD-008): toda tabela tem `instituicao_id` não nulo e query filter global. `IgnoreQueryFilters`
   só nas classes que implementam `ITarefaAgendada` (as tarefas do `Agendador`). Tabelas e colunas em snake_case; datas `timestamptz`.
 - Erros como ProblemDetails. Relógio sempre por `TimeProvider`, nunca `DateTime.Now`.
-- Essas regras são testadas em `One.Api.Tests/ArquiteturaTests.cs`: mudou a regra, mude o AD primeiro.
+- Essas regras são testadas em `Esclari.Api.Tests/ArquiteturaTests.cs`: mudou a regra, mude o AD primeiro.
 
 ## Web (AD-017, AD-020, AD-023)
 - Fatias em `web/src/<fatia>/` (`acesso`, `administracao`, `assistente`, `chamados`, `conhecimento`,
@@ -109,7 +109,7 @@ budget: 150k
 - Textos da interface em português do Brasil. Fora de `ui/`, import relativo (`../ui/button`); o alias `@/` fica só no código do shadcn.
 
 ## Testes
-- API: xUnit v3 com `WebApplicationFactory` (`One.Api.Tests/Infra/OneFactory.cs`): Postgres, MinIO e Mailpit reais do
+- API: xUnit v3 com `WebApplicationFactory` (`Esclari.Api.Tests/Infra/EsclariFactory.cs`): Postgres, MinIO e Mailpit reais do
   compose; relógio (`FakeTimeProvider`), LLM e push falsos. Teste de integração bate na rota HTTP;
   regra de domínio tem teste unitário na entidade. Nomes em português: `Assumir_de_outro_troca_e_registra`.
 - Web: Vitest + jsdom + Testing Library (`web/src/test/setup.ts`). E2E em `web/e2e/`; `*-real.spec.ts` usa a API de verdade.
@@ -119,7 +119,7 @@ budget: 150k
 - Uma feature = uma pasta `.specs/features/<slug>/`. Commits direto na `main`, sem branch por feature e sem PR (AD-043, supersede o AD-039 nesse ponto); `git pull` antes de começar.
 - A feature leva `plan.md`, `checks.md` e `verification.md` na própria pasta; o Verify independente é a única revisão.
 - Novo `AD-NNN`: pegue o próximo número depois de atualizar a `main`; se colidir no merge, renumere o seu.
-- Conflito no `OneDbModelSnapshot.cs`: `git pull --rebase`, apague a sua migration e gere de novo. Nunca edite o snapshot à mão.
+- Conflito no `EsclariDbModelSnapshot.cs`: `git pull --rebase`, apague a sua migration e gere de novo. Nunca edite o snapshot à mão.
 - Antes de começar uma feature, confira no `## Handoff` do `STATE.md` se ninguém está nela.
 
 ## Convenções
@@ -139,4 +139,4 @@ budget: 150k
 - Schema e dados mudam só por migration no código, revisada em PR, nunca direto no banco.
 - Commit local é livre depois do plano aprovado. `git push`, merge na `main`, deploy e qualquer dado de produção
   só com "ok" explícito de um humano.
-- Não altere: `One.Api/Dados/Migracoes/` já aplicadas, `One.Api/wwwroot/` (gerado), `bin/`, `obj/`, `.metrics/`.
+- Não altere: `Esclari.Api/Dados/Migracoes/` já aplicadas, `Esclari.Api/wwwroot/` (gerado), `bin/`, `obj/`, `.metrics/`.
