@@ -12,7 +12,7 @@ public class ChamadoDominioTests
 
     static string Nome(long id) => id == Ator ? "Ana" : "Beto";
 
-    static Chamado ChamadoAberto() => Chamado.Abrir(new("ONE-1", "Titulo", null, new(1, 2, 3, 4), new(10, "IA", 20)), Antes.AddHours(-1));
+    static Chamado ChamadoAberto() => Chamado.Abrir(new("ESC-000001", "Titulo", null, new(1, 2, 3, 4), new(10, "IA", 20)), Antes.AddHours(-1));
 
     static Chamado EmAtend(long resp = Ator) { var c = ChamadoAberto(); c.Assumir(resp, null, Nome(resp), Antes); return c; }
 
@@ -69,9 +69,9 @@ public class ChamadoDominioTests
             [("NOTA", "melhor com eles", 0)], c => { Assert.Equal(21, c.SetorId); Assert.Equal(1, c.Encaminhamentos); }),
         new("15 Reclassificar RESOLVIDO", ChamadoResolvido(), c => c.Reclassificar(Ator, 11, "Boleto", "Matrícula", Agora), Resolvido, ["CategoriaId"],
             [new("RECLASSIFICACAO", "Boleto", "Matrícula")], [], c => Assert.Equal(10, c.CategoriaOriginalId)),
-        new("16 MarcarDuplicado EM_ATENDIMENTO", EmAtend(), c => c.MarcarDuplicado(Ator, "ONE-9", Agora), Fechado, ["Estado", "FechadoEm", "MotivoFechamento", "NumeroOriginal"],
-            [new("RESPOSTA"), new("TRANSICAO", EmAtendimento, Fechado)], [("PUBLICA", "Este pedido continua em ONE-9.", 0)],
-            c => { Assert.Equal("DUPLICADO", c.MotivoFechamento); Assert.Equal("ONE-9", c.NumeroOriginal); }),
+        new("16 MarcarDuplicado EM_ATENDIMENTO", EmAtend(), c => c.MarcarDuplicado(Ator, "ESC-000009", Agora), Fechado, ["Estado", "FechadoEm", "MotivoFechamento", "NumeroOriginal"],
+            [new("RESPOSTA"), new("TRANSICAO", EmAtendimento, Fechado)], [("PUBLICA", "Este pedido continua em ESC-000009.", 0)],
+            c => { Assert.Equal("DUPLICADO", c.MotivoFechamento); Assert.Equal("ESC-000009", c.NumeroOriginal); }),
         new("17 DevolverAFila AGUARDANDO_ALUNO", Aguardando(), c => c.DevolverAFila(Outro, "Ana", Agora), Aberto, ["AguardandoDesde", "Estado", "ResponsavelId"],
             [new("ATRIBUICAO", "Ana", null, "Responsável desativado"), new("TRANSICAO", AguardandoAluno, Aberto)], [], c => Assert.Null(c.AguardandoDesde)),
         new("18 DevolverAFila RESOLVIDO", ChamadoResolvido(), c => c.DevolverAFila(Outro, "Ana", Agora), Resolvido, ["ResponsavelId"],
@@ -129,7 +129,7 @@ public class ChamadoDominioTests
             ("Cancelar FECHADO", ChamadoFechado(), c => c.Cancelar(Ator, "x", Agora)),
             ("Encaminhar FECHADO", ChamadoFechado(), c => c.Encaminhar(Ator, new(21, "A", "B", null), "x", Agora)),
             ("Reclassificar FECHADO", ChamadoFechado(), c => c.Reclassificar(Ator, 11, "A", "B", Agora)),
-            ("MarcarDuplicado FECHADO", ChamadoFechado(), c => c.MarcarDuplicado(Ator, "ONE-9", Agora)),
+            ("MarcarDuplicado FECHADO", ChamadoFechado(), c => c.MarcarDuplicado(Ator, "ESC-000009", Agora)),
             ("DevolverAFila FECHADO", ChamadoFechado(), c => c.DevolverAFila(Ator, "Ana", Agora)),
             ("Confirmar ABERTO", ChamadoAberto(), c => c.Confirmar(Ator, Agora)),
             ("Confirmar EM_ATENDIMENTO", EmAtend(), c => c.Confirmar(Ator, Agora)),
@@ -162,7 +162,7 @@ public class ChamadoDominioTests
         ("cancelar", _) => Faz(() => c.Cancelar(Outro, "x", Agora)),
         ("encaminhar", _) => Faz(() => c.Encaminhar(Outro, new(21, "A", "B", "Ana"), "x", Agora)),
         ("reclassificar", _) => Faz(() => c.Reclassificar(Outro, 11, "A", "B", Agora)),
-        ("duplicado", _) => Faz(() => c.MarcarDuplicado(Outro, "ONE-9", Agora)),
+        ("duplicado", _) => Faz(() => c.MarcarDuplicado(Outro, "ESC-000009", Agora)),
         _ => throw new InvalidOperationException(acao),
     };
 
@@ -217,7 +217,7 @@ public class ChamadoDominioTests
         Assert.Equal("O prazo de 10 dias para rejeitar a resolução terminou.", ChamadoResolvido().Rejeitar(Ator, new("x", [], true, "Ana", 10), Antes.AddDays(10).AddTicks(1))?.Motivo);
     }
 
-    static Chamado NoFluxo() => Chamado.Abrir(new("ONE-1", "Titulo", null, new(1, 2, 3, 4), new(10, "IA", 20, VersaoFluxoId: 5, EtapaOrdem: 1)), Antes);
+    static Chamado NoFluxo() => Chamado.Abrir(new("ESC-000001", "Titulo", null, new(1, 2, 3, 4), new(10, "IA", 20, VersaoFluxoId: 5, EtapaOrdem: 1)), Antes);
 
     [Fact]
     public void Subir_move_a_etapa_registra_SUBIDA_e_nao_soma_encaminhamento()
@@ -283,7 +283,7 @@ public class ChamadoDominioTests
         c.Encaminhar(Ator, new(21, "A", "B", null), "melhor com eles", Agora);
 
         Assert.Equal((null, null, 1), (c.EtapaOrdem, c.EtapaDesde, c.Encaminhamentos));
-        var fora = Chamado.Abrir(new("ONE-2", "Titulo", null, new(1, 2, 3, 4), new(10, "IA", 20, VersaoFluxoId: 5, EtapaOrdem: null)), Antes);
+        var fora = Chamado.Abrir(new("ESC-000002", "Titulo", null, new(1, 2, 3, 4), new(10, "IA", 20, VersaoFluxoId: 5, EtapaOrdem: null)), Antes);
         Assert.Equal((null, null, null), (fora.VersaoFluxoId, fora.EtapaOrdem, fora.EtapaDesde));
     }
 }

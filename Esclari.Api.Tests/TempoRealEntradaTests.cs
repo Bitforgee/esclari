@@ -151,7 +151,7 @@ public class TempoRealEntradaTests(EsclariFactory f) : IClassFixture<EsclariFact
         var admin = await f.Usuario(b.Instituicao, [Papeis.Administrador]);
         var casos = new (Usuario quem, string numero)[]
         {
-            (b.Aluno.Usuario, "ONE-999"),
+            (b.Aluno.Usuario, "ESC-000999"),
             (outraInstituicao.Usuario, numero),
             (outroAluno, numero),
             (b.Alheio.Usuario, numero),
@@ -207,8 +207,8 @@ public class TempoRealEntradaTests(EsclariFactory f) : IClassFixture<EsclariFact
     {
         var metodos = new (string nome, Func<Conectado, Task> chamar)[]
         {
-            ("EntrarNoChamado", c => c.Entrar("ONE-1")),
-            ("SairDoChamado", c => c.Sair("ONE-1")),
+            ("EntrarNoChamado", c => c.Entrar("ESC-000001")),
+            ("SairDoChamado", c => c.Sair("ESC-000001")),
             ("EntrarNaFila", c => c.EntrarNaFila()),
         };
         foreach (var (nome, chamar) in metodos)
@@ -224,7 +224,7 @@ public class TempoRealEntradaTests(EsclariFactory f) : IClassFixture<EsclariFact
         var aluno = await f.AlunoLogado();
         await using var ca = await f.Abrir(aluno.Instituicao, aluno.Usuario);
         await f.Desativar(aluno.Instituicao, aluno.Usuario);
-        Assert.Equal(Invalida, await ca.Recusa(() => ca.Entrar("ONE-999")));
+        Assert.Equal(Invalida, await ca.Recusa(() => ca.Entrar("ESC-000999")));
         Assert.Equal(Invalida, await ca.Recusa(ca.EntrarNaFila));
     }
 

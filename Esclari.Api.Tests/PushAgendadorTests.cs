@@ -80,13 +80,13 @@ public class PushAgendadorTests(EsclariFactory f) : IClassFixture<EsclariFactory
     {
         var univag = await f.Instituicao(slug: "univag", nome: "Univag");
         var c = await NovaCena(univag, "Assunto secreto do chamado de matrícula");
-        await f.Db(univag.Id, db => db.Chamados.Where(x => x.Id == c.ChamadoId).ExecuteUpdateAsync(s => s.SetProperty(x => x.Numero, "ONE-12")));
-        Assert.Equal(HttpStatusCode.Created, (await Balcao.Mensagem(c.B.A.Cliente, "ONE-12", "Texto privado da mensagem do atendente")).StatusCode);
+        await f.Db(univag.Id, db => db.Chamados.Where(x => x.Id == c.ChamadoId).ExecuteUpdateAsync(s => s.SetProperty(x => x.Numero, "ESC-000012")));
+        Assert.Equal(HttpStatusCode.Created, (await Balcao.Mensagem(c.B.A.Cliente, "ESC-000012", "Texto privado da mensagem do atendente")).StatusCode);
 
         await Agendador.Executar();
 
         var payload = Assert.Single(Chamadas(c.S.Endpoint)).Payload;
-        Assert.Equal("""{"titulo":"Univag","corpo":"Sua solicitação ONE-12 tem uma resposta nova.","url":"/univag/chamados/ONE-12","icone":"/icons/icon-192.png"}""", payload);
+        Assert.Equal("""{"titulo":"Univag","corpo":"Sua solicitação ESC-000012 tem uma resposta nova.","url":"/univag/chamados/ESC-000012","icone":"/icons/icon-192.png"}""", payload);
         Assert.Equal(["titulo", "corpo", "url", "icone"], System.Text.Json.JsonDocument.Parse(payload).RootElement.EnumerateObject().Select(p => p.Name));
         var titulo = await f.Db(univag.Id, db => db.Chamados.Where(x => x.Id == c.ChamadoId).Select(x => x.Titulo).SingleAsync());
         foreach (var dado in new[] { c.B.Aluno.Usuario.Nome, c.B.Aluno.Usuario.Email, c.B.Aluno.Usuario.Cpf.Valor, "Texto privado da mensagem", titulo })
@@ -107,12 +107,12 @@ public class PushAgendadorTests(EsclariFactory f) : IClassFixture<EsclariFactory
             await db.SaveChangesAsync();
         });
         var c = await NovaCena(i);
-        await f.Db(i.Id, db => db.Chamados.Where(x => x.Id == c.ChamadoId).ExecuteUpdateAsync(s => s.SetProperty(x => x.Numero, "ONE-1").SetProperty(x => x.Estado, "EM_ATENDIMENTO")));
+        await f.Db(i.Id, db => db.Chamados.Where(x => x.Id == c.ChamadoId).ExecuteUpdateAsync(s => s.SetProperty(x => x.Numero, "ESC-000001").SetProperty(x => x.Estado, "EM_ATENDIMENTO")));
         await Fila(c);
 
         await Agendador.Executar();
 
-        Assert.Equal("""{"titulo":"Univag","corpo":"Sua solicitação ONE-1 tem uma resposta nova.","url":"/univag-marca/chamados/ONE-1","icone":"/api/instituicoes/univag-marca/imagens/icone?v=2"}""",
+        Assert.Equal("""{"titulo":"Univag","corpo":"Sua solicitação ESC-000001 tem uma resposta nova.","url":"/univag-marca/chamados/ESC-000001","icone":"/api/instituicoes/univag-marca/imagens/icone?v=2"}""",
             Assert.Single(Chamadas(c.S.Endpoint)).Payload);
     }
 

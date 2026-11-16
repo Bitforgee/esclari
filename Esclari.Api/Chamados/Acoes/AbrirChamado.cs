@@ -19,7 +19,7 @@ public sealed record AbrirChamado(Conversa Conversa, Matricula Matricula, bool C
         var numero = await db.Database
             .SqlQuery<long>($"UPDATE instituicao SET ultimo_numero_chamado = ultimo_numero_chamado + 1 WHERE id = {instituicao.Id} RETURNING ultimo_numero_chamado AS \"Value\"")
             .ToListAsync();
-        var chamado = Chamado.Abrir(new($"ONE-{numero.Single()}", titulo, resumo, new(Conversa.Id, Conversa.AlunoId, Matricula.Id, Matricula.Semestre),
+        var chamado = Chamado.Abrir(new($"ESC-{numero.Single():D6}", titulo, resumo, new(Conversa.Id, Conversa.AlunoId, Matricula.Id, Matricula.Semestre),
             new(categoria.Id, origem, rota.SetorId, rota.Fluxo?.Vigente?.Id, rota.Passo?.Etapa.Ordem)), agora);
         db.Chamados.Add(chamado);
         await db.SaveChangesAsync();

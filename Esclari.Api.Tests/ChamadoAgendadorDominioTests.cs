@@ -9,7 +9,7 @@ public class ChamadoAgendadorDominioTests
     const long Atendente = 7;
     static readonly DateTime Agora = new(2026, 11, 10, 12, 0, 0, DateTimeKind.Utc);
 
-    static Chamado Novo(DateTime em) => Chamado.Abrir(new("ONE-1", "Titulo", null, new(1, 2, 3, 4), new(10, "IA", 20)), em.AddHours(-1));
+    static Chamado Novo(DateTime em) => Chamado.Abrir(new("ESC-000001", "Titulo", null, new(1, 2, 3, 4), new(10, "IA", 20)), em.AddHours(-1));
 
     static Chamado Aguardando(DateTime desde)
     {

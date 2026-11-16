@@ -67,7 +67,7 @@ public class LiderVisaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var outra = await f.Categoria(t.I, "Financeiro");
 
         var reclassificar = await t.Lider!.Cliente.PostAsJsonAsync($"/api/chamados/{numero}/reclassificar", new { categoriaId = outra.Id });
-        var duplicado = await t.Lider.Cliente.PostAsJsonAsync($"/api/chamados/{numero}/duplicado", new { numeroOriginal = "ONE-1" });
+        var duplicado = await t.Lider.Cliente.PostAsJsonAsync($"/api/chamados/{numero}/duplicado", new { numeroOriginal = "ESC-000001" });
         var encaminhar = await t.Lider.Cliente.PostAsJsonAsync($"/api/chamados/{numero}/encaminhar", new { setorId = t.Coordenacao.Id, motivo = "Passa para a coordenação" });
 
         Assert.Equal([HttpStatusCode.Forbidden, HttpStatusCode.Forbidden, HttpStatusCode.Forbidden], [reclassificar.StatusCode, duplicado.StatusCode, encaminhar.StatusCode]);

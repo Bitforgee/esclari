@@ -34,11 +34,11 @@ public class IndicadoresCalculoTests
     [Fact]
     public void Subida_nao_derruba_o_roteamento_correto()
     {
-        var subiu = Esclari.Api.Dados.Chamados.Chamado.Abrir(new("ONE-1", "Duvida", null, new(1, 100, 3, 4), new(CatSecretaria, "IA", Triagem, VersaoFluxoId: 5, EtapaOrdem: 1)), Base);
+        var subiu = Esclari.Api.Dados.Chamados.Chamado.Abrir(new("ESC-000001", "Duvida", null, new(1, 100, 3, 4), new(CatSecretaria, "IA", Triagem, VersaoFluxoId: 5, EtapaOrdem: 1)), Base);
         subiu.Assumir(Atendente, null, "Ana", Base.AddHours(1));
         subiu.Subir(Atendente, new(Financeiro, "Líderes", "Coordenação", "Ana"), 2, "A coordenação resolve", Base.AddHours(2));
         subiu.Resolver(Atendente, "Beto", "Resolvido pela coordenação.", Base.AddHours(3));
-        var encaminhado = Esclari.Api.Dados.Chamados.Chamado.Abrir(new("ONE-2", "Duvida", null, new(2, 101, 3, 4), new(CatSecretaria, "IA", Triagem)), Base);
+        var encaminhado = Esclari.Api.Dados.Chamados.Chamado.Abrir(new("ESC-000002", "Duvida", null, new(2, 101, 3, 4), new(CatSecretaria, "IA", Triagem)), Base);
         encaminhado.Encaminhar(Atendente, new(Financeiro, "Triagem", "Financeiro", null), "Não é daqui", Base.AddHours(2));
         encaminhado.Resolver(Atendente, "Beto", "Resolvido pelo financeiro.", Base.AddHours(3));
 

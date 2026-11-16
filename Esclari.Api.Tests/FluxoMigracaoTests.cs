@@ -17,7 +17,7 @@ public class FluxoMigracaoTests
         INSERT INTO categoria (instituicao_id, nome, ativa, padrao) VALUES (1, 'Boleto', true, false), (1, 'Notas', true, false), (2, 'Boleto', true, false);
         INSERT INTO regra_roteamento (instituicao_id, categoria_id, destino, setor_id) VALUES (1, 1, 'SETOR', 2), (1, 2, 'COORDENACAO_CURSO', NULL), (2, 3, 'SETOR', 4);
         SET session_replication_role = replica;
-        INSERT INTO chamado (instituicao_id, numero, conversa_id, setor_id) VALUES (1, 'ONE-1', 1, 2);
+        INSERT INTO chamado (instituicao_id, numero, conversa_id, setor_id) VALUES (1, 'ESC-000001', 1, 2);
         """;
 
     static async Task Executar(string cs, string sql)

@@ -115,7 +115,7 @@ public class AgendadorTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             destinos[para] = i;
             await f.Db(i.Id, async db =>
             {
-                db.EmailsSaida.Add(EmailSaida.Criar(para, $"[{i.Nome}] ONE-1: nova resposta", "Olá", f.Relogio.GetUtcNow().UtcDateTime));
+                db.EmailsSaida.Add(EmailSaida.Criar(para, $"[{i.Nome}] ESC-000001: nova resposta", "Olá", f.Relogio.GetUtcNow().UtcDateTime));
                 await db.SaveChangesAsync();
             });
         }
@@ -142,7 +142,7 @@ public class AgendadorTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             var msg = await PrimeiroAcessoTests.EmailNoMailpit(para);
             Assert.NotNull(msg);
             Assert.Equal(i.Nome, msg.Value.GetProperty("From").GetProperty("Name").GetString());
-            Assert.Equal($"[{i.Nome}] ONE-1: nova resposta", msg.Value.GetProperty("Subject").GetString());
+            Assert.Equal($"[{i.Nome}] ESC-000001: nova resposta", msg.Value.GetProperty("Subject").GetString());
             Assert.NotNull(await f.Db(i.Id, db => db.EmailsSaida.Where(e => e.Destinatario == para).Select(e => e.EnviadoEm).SingleAsync()));
         }
     }

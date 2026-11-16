@@ -21,7 +21,7 @@ public class SessaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             .ToList();
 
     static HttpRequestMessage Pedido(string metodo, string padrao) =>
-        new(new HttpMethod(metodo), Regex.Replace(Regex.Replace(padrao, @"\{numero[^}]*\}", "ONE-1"), @"\{[^}]+\}", "1"))
+        new(new HttpMethod(metodo), Regex.Replace(Regex.Replace(padrao, @"\{numero[^}]*\}", "ESC-000001"), @"\{[^}]+\}", "1"))
         {
             Content = metodo is "GET" or "DELETE" ? null : JsonContent.Create(new { }),
         };

@@ -51,7 +51,7 @@ public class PushEnviadorTests : IClassFixture<EsclariFactoryEnviadorReal>
     {
         var (envio, rede) = Montar(HttpStatusCode.Created);
         var (p256dh, auth) = Navegador();
-        var payload = PayloadPush.De("univag", "ONE-1", "Univag", "ABERTO", null);
+        var payload = PayloadPush.De("univag", "ESC-000001", "Univag", "ABERTO", null);
 
         await envio.Enviar("https://push.teste/abc", p256dh, auth, payload, CancellationToken.None);
 

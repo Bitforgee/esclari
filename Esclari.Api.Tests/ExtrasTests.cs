@@ -139,6 +139,25 @@ public class ExtrasTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     }
 
     [Fact]
+    public async Task Duplicado_grava_numero_original_no_formato_novo()
+    {
+        var b = await Balcao.Criar(f);
+        await f.Db(b.Instituicao.Id, db => db.Database.ExecuteSqlAsync($"UPDATE instituicao SET ultimo_numero_chamado = 5 WHERE id = {b.Instituicao.Id}"));
+        var seis = await b.Chamado(descricao: "seis");
+        var original = await b.Chamado(descricao: "sete");
+        var repetido = await b.Chamado(descricao: "oito");
+        Assert.Equal(("ESC-000006", "ESC-000007"), (seis, original));
+
+        var inexistente = await b.A.Cliente.PostAsJsonAsync($"/api/chamados/{repetido}/duplicado", new { numeroOriginal = "ESC-000999" });
+        Assert.Equal(HttpStatusCode.BadRequest, inexistente.StatusCode);
+        Assert.True((await inexistente.Json()).GetProperty("errors").TryGetProperty("numeroOriginal", out _));
+
+        var r = await b.A.Cliente.PostAsJsonAsync($"/api/chamados/{repetido}/duplicado", new { numeroOriginal = "ESC-000007" });
+
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        Assert.Equal("ESC-000007", (await b.Ler(repetido)).NumeroOriginal);
+    }
+    [Fact]
     public async Task Original_invalido_400()
     {
         var b = await Balcao.Criar(f);
@@ -146,7 +165,7 @@ public class ExtrasTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var outro = await f.AlunoLogado(b.Instituicao);
         var deOutro = (await (await outro.Cliente.PostAsJsonAsync("/api/atendimento-direto", new { descricao = "oi" })).Json()).GetProperty("numero").GetString();
 
-        foreach (var original in new[] { numero, deOutro, "ONE-999" })
+        foreach (var original in new[] { numero, deOutro, "ESC-000999" })
             Assert.Equal(HttpStatusCode.BadRequest, (await b.A.Cliente.PostAsJsonAsync($"/api/chamados/{numero}/duplicado", new { numeroOriginal = original })).StatusCode);
 
         var c = await b.Ler(numero);

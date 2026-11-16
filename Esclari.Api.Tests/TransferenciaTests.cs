@@ -19,7 +19,7 @@ public class TransferenciaTests(EsclariFactory f) : IClassFixture<EsclariFactory
 
         Assert.Equal(HttpStatusCode.Created, r.StatusCode);
         var j = await r.Json();
-        Assert.Equal("ONE-1", j.GetProperty("numero").GetString());
+        Assert.Equal("ESC-000001", j.GetProperty("numero").GetString());
         Assert.Equal("ABERTO", j.GetProperty("estado").GetString());
         Assert.Equal("Triagem", j.GetProperty("setor").GetString());
         var chamado = await f.Db(c.Instituicao.Id, db => db.Chamados.SingleAsync(x => x.ConversaId == id));
@@ -160,10 +160,7 @@ public class TransferenciaTests(EsclariFactory f) : IClassFixture<EsclariFactory
         Assert.Equal([HttpStatusCode.Created, HttpStatusCode.Conflict], respostas.Select(r => r.StatusCode).Order());
         Assert.Equal(1, await f.Db(aluno.Instituicao.Id, db => db.Chamados.CountAsync(c => c.ConversaId == id)));
     }
-}
 
-public class NumeracaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
-{
     static async Task<string> Direto(Aluno a) =>
         (await (await a.Cliente.PostAsJsonAsync("/api/atendimento-direto", new { descricao = "oi" })).Json()).GetProperty("numero").GetString()!;
 
@@ -173,9 +170,9 @@ public class NumeracaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var univag = await f.AlunoLogado(await f.Instituicao());
         var demo = await f.AlunoLogado(await f.Instituicao());
 
-        Assert.Equal("ONE-1", await Direto(univag));
-        Assert.Equal("ONE-2", await Direto(univag));
-        Assert.Equal("ONE-1", await Direto(demo));
+        Assert.Equal("ESC-000001", await Direto(univag));
+        Assert.Equal("ESC-000002", await Direto(univag));
+        Assert.Equal("ESC-000001", await Direto(demo));
     }
 
     [Fact]
@@ -185,9 +182,17 @@ public class NumeracaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 
         var numeros = await Task.WhenAll(Enumerable.Range(0, 20).Select(_ => Direto(aluno)));
 
-        Assert.Equal(Enumerable.Range(1, 20).Select(n => $"ONE-{n}").Order(), numeros.Order());
+        Assert.Equal(Enumerable.Range(1, 20).Select(n => $"ESC-{n:D6}").Order(), numeros.Order());
     }
-}
+
+    [Fact]
+    public async Task Numero_com_seis_digitos_apos_o_contador_122()
+    {
+        var aluno = await f.AlunoLogado();
+        await f.Db(aluno.Instituicao.Id, db => db.Database.ExecuteSqlAsync($"UPDATE instituicao SET ultimo_numero_chamado = 122 WHERE id = {aluno.Instituicao.Id}"));
+
+        Assert.Equal("ESC-000123", await Direto(aluno));
+    }}
 
 public class CategoriaOrigemTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 {

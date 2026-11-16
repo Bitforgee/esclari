@@ -125,7 +125,7 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     static string Normalizar(string corpo)
     {
         corpo = Regex.Replace(corpo, @"""(id|[a-z][A-Za-z]*Id)"":\d+", @"""$1"":0");
-        corpo = Regex.Replace(corpo, @"ONE-\d+", "ONE-n");
+        corpo = Regex.Replace(corpo, @"ESC-\d+", "ESC-n");
         return Regex.Replace(corpo, @"""\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?""", @"""instante""");
     }
 
@@ -348,7 +348,7 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
                 Mensagens = mensagens.Select(m => new { m.Tipo, Autor = Nome(m.AutorId), m.Texto, Anexos = anexos[m.Id].Select(x => new { x.Nome, x.Tipo, x.Tamanho }) }),
                 Eventos = eventos.Select(e => new { e.Tipo, Ator = Nome(e.AtorId), e.De, e.Para, e.Detalhe, CriadoEm = Minutos(e.CriadoEm) }),
             };
-            return Regex.Replace($"{caso} {JsonSerializer.Serialize(linha, Legivel)}", @"ONE-\d+", "ONE-n");
+            return Regex.Replace($"{caso} {JsonSerializer.Serialize(linha, Legivel)}", @"ESC-\d+", "ESC-n");
         });
 
     static async Task<List<string>> Gravacoes(EsclariFactory n)

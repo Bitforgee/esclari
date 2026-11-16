@@ -135,7 +135,7 @@ public class ConversaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 
         Assert.Equal(HttpStatusCode.Created, (await c.Cliente.PostAsJsonAsync($"/api/conversas/{id}/transferir", new { })).StatusCode);
         var depois = await (await c.Cliente.GetAsync($"/api/conversas/{id}")).Json();
-        Assert.Equal("ONE-1", depois.GetProperty("chamadoNumero").GetString());
+        Assert.Equal("ESC-000001", depois.GetProperty("chamadoNumero").GetString());
         Assert.Equal("TRANSFERIDA", depois.GetProperty("desfecho").GetString());
     }
 
