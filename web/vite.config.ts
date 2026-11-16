@@ -23,10 +23,10 @@ export default defineConfig({
         id: '/',
         scope: '/',
         display: 'standalone',
-        theme_color: '#fafbfd',
+        theme_color: '#224fa7',
         background_color: '#fafbfd',
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
           { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],

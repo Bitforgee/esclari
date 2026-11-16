@@ -8,6 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "e2e": "playwright test",
+    "e2e:preparar": "node scripts/preparar-e2e.mjs",
+    "icones": "node scripts/gerar-icones.mjs",
     "coverage": "vitest run --coverage --coverage.reporter=lcov"
   },
   "dependencies": {
