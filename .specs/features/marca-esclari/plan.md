@@ -59,6 +59,8 @@ Só o que a feature adiciona ou muda de assinatura. O comando `node scripts/gera
 
 ## Criteria
 
+> Leitura depois da porta 5 (17/11): onde os critérios 1, 3, 4, 7, 16 e 17 falam do balão, de `#224fa7` ou de "um único path", valem o E de duas peças, `#2438d6` e a regra da porta 5; os números dos critérios não mudam. O logo escuro `GET /marca/logo-horizontal-escuro.svg` (200, SVG) entra na Surface junto dos outros arquivos de `marca/`.
+
 ### S1: Arquivos da marca (P1)
 
 O Esclari passa a ter símbolo, logo horizontal e favicon em SVG, e os PNG de app gerados deles.

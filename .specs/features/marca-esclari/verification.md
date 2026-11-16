@@ -2,106 +2,122 @@
 
 **Verdict**: FAIL
 **Profile**: ui
-**Diff range**: e39d84d..HEAD
-**Round**: 1 - full
+**Diff range**: e39d84d..HEAD (HEAD = eddecf9)
+**Round**: 2 - full
 **Verifier**: independent sub-agent (author != verifier)
 
-Os 25 checks passam e têm evidência localizada. O veredito é FAIL por um mutante que sobreviveu e por um elemento que a direção A desenha e nenhum check cobre: a variante do logo sobre fundo escuro (`dark:brightness-0 dark:invert` em `web/src/acesso/Acesso.tsx:55`).
+A rodada 1 foi FAIL na variante escura do logo (logo claro no tema escuro); a lacuna virou o C26, e depois o usuario aprovou o redesenho (porta 5, `Amendment 1`), que esta rodada verifica inteiro. Esta rodada e FAIL por um mutante sobrevivente no C3 (o braco marca-texto do `favicon.svg` nao tem assercao). Os 26 checks tem prova verde em `HEAD`.
 
 ## Binding sources
 
 | Source | Opened | Contradiction | Uncovered |
 | --- | --- | --- | --- |
-| `direcoes.png` (direção A) | yes - lida e comparada com `simbolo.svg`, `favicon.svg`, `logo-horizontal.svg` e os 4 PNG, renderizados num Chromium e vistos como imagem | none: balão com dois cortes à direita formando o E, cauda embaixo à esquerda, palavra "Esclari" em azul à direita do símbolo, placa azul arredondada nos ícones, apple-touch e maskable com placa cheia | A faixa escura da direção A (símbolo e logo em branco sobre preto) não tem nenhum check. O código a implementa em `web/src/acesso/Acesso.tsx:55` (`dark:brightness-0 dark:invert`) e a fault F5 que remove essa classe passa em todos os testes |
-| `pesquisa.md` | yes | none (maskable em círculo de 40%, apple-touch opaco 180 px sem cantos, favicon só com o símbolo, cor única: todos conferem com C5, C8, C9, C3) | - |
-| `plan.md` Surface e Landing | yes | none (quatro rotas de Surface em C18, quatro portas em C1/C10/C2/C3) | Landing porta 3 fixa "Public Sans 700, entreletras -0.02em": C2 só prova "em curvas, sem `<text>`"; a fonte e o entreletras não têm check (julgado impreciso e visível no render, não selecionável por seletor) |
-| `AGENTS.md` | yes | none | Gates `crapper` e `dryer` do `web/`: NÃO foram rodados, não estão disponíveis nesta máquina. `mutator` está suspenso (AD-025) e também não foi rodado |
+| `plan.md` (Surface, Landing porta 5, criterios) | yes - lido inteiro | none contra os checks. Nota: os criterios AC 1, 3, 16 e a Surface ainda dizem `#224fa7`, "balao" e "um `<path>`"; a porta 5 e o Amendment 1 os supersedem e os checks seguem a porta 5. O plano nao foi emendado nos criterios (lacuna de precisao, minor) | - |
+| `proposta-v4.png` (E com coluna e dois bracos Ultramar, braco do meio marca-texto solto; "esclari" em Sora SemiBold minuscula, pingo do "i" amarelo; claro, escuro, placa 64/40/24, logo na raiz) | yes - imagem aberta e comparada com a renderizacao de `web/public/marca/*.svg` e `web/public/icons/*.png` | none: E, braco amarelo em pilula, pingo amarelo, variante escura (E e letras brancas, amarelo igual), placa azul com E branco batem | favicon: o braco marca-texto de `favicon.svg` nao tem check que o exija (ver C3) |
+| `direcoes-2.png`, `direcoes-3.png` (alternativas rejeitadas) | yes - listadas na pasta; a escolha esta registrada na porta 5 | none | - |
+| `pesquisa.md` | yes - lido | none (tamanho minimo 16 px, zona segura 40%, apple-touch 180 batem com C5, C9, C20) | - |
+| `AGENTS.md` | yes - regras injetadas lidas | none: textos em pt-BR, sem comentario no codigo, testes em portugues; `crapper`/`dryer` nao rodados (indisponiveis nesta maquina); `mutator` suspenso (AD-025) | - |
+
+Julgamento visual (renderizado em Chromium, comparado com `proposta-v4.png`):
+
+- Minor (cosmetico): em `logo-horizontal.svg` e `logo-horizontal-escuro.svg` o terminal do "r" encosta no tronco do "i" (ampliado a 300 px de altura: os dois se fundem no topo). A `proposta-v4.png` mostra o "r" e o "i" muito proximos; no 24 px do logo da raiz ler "ri" funciona, mas o espaco entre as letras e menor que o das outras. Nenhum check cobre o espacamento.
+- Sem defeito: E, braco amarelo, pingo amarelo, variante escura, `icon-192`/`icon-512` (placa arredondada), `icon-maskable-512` e `apple-touch-icon` (placa cheia, E centrado). `simbolo.svg` aberto em `<img>` sai preto porque `currentColor` nao herda em `<img>`; e o contrato da porta 5, nao defeito.
 
 ## Checks
 
-Provas web: `npm --prefix web test -- --reporter=verbose src/test/logo.test.ts src/test/icones.test.ts src/test/guia.test.ts src/acesso/logo-esclari.test.tsx src/aparencia.test.tsx src/acesso/textos.test.tsx` - exit 0, 40 passed, cada teste nomeado apareceu individualmente. `git status --porcelain` depois: só `.tmp-capturas/` (os PNG regravados são idênticos byte a byte).
+Todas as provas rodadas em `HEAD`: Vitest `src/test/logo.test.ts src/test/icones.test.ts src/test/guia.test.ts src/acesso/logo-esclari.test.tsx src/acesso/textos.test.tsx src/aparencia.test.tsx` (6 arquivos, 41 testes, 0 falhas; os 23 testes dos arquivos novos listados um a um no reporter JSON); `dotnet test` (5 aprovados: `Manifesto_padrao_sem_aparencia`, `Payload_exato_sem_dado_pessoal`, tres `EmailMarcaTests`); `npm --prefix web run build` + one-liner do C17 (exit 0); Playwright `e2e/marca.spec.ts` contra o dev server na 5173 (3 passed). `git status --porcelain` depois: so `.tmp-capturas/`.
 
 | Check | Claim | Proof run | Evidence | Result |
 | --- | --- | --- | --- | --- |
-| C1 | simbolo.svg: viewBox 64, um path currentColor, sem mask/filter/gradient/text/hex | vitest `simbolo.svg tem um unico path com currentColor` ✓ | `web/src/test/logo.test.ts:17-21` - `expect(contar(svg, /<path\b/g)).toBe(1)`; `expect(svg).not.toMatch(/#[0-9a-fA-F]{3,8}\b/)` | PASS |
-| C2 | logo-horizontal: razão ≥ 3,5, ≥ 2 paths, sem text/font-family/image | vitest `logo-horizontal.svg traz simbolo e palavra em curvas` ✓ | `logo.test.ts:27-29` - `expect(largura / altura).toBeGreaterThanOrEqual(3.5)`; `expect(contar(svg, /<path\b/g)).toBeGreaterThanOrEqual(2)` (viewBox real 225.8×64 = 3,53) | PASS |
-| C3 | favicon `#224fa7` + `#ffffff`, `link rel=icon svg` antes do png | vitest `favicon.svg e declarado antes do png` ✓ | `logo.test.ts:34-39` - `expect(svg).toContain(\`fill="${Marca}"\`)`; `expect(iconePng).toBeGreaterThan(iconeSvg)` | PASS |
-| C4 | marca só usa `#224fa7`, branco ou currentColor | vitest `a marca so usa 224fa7 e branco` ✓ | `logo.test.ts:44,48` - `expect(arquivos.sort()).toEqual(['favicon.svg','logo-horizontal.svg','simbolo.svg'])`; `expect([Marca, Branco, 'currentcolor'], ...).toContain(cor)` | PASS |
-| C5 | PNG 192/512/512/180 | vitest `dimensoes dos quatro icones` ✓ | `web/src/test/icones.test.ts:128` - `expect([nome, imagem.largura, imagem.altura]).toEqual([nome, lado, lado])` (lista inclui `['apple-touch-icon.png', 180]` na linha 125) | PASS |
-| C6 | script sai 0 e regrava os 4 PNG | vitest `gera os quatro icones com exit 0` ✓ | `icones.test.ts:149-150` - `expect(r.status, r.stderr).toBe(0)`; `expect(r.stdout).toContain(\`icones: gravado ${nome}\`)` | PASS |
-| C7 | sem simbolo.svg: exit 1, mensagem cita o arquivo, PNG iguais | vitest `sem simbolo.svg` ✓ | `icones.test.ts:163-166` - `expect(r.status).toBe(1)`; `expect(r.stderr).toContain('simbolo.svg')`; `expect(nomes.map(hash)).toEqual(antes)`; ramo no código `web/scripts/gerar-icones.mjs:16-19` | PASS |
-| C8 | maskable e apple com alfa 255 em todo pixel | vitest `maskable e apple sao opacos` ✓ | `icones.test.ts:136` - `expect(imagem.alfa(x, y), ...).toBe(255)` em loop 512² e 180² | PASS |
-| C9 | pixel branco do maskable a ≤ 205 px do centro, ≥ 1 branco | vitest `maskable dentro da zona segura` ✓ | `icones.test.ts:88,91` - `expect(Math.hypot(x + 0.5 - 256, y + 0.5 - 256), ...).toBeLessThanOrEqual(raio)` (raio = 410/2 = 205); `expect(brancos).toBeGreaterThan(0)` | PASS |
-| C10 | apple-touch-icon existe e está declarado | vitest `apple-touch-icon declarado` ✓ | `icones.test.ts:141` - `toContain('<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />')`; `:143-144` opaco azul nos cantos | PASS |
-| C11 | favicon em 16 px: 15%-45% de pixels com luminância > 200 | vitest `favicon em 16 px` ✓ | `logo.test.ts:78-79` - `expect(proporcao).toBeGreaterThanOrEqual(0.15)`; `expect(proporcao).toBeLessThanOrEqual(0.45)` | PASS |
-| C12 | manifesto do vite lista os 3 ícones com os mesmos nomes e `purpose` | vitest `manifesto lista os tres icones` ✓ | `icones.test.ts:173-177` - `expect(icones).toEqual([['/icons/icon-192.png','any'],['/icons/icon-512.png','any'],['/icons/icon-maskable-512.png','maskable']])` | PASS |
-| C13 | `/` mostra img `alt="Esclari"` dentro do h1 de nome "Esclari" | vitest `raiz mostra o logo dentro do h1` ✓ | `web/src/acesso/logo-esclari.test.tsx:33,35-36` - `findByRole('heading', { level: 1, name: 'Esclari' })`; `expect(logo).toHaveAttribute('src', '/marca/logo-horizontal.svg')` | PASS |
-| C14 | login da instituição sem `/marca/`; só `Acesso.tsx` e `aparencia.tsx` citam `/marca/` em `web/src`; `Esclari.Api` não cita | vitest `marca do Esclari so aparece na raiz` ✓ | `logo-esclari.test.tsx:43,47,49` - `expect(imagem.getAttribute('src')).not.toMatch(/^\/marca\//)`; `expect(citam.sort()).toEqual(['Acesso.tsx', 'aparencia.tsx'])`; `expect(api_.filter(...)).toEqual([])` (ver julgamento abaixo) | PASS |
-| C15 | manifesto padrão devolve os 3 caminhos e tamanhos | `dotnet test Esclari.Api.Tests --filter "...ManifestoTests.Manifesto_padrao_sem_aparencia\|...PushAgendadorTests.Payload_exato_sem_dado_pessoal"` exit 0, 2 passed | `Esclari.Api.Tests/ManifestoTests.cs:52-53` - `Assert.Equal(["/icons/icon-192.png", "/icons/icon-512.png", "/icons/icon-maskable-512.png"], ...)`; `Assert.Equal(["192x192", "512x512", "512x512"], ...)`. Teste não tocado pelo diff (`git diff --stat` de `Esclari.Api*` vazio) | PASS |
-| C16 | push sem ícone leva `/icons/icon-192.png` | mesma invocação dotnet | `Esclari.Api.Tests/PushAgendadorTests.cs:89` - `Assert.Equal("""{"titulo":"Univag",...,"icone":"/icons/icon-192.png"}""", payload)` | PASS |
-| C17 | `sw.js` gerado precacheia os 3 SVG de `marca/` | `npm --prefix web run build` + one-liner `node -e` do checks.md, exit 0; `sw.js` contém `marca/simbolo.svg,marca/logo-horizontal.svg,marca/favicon.svg`; `globPatterns` em `web/vite.config.ts:104` cobre `svg` | one-liner: `if(!s.includes('marca/'+f+'.svg'))process.exit(1)` → exit 0 | PASS |
-| C18 | 3 SVG e o apple-touch respondem 200 com o tipo certo | `E2E_URL=http://localhost:5173 npx playwright test e2e/marca.spec.ts` (dev server) - 3 passed | `web/e2e/marca.spec.ts:13-14` - `expect(resposta.status(), caminho).toBe(200)`; `expect(resposta.headers()['content-type'], caminho).toContain(tipo)`. Observação: prova contra o servidor de dev do Vite, não contra o `Esclari.Api` servindo `wwwroot` (o container em :8080 estava desligado); é o que o check pede | PASS |
-| C19 | guia tem os 9 títulos | vitest `tem os nove titulos` ✓ | `web/src/test/guia.test.ts:11` - `expect(titulos).toEqual(['Nome','Símbolo','Logo horizontal','Cor','Área de respeito','Tamanho mínimo','Usos proibidos','Tipografia','Voz'])` | PASS |
-| C20 | guia: metade da altura, 16 px, 96 px de largura, `#224fa7` | vitest `traz as medidas e a cor` ✓ | `guia.test.ts:15-18` - `toContain('metade da altura do símbolo')`; `toMatch(/símbolo[^.]*16 px/)`; `toMatch(/logo horizontal[^.]*96 px de largura/)`; `toContain('#' + '224fa7')` | PASS |
-| C21 | ≥ 5 usos proibidos, cada um com "porque" | vitest `usos proibidos sao 5 com razao` ✓ | `guia.test.ts:23-24` - `expect(itens.length).toBeGreaterThanOrEqual(5)`; `expect(item, item).toContain('porque')` (o guia tem 7 itens) | PASS |
-| C22 | nome certo, `ESC-NNNNNN`, `esclari.com.br`, sem "ESCLARI" | vitest `escreve o nome do jeito certo` ✓ | `guia.test.ts:29-32` - `toContain('ESC-NNNNNN')`; `toContain('esclari.com.br')`; `expect(guia).not.toContain('ESCLARI')` | PASS |
-| C23 | 360×780: logo com 40 px de altura, sem scroll horizontal | playwright `raiz em celular 360x780` ✓ | `web/e2e/marca.spec.ts:24-25` - `expect(Math.round(caixa.height)).toBe(40)`; `expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)` | PASS |
-| C24 | 844×390: logo e dois parágrafos, `scrollHeight` ≤ 390 | playwright `raiz deitada 844x390` ✓ | `marca.spec.ts:31-34` - `getByText('Dúvidas, ...')`/`getByText('Abra o endereço ...')` `toBeVisible()`; `expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(390)` | PASS |
-| C25 | com ícone da instituição o SVG sai e o PNG aponta para `imagens/icone?v=2`; sem ícone voltam `/icons/icon-192.png` e `/marca/favicon.svg` | vitest `favicon da marca some com icone da instituicao e volta sem ele` ✓ | `logo-esclari.test.tsx:56-57,62-63` - `toHaveAttribute('href', iconeDaInstituicao)`; `expect(noHead('link[rel="icon"][type="image/svg+xml"]')).toBeNull()`; `toHaveAttribute('href', '/marca/favicon.svg')` | PASS |
+| C1 | `simbolo.svg`: viewBox 64, 1 path currentColor, 1 rect `#ffd43b`, sem mask/filter/etc., so uma cor hex | vitest `logo.test.ts` "simbolo.svg tem um unico path com currentColor" exit 0 | `web/src/test/logo.test.ts:24` `expect(contar(svg, /<path\b/g)).toBe(1)`; `:26` `contar(svg, /<rect\b/g)).toBe(1)`; `:30` `expect(cores).toEqual([MarcaTexto])` | PASS |
+| C2 | os dois logos: razao >= 3,5, >= 2 paths, sem text/font-family/image; letras `#0e1330` claro e `#ffffff` escuro | vitest "logo-horizontal.svg traz simbolo e palavra em curvas" | `logo.test.ts:37` `expect(largura / altura, arquivo).toBeGreaterThanOrEqual(3.5)`; `:38` `contar(svg, /<path\b/g)...toBeGreaterThanOrEqual(2)`; `:40` `expect(svg, arquivo).toContain(\`fill='${letras}'\`)`; `:41` marca-texto | PASS |
+| C3 | `favicon.svg` placa `#2438d6`, simbolo `#ffffff` **com o braco marca-texto**; `index.html` declara SVG antes do PNG | vitest "favicon.svg e declarado antes do png" | `logo.test.ts:47` `toContain(\`fill='${Ultramar}'\`)`; `:48` `toContain(\`fill='${Branco}'\`)`; `:52` `expect(iconePng).toBeGreaterThan(iconeSvg)`. Nenhuma assercao exige `#ffd43b` em `favicon.svg` (busca: so `:41` e `:27`, em outros arquivos). Mutante: remover o `<rect fill='#ffd43b'>` do favicon, 5/5 testes seguem verdes | FAIL |
+| C4 | os 4 SVG so usam as quatro cores | vitest "a marca so usa as quatro cores" | `logo.test.ts:57` `expect(arquivos.sort()).toEqual([...4 nomes])`; `:61` `expect([Ultramar, Branco, MarcaTexto, Tinta, 'currentcolor'], ...).toContain(cor)` | PASS |
+| C5 | PNG 192, 512, 512, 180 | vitest "dimensoes dos quatro icones" | `web/src/test/icones.test.ts:132` `expect([nome, imagem.largura, imagem.altura]).toEqual([nome, lado, lado])` com 192/512/512/180 em `:129` | PASS |
+| C6 | script exit 0 e regrava os 4 PNG | vitest "gera os quatro icones com exit 0" | `icones.test.ts:153` `expect(r.status, r.stderr).toBe(0)`; `:154` `expect(r.stdout).toContain(\`icones: gravado ${nome}\`)` x4. `git status --porcelain` depois: nada rastreado mudou (bytes identicos) | PASS |
+| C7 | sem `simbolo.svg`: exit 1, mensagem cita o arquivo, PNG iguais | vitest "sem simbolo.svg" | `icones.test.ts:167` `expect(r.status).toBe(1)`; `:168` `expect(r.stderr).toContain('simbolo.svg')`; `:170` `expect(nomes.map(hash)).toEqual(antes)` | PASS |
+| C8 | maskable e apple com alfa 255 em todo pixel | vitest "maskable e apple sao opacos" | `icones.test.ts:140` `expect(imagem.alfa(x, y), ...).toBe(255)` em todos os pixels dos dois arquivos | PASS |
+| C9 | fora da placa `#2438d6`, todo pixel a <= 205 px do centro; >= 1 branco e >= 1 amarelo | vitest "maskable dentro da zona segura" | `icones.test.ts:91` `...toBeLessThanOrEqual(raio)` (raio 205); `:92` `expect(ehCorDaMarca(p)).toBe(true)` fora do raio; `:94` `brancos > 0`; `:95` `expect(amarelos).toBeGreaterThan(0)` | PASS (ver Faults: le o PNG commitado, nao o gerador) |
+| C10 | `apple-touch-icon` existe e `index.html` o declara | vitest "apple-touch-icon declarado" | `icones.test.ts:145` `toContain('<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />')`; `:147` `expect(ehCorDaMarca(imagem.pixel(0, 0))).toBe(true)` | PASS |
+| C11 | favicon a 16 px: 15% a 45% de pixels claros | vitest "favicon em 16 px" | `logo.test.ts:91` `expect(proporcao).toBeGreaterThanOrEqual(0.15)`; `:92` `toBeLessThanOrEqual(0.45)` | PASS |
+| C12 | manifesto lista os 3 icones, mesmos nomes e `purpose` | vitest "manifesto lista os tres icones" | `icones.test.ts:177` `expect(icones).toEqual([['/icons/icon-192.png','any'],['/icons/icon-512.png','any'],['/icons/icon-maskable-512.png','maskable']])` | PASS |
+| C13 | raiz: `h1` com `img` alt "Esclari", src claro, nome "Esclari" | vitest `logo-esclari.test.tsx` "raiz mostra o logo dentro do h1" | `web/src/acesso/logo-esclari.test.tsx:33` `findByRole('heading', { level: 1, name: 'Esclari' })`; `:35` `toHaveAttribute('src', '/marca/logo-horizontal.svg')`; `:36` `toHaveAttribute('alt', 'Esclari')`. Codigo: `Acesso.tsx:56` | PASS |
+| C14 | login da Univag sem `img` `/marca/`; so `Acesso.tsx` e `aparencia.tsx` citam `/marca/`; API nao cita | vitest "marca do Esclari so aparece na raiz" | `logo-esclari.test.tsx:54` `expect(imagem.getAttribute('src')).not.toMatch(/^\/marca\//)`; `:58` `expect(citam.sort()).toEqual(['Acesso.tsx', 'aparencia.tsx'])`; `:60` `expect(api_.filter(...)).toEqual([])` | PASS |
+| C15 | manifesto padrao: 3 caminhos e tamanhos 192/512/512 | `dotnet test --filter ManifestoTests.Manifesto_padrao_sem_aparencia` exit 0 (Aprovado) | `Esclari.Api.Tests/ManifestoTests.cs:52` `Assert.Equal(["/icons/icon-192.png", "/icons/icon-512.png", "/icons/icon-maskable-512.png"], ...)`; `:53` `Assert.Equal(["192x192", "512x512", "512x512"], ...)` | PASS |
+| C16 | push padrao leva `"icone":"/icons/icon-192.png"` | `dotnet test --filter PushAgendadorTests.Payload_exato_sem_dado_pessoal` exit 0 (Aprovado) | `Esclari.Api.Tests/PushAgendadorTests.cs:89` `Assert.Equal("""{"titulo":"Univag",...,"icone":"/icons/icon-192.png"}""", payload)` | PASS |
+| C17 | `sw.js` gerado lista os 4 SVG no precache | `npm --prefix web run build` + one-liner exit 0 | one-liner `process.exit(1)` se faltar `marca/<f>.svg`; saida 0; `sw.js` contem `marca/favicon.svg`, `logo-horizontal-escuro.svg`, `logo-horizontal.svg`, `simbolo.svg` (regex no arquivo gerado) | PASS |
+| C18 | os 4 SVG e o apple-touch respondem 200 com o tipo certo | Playwright `marca.spec.ts` "arquivos da marca respondem 200" (3 passed) | `web/e2e/marca.spec.ts:14` `expect(resposta.status(), caminho).toBe(200)`; `:15` `expect(resposta.headers()['content-type'], caminho).toContain(tipo)`; lista em `:3-9` com 5 caminhos | PASS (servidor de dev, nao o Kestrel; ver nota) |
+| C19 | nove titulos do guia | vitest `guia.test.ts` "tem os nove titulos" | `web/src/test/guia.test.ts:11` `expect(titulos).toEqual(['Nome','Simbolo',...,'Voz'])` (guia: `## ` nas linhas 5 a 51) | PASS |
+| C20 | medidas e cor do guia | vitest "traz as medidas e a cor" | `guia.test.ts:15` `toContain('metade da altura do simbolo')`; `:16` `toMatch(/simbolo[^.]*16 px/)`; `:17` `toMatch(/logo horizontal[^.]*96 px de largura/)`; `:18` `toContain('#' + '2438d6')` | PASS |
+| C21 | >= 5 usos proibidos, cada um com "porque" | vitest "usos proibidos sao 5 com razao" | `guia.test.ts:23` `expect(itens.length).toBeGreaterThanOrEqual(5)`; `:24` `expect(item, item).toContain('porque')` | PASS |
+| C22 | nome certo, `ESC-NNNNNN`, `esclari.com.br`, sem "ESCLARI" | vitest "escreve o nome do jeito certo" | `guia.test.ts:29` `toContain('ESC-NNNNNN')`; `:30` `toContain('esclari.com.br')`; `:31` `expect(guia).not.toContain('ESCLARI')` | PASS |
+| C23 | 360x780: logo com 40 px, sem rolagem horizontal | Playwright "raiz em celular 360x780" | `marca.spec.ts:25` `expect(Math.round(caixa.height)).toBe(40)`; `:26` `expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360)` | PASS |
+| C24 | 844x390: logo e dois paragrafos, `scrollHeight` <= 390 | Playwright "raiz deitada 844x390" | `marca.spec.ts:35` `expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(390)`; `:32-34` logo e dois textos visiveis | PASS |
+| C25 | com icone da instituicao o SVG sai e o PNG aponta para o icone; sem icone volta | vitest "favicon da marca some com icone da instituicao e volta sem ele" | `logo-esclari.test.tsx:67` `toHaveAttribute('href', iconeDaInstituicao)`; `:68` `expect(noHead('link[rel="icon"][type="image/svg+xml"]')).toBeNull()`; `:73` `href '/icons/icon-192.png'`; `:74` `toHaveAttribute('href', '/marca/favicon.svg')` | PASS |
+| C26 | `light` usa o logo claro; `dark` e `black` usam o escuro | vitest "raiz troca o logo no tema escuro" | `logo-esclari.test.tsx:44` `expect(titulo.querySelector('img'), tema).toHaveAttribute('src', '/marca/' + arquivo)` para light, dark, black (`:40`). Codigo: `Acesso.tsx:52` `useTema()`, `:56` ternario | PASS |
 
-Julgamentos pedidos:
+Nota C18: a prova roda contra o dev server do Vite (como o checks.md manda), nao contra o Kestrel com `wwwroot`; o `Content-Type` do Kestrel para `.svg` nao foi exercido. Registrado como precisao, nao como falha.
 
-- **Testes existentes editados.** `web/src/aparencia.test.tsx:149-150`: o apple-touch padrão agora é `/icons/apple-touch-icon.png` (AC 8, trocado, não removido) e o PNG da aba é achado por `link[rel="icon"][type="image/png"]` porque o `index.html` ganhou um segundo `link rel=icon`. O `toBe` do valor segue exato e a linha `:148` (`href` igual à base) ficou igual. Não enfraquece. `web/src/acesso/textos.test.tsx:54-57`: o texto "Esclari" saiu da lista de `estados([...])` (a `img` não é texto) e entrou `expect(within(container).getByRole('heading', { level: 1, name: 'Esclari' })).toContainElement(within(container).getByRole('img', { name: 'Esclari' }))`; `t.conferir` e `t.todos()` seguem valendo para os outros dois textos. Mesma cobertura do nome, mais a estrutura. Não enfraquece.
-- **Scan do C14.** Pegaria: um novo `.ts/.tsx` de `web/src` que cite `/marca/`, e um `.cs` de `Esclari.Api` que o cite. Não pegaria: citação em arquivo não `.cs` da API (só `CodeMetricsConfig.txt` existe fora de `.cs`/`bin`/`obj`/`wwwroot`, sem templates), caminho montado sem a string literal `/marca/`, nem uma nova `img` do Esclari dentro de `Acesso.tsx`/`aparencia.tsx` em tela que não seja o login da Univag com identidade (a checagem de `img` só renderiza `/univag`; sidebar e assistente ficam só pelo scan textual). Cobertura razoável para a regressão realista (alguém importar o logo em outro arquivo), fraca para uma regressão dentro de `Acesso.tsx`.
-- **Aviso do `validate_checks.py`** sobre a linha de Coverage sem tamanho `(N)`: confirmado como cosmético; os conjuntos reais foram recomputados abaixo.
-- **Gates do AGENTS.md**: `crapper` e `dryer` não foram rodados (indisponíveis nesta máquina).
+Edicoes em testes existentes (julgamento 1), todas sem enfraquecer:
+
+- `web/src/aparencia.test.tsx:149-150`: `apple-touch-icon` `'/icons/icon-192.png'` -> `'/icons/apple-touch-icon.png'` (AC 8) e o seletor `link[rel="icon"]` -> `link[rel="icon"][type="image/png"]` com o mesmo valor `/icons/icon-192.png`. A linha `:148` (que compara o `link[rel="icon"]` com o do `base`) segue como estava. Mesma forca.
+- `web/src/acesso/textos.test.tsx:54,57`: o texto "Esclari" saiu da lista de textos da raiz porque agora e uma `img`; entrou `getByRole('heading', { level: 1, name: 'Esclari' })` contendo `getByRole('img', { name: 'Esclari' })` (`:57`). Equivalente ou mais forte.
+- `web/src/test/icones.test.ts`: `corDaMarca` `#224fa7` -> `#2438d6` (muda o valor esperado, acompanha a porta 5; as assercoes que a usam seguem); entrou `marcaTexto` e `amarelos > 0` (`:95`). Nenhuma assercao removida ou afrouxada.
+- `Esclari.Api.Tests/EmailMarcaTests.cs:82` e `ManifestoTests.cs:49`: cor padrao esperada `#224fa7` -> `#2438d6`, acompanhando `LayoutEmail.CorPadrao` e `ManifestoInstituicao.CorPadrao`. Nao enfraquecem.
+
+Julgamento 3 (cores padrao da API): `LayoutEmail.CorPadrao` e provada por `EmailMarcaTests.cs:82` (`Assert.Contains("background-color:#2438d6", simples)`) e `ManifestoInstituicao.CorPadrao` por `ManifestoTests.cs:49` (`Assert.Equal("#2438d6", ...theme_color)`); a mutacao 5 abaixo derrubou o segundo. Nenhum check C1..C26 as nomeia (a cor e a porta 5, mas os dois testes sao so de testes existentes editados); lacuna de rastreio, minor.
+
+Julgamento 4: o azul padrao da interface (`web/src/index.css`) e o preset "Azul Esclari" continuam `#224fa7`; isso esta declarado no `Amendment 1` de `checks.md` ("continuam `#224fa7` ate um passo separado") e em `guia-de-marca.md:26`. Aceito pelo usuario; nao conta como achado.
+
+Julgamento 2: `crapper` e `dryer` nao estao disponiveis nesta maquina: **nao rodados**. `mutator` suspenso (AD-025): nao rodado, check de mutacao fica aberto como "suspenso por decisao do usuario".
 
 ## Coverage
 
-Recomputado a partir de `plan.md` (Surface, Landing, Criteria 1-20), `direcoes.png` e dos arquivos reais, não da tabela do autor.
+Recomputado a partir da Surface, Landing, criterios e guia do plano (nao da tabela do autor).
 
 | Set (size) | Recomputed from | Member -> proof | Unproven |
 | --- | --- | --- | --- |
-| Rotas de Surface (4) | `plan.md` Surface | `/marca/simbolo.svg` C18 · `/marca/logo-horizontal.svg` C18 · `/marca/favicon.svg` C18 · `/icons/apple-touch-icon.png` C18 (todas 200; `marca.spec.ts:13`) | - |
-| Exit codes de `gerar-icones.mjs` (2) | `gerar-icones.mjs:13,19,22` (`process.exit(1)` por `theme_color`, simbolo ausente, path ausente) | 0 C6 · 1 simbolo ausente C7 | ramo `<path d>` ausente (`gerar-icones.mjs:20-23`) sem teste; o plano só exige o ramo do arquivo ausente (AC 5), então registrado como observação, não como FAIL |
-| PNG gerados (4) | `ICONES` em `gerar-icones.mjs` | `icon-192` C5 · `icon-512` C5 · `icon-maskable-512` C5, C8, C9 · `apple-touch-icon` C5, C8, C10 | - |
-| Portas de Landing (4) | `plan.md` Landing | 1 símbolo C1 · 2 nomes C10, C12, C15, C16 · 3 palavra em curvas C2 · 4 cor C3, C4, C20 | - |
-| Arquivos de `marca/` (3) | `ls web/public/marca` | `simbolo.svg` C1, C4 · `logo-horizontal.svg` C2, C4 · `favicon.svg` C3, C4, C11 | - |
-| Critérios AC 1-20 (20) | `plan.md` Criteria | AC1 C1 · AC2 C2 · AC3 C3, C25 · AC4 C5, C6 · AC5 C7 · AC6 C8 · AC7 C9 · AC8 C10 · AC9 C11 · AC10 C13 · AC11 C14, C25 · AC12 C12, C15 · AC13 C16 · AC14 C17 · AC15 C19 · AC16 C20 · AC17 C21 · AC18 C22 · AC19 C23 · AC20 C24 | - |
-| Guia, seções (9) | `guia-de-marca.md` | os 9 títulos em C19 `guia.test.ts:11` | - |
-| Guia, medidas (4) | `plan.md` AC 16 | respeito, 16 px, 96 px, cor em C20 `guia.test.ts:15-18` | - |
-| Identidade da instituição prevalece (6) | `plan.md` Observable / AC 11 | login C14 · aba C25 · sidebar C14 (só scan textual) · e-mail C14 (só scan textual de `.cs`) · manifesto C15 · push C16 | - |
-| Variantes do logo que `direcoes.png` A desenha (3: sobre claro, sobre escuro, placa do app) | `direcoes.png` seção A (faixa clara e faixa escura) | sobre claro C13 · placa do app C3, C5 · **sobre escuro: nenhum** | **variante sobre fundo escuro (`dark:brightness-0 dark:invert`, `Acesso.tsx:55`)**: sem check; a fault F5 sobreviveu |
-| Observable da raiz `/` (4 com critério) | `plan.md` Observable | offline C17 · celular C23 · deitado C24 · acessibilidade C13 | - |
+| Surface, rotas e status (4 rotas, todas `200`; mais `logo-horizontal-escuro.svg`, adicionado pela porta 5 = 5 arquivos) | `plan.md` Surface + `marca.spec.ts:3-9` | simbolo, logo, logo-escuro, favicon, apple-touch: 200 e tipo em `marca.spec.ts:14-15` (C18) | - (o escuro nao esta na Surface do plano: lacuna de precisao do plano, nao do check) |
+| `gerar-icones.mjs` saidas (3: exit 0; exit 1 sem `simbolo.svg`; exit 1 sem Chromium; o ramo `theme_color` ausente e `<path>` ausente existem no codigo) | `gerar-icones.mjs` | 0 -> C6; 1 simbolo -> C7; 1 chromium -> `icones.test.ts:122` (existente) | ramos `theme_color` ausente e "simbolo sem `<path>`" (`gerar-icones.mjs`) sem teste; nao sao check do plano (AC 5 so nomeia o arquivo ausente) - precisao, nao falha |
+| PNG gerados (4) | `ICONES` em `gerar-icones.mjs` | `icon-192` C5; `icon-512` C5; `icon-maskable-512` C5, C8, C9; `apple-touch-icon` C5, C8, C10 | - |
+| SVG da marca (4) | `web/public/marca/` | simbolo C1, C4; logo C2, C4, C18; logo-escuro C2, C4, C18, C26; favicon C3, C4, C11, C18, C25 | `favicon.svg`: cor marca-texto (C3) |
+| Landing, portas (5) | `plan.md` Landing | 1 e 4 superseded; 2 -> C10, C12, C15, C16; 3 -> C2; 5 -> C1, C3, C4, C9, C11, C20 | porta 5, "braco marca-texto no favicon" (C3) |
+| Cores da marca (4) | porta 5 | `#2438d6` C3/C4/C9; `#ffd43b` C1/C2/C4/C9; `#0e1330` C2/C4; `#ffffff` C2/C3/C4 | `#ffd43b` em `favicon.svg` |
+| Temas do logo da raiz (3: light, dark, black) | `Acesso.tsx:56` e `useTema` | light, dark, black em C26 (`logo-esclari.test.tsx:40`) | - (o tema `system` passa por `useTema`, sem teste proprio; precisao) |
+| Estados da raiz `/` (4 com criterio; os demais `n/a` com motivo no plano) | `plan.md` Observable | offline C17; 360x780 C23; 844x390 C24; acessibilidade C13 | - |
+| Linhas do `Observable` com "teclado aberto" e "toque" | `plan.md` Observable | `n/a` com motivo (sem campo, sem controle) | - |
+| Guia, secoes (9) e medidas (4) | `guia-de-marca.md` | secoes C19; respeito, 16 px, 96 px, cor C20; usos proibidos C21; nome C22 | - |
+| Identidade da instituicao prevalece (6) | AC 11 | login C14; aba C25; sidebar C14; e-mail C14 e `EmailMarcaTests.cs:82`; manifesto C15; push C16 | - |
 
 ## Test policy rows
 
 | Row | Files it classifies | Required proof | Expectation met |
 | --- | --- | --- | --- |
-| `gerar-icones.mjs` decide: um no próprio nível; saídas 0 (C6) e 1 por arquivo ausente (C7) | `web/scripts/gerar-icones.mjs` | spawn do script | yes - `icones.test.ts:149-150` (exit 0) e `:163-166` (exit 1, mensagem, PNG intactos); fault F2 matou C9 |
-| `Raiz` instrumentação: um no nível da tela; logo, `alt` e nome do `h1` (C13) | `web/src/acesso/Acesso.tsx` | teste de tela | yes - `logo-esclari.test.tsx:33-36` |
-| Arquivos estáticos de `marca/` e `icons/`: um na fronteira, status e tipo de cada (C18) | `web/public/marca/*.svg`, `web/public/icons/apple-touch-icon.png` | servidor | yes - `marca.spec.ts:13-14` nos 4 arquivos, contra o servidor de dev do Vite |
+| `gerar-icones.mjs` (decide) | `web/scripts/gerar-icones.mjs` | um no proprio nivel (spawn): C6 e C7 | yes - exit 0 (`icones.test.ts:153`) e exit 1 (`:167`) |
+| `Raiz` em `Acesso.tsx` (decide o logo pelo tema) | `web/src/acesso/Acesso.tsx` | um no nivel da tela: C13 e uma linha por tema (C26) | yes - `logo-esclari.test.tsx:35` e `:44` (light, dark, black); a mutacao 2 abaixo foi morta |
+| Arquivos estaticos de `marca/` e `icons/` | `web/public/marca/*`, `web/public/icons/*` | um na fronteira (servidor): C18 | yes - 5 arquivos com status e tipo (`marca.spec.ts:14-15`), contra o servidor de dev |
 
 ## Faults injected
 
-Worktree `git worktree add %TEMP%\ver-wt HEAD` (com junção para `web/node_modules`), removida ao fim; `git worktree prune`; `git status --porcelain` do tree real igual ao baseline (só `.tmp-capturas/`). Sem `git stash`.
+Worktree em `%TEMP%\wt-marca` (e `wt-marca2`), `node_modules` por juncao, sem `git stash`. Descartado; `git worktree list` nao mostra os meus e `git status --porcelain` do arbol real: so `.tmp-capturas/` (igual ao inicio). Os outros worktrees listados (`v2-wt-api`, `v2-wt-web`, `verif-m1`) ja existiam e nao sao meus.
 
 | Mutation | Location | Killed |
 | --- | --- | --- |
-| segundo `<path>` acrescentado ao símbolo | `web/public/marca/simbolo.svg` | yes - `logo.test.ts > simbolo.svg tem um unico path com currentColor` |
-| escala do maskable 0.68 → 0.9, ícones regenerados com o script | `web/scripts/gerar-icones.mjs` (`ESCALA`) | yes - `icones.test.ts > maskable dentro da zona segura` |
-| remoção do `<link>` do SVG quando a instituição tem ícone (`atual?.remove()` apagado) | `web/src/aparencia.tsx:93-96` (`faviconDaMarca`) | yes - `logo-esclari.test.tsx > favicon da marca some com icone da instituicao e volta sem ele` e `aparencia.test.tsx > ícone na aba, na barra recolhida e no topo` |
-| mínimo do logo horizontal 96 px → 80 px | `guia-de-marca.md` (Tamanho mínimo) | yes - `guia.test.ts > traz as medidas e a cor` |
-| `dark:brightness-0 dark:invert` removido do logo da raiz | `web/src/acesso/Acesso.tsx:55` | **no** - `logo-esclari.test.tsx` e `textos.test.tsx`: 10 passed; nada afirma a variante escura |
+| escala maskable `0.68` -> `0.95` | `web/scripts/gerar-icones.mjs` (`ESCALA`) | yes, so na segunda execucao: na 1a rodada de `icones.test.ts` 10/10 passam (o teste de zona segura le o PNG commitado antes de o teste "gera os quatro icones" regrava-lo); na 2a rodada `maskable dentro da zona segura` falha. Ver achado 2 |
+| `Raiz` sempre usa o logo claro | `web/src/acesso/Acesso.tsx:56` | yes - `logo-esclari.test.tsx` "raiz troca o logo no tema escuro" falha (1 failed, 3 passed) |
+| `faviconDaMarca` vira no-op (`remove()` -> `void atual`) | `web/src/aparencia.tsx` (`faviconDaMarca`) | yes - 2 falhas em `logo-esclari.test.tsx`/`aparencia.test.tsx` |
+| tirar o `<rect>` marca-texto de `simbolo.svg` | `web/public/marca/simbolo.svg` | yes - `logo.test.ts` "simbolo.svg tem um unico path com currentColor" falha |
+| `ManifestoInstituicao.CorPadrao` volta a `#224fa7` | `Esclari.Api/Instituicoes/Carga/ManifestoInstituicao.cs` | yes - `ManifestoTests.Manifesto_padrao_sem_aparencia` falha (1 falha, 9 aprovados) |
+| (extra, tirada do cap para provar um achado) tirar o `<rect fill='#ffd43b'>` de `favicon.svg` | `web/public/marca/favicon.svg` | **no** - `logo.test.ts` 5/5 passam: nenhuma assercao exige o braco amarelo no favicon (C3, C4 so limita as cores permitidas, C11 mede luminancia e o amarelo `#ffd43b` tem luminancia ~210) |
 
 ## Gate
 
-`npm --prefix web test -- ... (6 arquivos)` - 40 passed, 0 failed · `dotnet test` (C15, C16) - 2 passed, 0 failed · `playwright test e2e/marca.spec.ts` - 3 passed, 0 failed · `npm --prefix web run build` + one-liner do C17 - exit 0.
+`npm --prefix web test -- <6 arquivos>` - 41 passed, 0 failed · `dotnet test Esclari.Api.Tests --filter "ManifestoTests.Manifesto_padrao_sem_aparencia|PushAgendadorTests.Payload_exato_sem_dado_pessoal|EmailMarcaTests"` - 5 passed, 0 failed · `npm --prefix web run build` + one-liner C17 - exit 0 · `playwright test e2e/marca.spec.ts` (E2E_URL 5173) - 3 passed. `crapper`/`dryer`: nao rodados (indisponiveis nesta maquina). `mutator`: suspenso (AD-025).
 
-Não rodados: `crapper` e `dryer` (indisponíveis nesta máquina), `mutator` (suspenso, AD-025).
+## Ranked gaps
 
-Gaps, em ordem:
-
-1. Mutante sobrevivente F5 e variante escura da direção A sem check (`Acesso.tsx:55`). Correção: um check novo (por exemplo, a `img` da raiz tem as classes `dark:brightness-0 dark:invert`, ou um e2e com `colorScheme: 'dark'` que mede pixels claros no logo). Como checks aprovados não mudam, isto é decisão para quem aprovou o plano (ou aceitar o risco com um AD).
-2. Ramo "`simbolo.svg` sem `<path d>`" (`gerar-icones.mjs:20-23`) sem teste. Observação, não exigido pelo plano.
-3. C18 prova contra o servidor de dev do Vite, não contra o `Esclari.Api` servindo `wwwroot` (container :8080 desligado). Observação.
+1. **C3 / mutante sobrevivente** (FAIL): o braco marca-texto de `favicon.svg` (`#ffd43b`) nao e exigido por nenhuma assercao. `web/src/test/logo.test.ts:45-53` so confere `#2438d6` (`:47`) e `#ffffff` (`:48`); retirar o `<rect>` amarelo mantem os 5 testes verdes. O check C3 diz "simbolo `#ffffff` com o braco marca-texto". Correcao minima: acrescentar em `logo.test.ts` `expect(svg).toContain(\`fill='${MarcaTexto}'\`)` ao teste de C3.
+2. **C9 / precisao** (minor): `maskable dentro da zona segura` le o PNG commitado; mudar a escala em `gerar-icones.mjs` so e pego depois que o teste do C6 regrava os PNG e outra rodada le o resultado (a 1a rodada fica verde). Nao ha prova que o PNG commitado e o que o script gera hoje (C6 nao compara bytes). Sugestao: o teste do C6 comparar o hash dos PNG regravados com o `git`/valor anterior, ou o do C9 gerar em pasta temporaria.
+3. **Marca / cosmetico** (minor): o "r" encosta no "i" nos dois logos horizontais (`web/public/marca/logo-horizontal.svg`, `logo-horizontal-escuro.svg`); sem check de espacamento.
+4. **Plano / precisao** (minor): `plan.md` AC 1, 3, 16 e a Surface seguem com `#224fa7`, balao e "um `<path>`"; a porta 5 e o `Amendment 1` os supersedem so nos checks. `logo-horizontal-escuro.svg` nao esta na Surface. As cores padrao da API (`LayoutEmail`, `ManifestoInstituicao`) so tem prova em testes existentes editados, sem check proprio.
+5. **C18 / nivel** (minor): a prova roda no servidor de dev; o `Content-Type` do Kestrel para os SVG nao e exercido.

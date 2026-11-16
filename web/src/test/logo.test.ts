@@ -46,6 +46,7 @@ describe('marca em SVG', () => {
     const svg = marca('favicon.svg')
     expect(svg).toContain(`fill='${Ultramar}'`)
     expect(svg).toContain(`fill='${Branco}'`)
+    expect(svg).toContain(`fill='${MarcaTexto}'`)
     const iconeSvg = indexHtml.indexOf('<link rel="icon" type="image/svg+xml" href="/marca/favicon.svg"')
     const iconePng = indexHtml.indexOf('<link rel="icon" type="image/png"')
     expect(iconeSvg).toBeGreaterThan(-1)
