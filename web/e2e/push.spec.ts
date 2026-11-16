@@ -53,7 +53,7 @@ test('push desligado não deixa erro no console', async ({ page }) => {
   page.on('console', (m) => m.type() === 'error' && erros.push(m.text()))
   page.on('pageerror', (e) => erros.push(e.message))
   page.on('response', (r) => r.status() >= 400 && r.status() < 500 && falhas.push(`${r.status()} ${r.url()}`))
-  for (const [caminho, marca] of [['assistente', 'Mensagem'], ['fila', 'ONE-123'], ['conta', 'Ana']] as const) {
+  for (const [caminho, marca] of [['assistente', 'Mensagem'], ['fila', 'ESC-000123'], ['conta', 'Ana']] as const) {
     const pedido = page.waitForResponse('**/api/push/chave')
     await page.goto(`/univag/${caminho}`)
     expect((await pedido).status()).toBe(204)

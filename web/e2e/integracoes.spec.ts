@@ -8,7 +8,7 @@ const moodleVazio = {
   urlLogin: 'http://localhost:8080/api/moodle/univag/login', urlLancamento: 'http://localhost:8080/api/moodle/univag/lancamento', urlJwks: 'http://localhost:8080/api/moodle/univag/jwks',
 }
 const mcpVazio = { url: 'http://localhost:8080/api/mcp/univag', tokens: [] }
-const tokenCriado = { id: 1, nome: 'Cursor', token: 'onemcp_univag.AbCdEfGhIjKlMnOpQrStUvWxYz0123456789_-AbCdE', final: 'abcde', criadoEm: '2026-11-11T12:00:00Z', expiraEm: '2027-02-09T12:00:00Z' }
+const tokenCriado = { id: 1, nome: 'Cursor', token: 'esclarimcp_univag.AbCdEfGhIjKlMnOpQrStUvWxYz0123456789_-AbCdE', final: 'abcde', criadoEm: '2026-11-11T12:00:00Z', expiraEm: '2027-02-09T12:00:00Z' }
 
 async function abrir(page: Page, largura: number, altura: number, caminho = '/univag/integracoes') {
   await page.setViewportSize({ width: largura, height: altura })

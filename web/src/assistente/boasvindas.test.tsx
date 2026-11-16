@@ -82,8 +82,8 @@ describe('assistente com identidade', () => {
   it('contato na transferência', async () => {
     const transferida: Record<string, Rota> = {
       'POST /api/conversas': () => [201, { conversaId: 7, resposta: { tipo: 'sem_base', texto: 'Não encontrei.' } }],
-      'POST /api/conversas/7/transferir': () => [201, { numero: 'ONE-1', estado: 'ABERTO', setor: 'Financeiro' }],
-      'GET /api/chamados/ONE-1': () => [200, chamado()],
+      'POST /api/conversas/7/transferir': () => [201, { numero: 'ESC-000001', estado: 'ABERTO', setor: 'Financeiro' }],
+      'GET /api/chamados/ESC-000001': () => [200, chamado()],
     }
     const transferir = async () => {
       await userEvent.type(await screen.findByLabelText('Mensagem'), 'preciso do boleto')
@@ -91,7 +91,7 @@ describe('assistente com identidade', () => {
       await screen.findByText('Não encontrei.')
       await userEvent.click(screen.getByRole('button', { name: /Falar com atendente/ }))
       await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Falar com atendente' }))
-      await screen.findByText(comTexto('Sua solicitação ONE-1 foi para Financeiro'))
+      await screen.findByText(comTexto('Sua solicitação ESC-000001 foi para Financeiro'))
     }
     const completo = { horario: 'Seg a sex, 8h às 18h', telefone: '(65) 3688-6000', email: 'atendimento@univag.edu.br' }
     const casos: [Record<string, string | null>, string[], string[]][] = [

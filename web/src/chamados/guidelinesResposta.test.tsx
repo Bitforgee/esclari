@@ -8,8 +8,8 @@ const detalhe = chamado({ solicitante: 'Ana', eventos: [], acoes: ['responder', 
 const titulo = () => document.querySelector('header h1')
 
 async function abrirChamado() {
-  api({ 'GET /api/auth/me': () => [200, atendente], 'GET /api/chamados/ONE-1': () => [200, detalhe], 'GET /api/chamados?escopo=fila': () => [200, []] })
-  abrir('/univag/chamados/ONE-1')
+  api({ 'GET /api/auth/me': () => [200, atendente], 'GET /api/chamados/ESC-000001': () => [200, detalhe], 'GET /api/chamados?escopo=fila': () => [200, []] })
+  abrir('/univag/chamados/ESC-000001')
   return screen.findByLabelText('Responder')
 }
 
@@ -22,11 +22,11 @@ describe('guarda da resposta do chamado', () => {
     await sair()
 
     expect(await screen.findByRole('dialog', { name: 'Descartar resposta?' })).toBeInTheDocument()
-    expect(titulo()).toHaveTextContent('ONE-1')
+    expect(titulo()).toHaveTextContent('ESC-000001')
 
     await userEvent.click(screen.getByRole('button', { name: 'Continuar editando' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(titulo()).toHaveTextContent('ONE-1')
+    expect(titulo()).toHaveTextContent('ESC-000001')
     expect(screen.getByLabelText('Responder')).toHaveValue('Segue o boleto.')
   })
 

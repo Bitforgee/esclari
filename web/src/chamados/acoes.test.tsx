@@ -18,13 +18,13 @@ function daEquipe(parcial: Partial<Chamado> = {}): Chamado {
 }
 
 function detalhe(c: Chamado, rotas: Record<string, Rota> = {}, quem = atendente) {
-  const chamadas = api({ 'GET /api/auth/me': () => [200, quem], 'GET /api/chamados/ONE-1': () => [200, c], ...rotas })
-  abrir('/univag/chamados/ONE-1')
+  const chamadas = api({ 'GET /api/auth/me': () => [200, quem], 'GET /api/chamados/ESC-000001': () => [200, c], ...rotas })
+  abrir('/univag/chamados/ESC-000001')
   return chamadas
 }
 
 const enviados = (chamadas: Chamada[]) => chamadas.filter((c) => c.metodo === 'POST').map((c) => [c.url, c.corpo])
-const leituras = (chamadas: Chamada[]) => chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/chamados/ONE-1').length
+const leituras = (chamadas: Chamada[]) => chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/chamados/ESC-000001').length
 const botao = (nome: string) => screen.queryByRole('button', { name: nome })
 
 describe('ações do chamado', () => {
@@ -46,8 +46,8 @@ describe('ações do chamado', () => {
 
   it('assumir e confirmar mostram o chamado devolvido pela API', async () => {
     const chamadas = detalhe(daEquipe({ acoes: ['assumir', 'confirmar'], responsavel: null }), {
-      'POST /api/chamados/ONE-1/assumir': () => [200, daEquipe({ acoes: ['confirmar'], responsavel: 'Bruno' })],
-      'POST /api/chamados/ONE-1/confirmar': () => [200, daEquipe({ acoes: [], estado: 'FECHADO', responsavel: 'Bruno' })],
+      'POST /api/chamados/ESC-000001/assumir': () => [200, daEquipe({ acoes: ['confirmar'], responsavel: 'Bruno' })],
+      'POST /api/chamados/ESC-000001/confirmar': () => [200, daEquipe({ acoes: [], estado: 'FECHADO', responsavel: 'Bruno' })],
     })
     expect(await screen.findByText(/sem responsável/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Assumir' }))
@@ -59,14 +59,14 @@ describe('ações do chamado', () => {
     expect(await screen.findByText('Fechado')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(enviados(chamadas)).toEqual([
-      ['/api/chamados/ONE-1/assumir', {}],
-      ['/api/chamados/ONE-1/confirmar', {}],
+      ['/api/chamados/ESC-000001/assumir', {}],
+      ['/api/chamados/ESC-000001/confirmar', {}],
     ])
   })
 
   it('conflito relê o chamado e mostra o detail', async () => {
     const chamadas = detalhe(daEquipe({ acoes: ['assumir'] }), {
-      'POST /api/chamados/ONE-1/assumir': () => [409, { status: 409, detail: 'Outro atendente assumiu o chamado.' }],
+      'POST /api/chamados/ESC-000001/assumir': () => [409, { status: 409, detail: 'Outro atendente assumiu o chamado.' }],
     })
     await userEvent.click(await screen.findByRole('button', { name: 'Assumir' }))
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Assumir chamado' }))
@@ -76,7 +76,7 @@ describe('ações do chamado', () => {
 
   it('erro que não é conflito mostra o detail sem reler o chamado', async () => {
     const chamadas = detalhe(daEquipe({ acoes: ['assumir'] }), {
-      'POST /api/chamados/ONE-1/assumir': () => [403, { status: 403, detail: 'Sem permissão.' }],
+      'POST /api/chamados/ESC-000001/assumir': () => [403, { status: 403, detail: 'Sem permissão.' }],
     })
     await userEvent.click(await screen.findByRole('button', { name: 'Assumir' }))
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Assumir chamado' }))
@@ -87,9 +87,9 @@ describe('ações do chamado', () => {
   it('resolver, reclassificar e duplicado enviam o preenchido e limpam o campo', async () => {
     const c = daEquipe({ acoes: ['resolver', 'reclassificar', 'duplicado'] })
     const chamadas = detalhe(c, {
-      'POST /api/chamados/ONE-1/resolver': () => [200, c],
-      'POST /api/chamados/ONE-1/reclassificar': () => [200, c],
-      'POST /api/chamados/ONE-1/duplicado': () => [200, c],
+      'POST /api/chamados/ESC-000001/resolver': () => [200, c],
+      'POST /api/chamados/ESC-000001/reclassificar': () => [200, c],
+      'POST /api/chamados/ESC-000001/duplicado': () => [200, c],
     })
     const resolucao = await screen.findByLabelText('Resolução')
     expect(botao('Resolver')).toBeDisabled()
@@ -108,20 +108,20 @@ describe('ações do chamado', () => {
     const original = screen.getByLabelText('Duplicado de outro pedido do mesmo aluno')
     await userEvent.type(original, '  ')
     expect(botao('Marcar')).toBeDisabled()
-    await userEvent.type(original, 'one-7 ')
+    await userEvent.type(original, 'esc-000007 ')
     await userEvent.click(screen.getByRole('button', { name: 'Marcar' }))
     await waitFor(() => expect(original).toHaveValue(''))
 
     expect(enviados(chamadas)).toEqual([
-      ['/api/chamados/ONE-1/resolver', { texto: '   Boleto reenviado.' }],
-      ['/api/chamados/ONE-1/reclassificar', { categoriaId: 4 }],
-      ['/api/chamados/ONE-1/duplicado', { numeroOriginal: 'ONE-7' }],
+      ['/api/chamados/ESC-000001/resolver', { texto: '   Boleto reenviado.' }],
+      ['/api/chamados/ESC-000001/reclassificar', { categoriaId: 4 }],
+      ['/api/chamados/ESC-000001/duplicado', { numeroOriginal: 'ESC-000007' }],
     ])
   })
 
   it('rejeitar envia o motivo e cancelar só envia a justificativa preenchida', async () => {
     const c = chamado({ estado: 'RESOLVIDO', acoes: ['rejeitar', 'cancelar'] })
-    const chamadas = detalhe(c, { 'POST /api/chamados/ONE-1/rejeitar': () => [200, c], 'POST /api/chamados/ONE-1/cancelar': () => [200, c] }, me())
+    const chamadas = detalhe(c, { 'POST /api/chamados/ESC-000001/rejeitar': () => [200, c], 'POST /api/chamados/ESC-000001/cancelar': () => [200, c] }, me())
     const motivo = await screen.findByLabelText('Não resolveu? Explique o motivo')
     expect(botao('Rejeitar resolução')).toBeDisabled()
     await userEvent.type(motivo, 'Não chegou.')
@@ -143,9 +143,9 @@ describe('ações do chamado', () => {
     await waitFor(() => expect(enviados(chamadas)).toHaveLength(3))
 
     expect(enviados(chamadas)).toEqual([
-      ['/api/chamados/ONE-1/rejeitar', { motivo: 'Não chegou.' }],
-      ['/api/chamados/ONE-1/cancelar', {}],
-      ['/api/chamados/ONE-1/cancelar', { motivo: 'Desisti.' }],
+      ['/api/chamados/ESC-000001/rejeitar', { motivo: 'Não chegou.' }],
+      ['/api/chamados/ESC-000001/cancelar', {}],
+      ['/api/chamados/ESC-000001/cancelar', { motivo: 'Desisti.' }],
     ])
   })
 
@@ -160,7 +160,7 @@ describe('ações do chamado', () => {
   })
 
   it('subir pede o motivo', async () => {
-    const chamadas = detalhe(daEquipe({ acoes: ['responder', 'subir'] }), { 'POST /api/chamados/ONE-1/subir': () => [200, daEquipe({ acoes: [], setor: 'Coordenação' })] })
+    const chamadas = detalhe(daEquipe({ acoes: ['responder', 'subir'] }), { 'POST /api/chamados/ESC-000001/subir': () => [200, daEquipe({ acoes: [], setor: 'Coordenação' })] })
     await userEvent.click(await screen.findByRole('button', { name: 'Subir' }))
     const dialogo = within(await screen.findByRole('dialog', { name: 'Subir para a próxima etapa?' }))
     expect(dialogo.getByRole('button', { name: 'Subir' })).toBeDisabled()
@@ -169,7 +169,7 @@ describe('ações do chamado', () => {
     await userEvent.type(dialogo.getByLabelText('Motivo'), 'A coordenação resolve.')
     await userEvent.click(dialogo.getByRole('button', { name: 'Subir' }))
 
-    await waitFor(() => expect(enviados(chamadas)).toEqual([['/api/chamados/ONE-1/subir', { motivo: '  A coordenação resolve.' }]]))
+    await waitFor(() => expect(enviados(chamadas)).toEqual([['/api/chamados/ESC-000001/subir', { motivo: '  A coordenação resolve.' }]]))
     await waitFor(() => expect(botao('Subir')).not.toBeInTheDocument())
   })
 

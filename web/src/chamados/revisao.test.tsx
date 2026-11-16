@@ -31,10 +31,10 @@ describe('listas de chamados revisadas', () => {
       for (const [agora, criadoEm, texto, dias] of casos) {
         celular()
         relogio(agora)
-        const item = { numero: 'ONE-1', titulo: 'boleto', categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm, dias }
+        const item = { numero: 'ESC-000001', titulo: 'boleto', categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm, dias }
         api({ 'GET /api/auth/me': () => [200, equipe], [`GET /api/chamados?escopo=${escopo}`]: () => [200, [item]] })
         abrir(caminho)
-        await screen.findByText('ONE-1')
+        await screen.findByText('ESC-000001')
         const linha = linhas()[0]
         expect(within(linha).getByText('Aberto')).toBeInTheDocument()
         expect(within(linha).getByText(texto, { exact: false })).toBeInTheDocument()
@@ -53,9 +53,9 @@ describe('listas de chamados revisadas', () => {
     ['FECHADO', 'Encerrada'],
   ])('próximo passo por estado (%s)', async (estado, passo) => {
     celular()
-    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados?escopo=meus': () => [200, [{ numero: 'ONE-3', titulo: 'histórico', estado, criadoEm: '2026-11-02T12:00:00Z' }]] })
+    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados?escopo=meus': () => [200, [{ numero: 'ESC-000003', titulo: 'histórico', estado, criadoEm: '2026-11-02T12:00:00Z' }]] })
     abrir('/univag/solicitacoes')
-    await screen.findByText('ONE-3')
+    await screen.findByText('ESC-000003')
     const linha = linhas()[0]
     expect(within(linha).getByText(passo).textContent).toBe(passo)
   })
@@ -64,12 +64,12 @@ describe('listas de chamados revisadas', () => {
     celular()
     relogio('2026-11-04T15:00:00Z')
     const item = (n: number, criadoEm: string) => ({
-      numero: `ONE-${n}`, titulo: `pedido ${n}`, categoria: 'Financeiro > Boletos e mensalidades', estado: 'ABERTO', responsavel: null, criadoEm, dias: 3,
+      numero: `ESC-${String(n).padStart(6, '0')}`, titulo: `pedido ${n}`, categoria: 'Financeiro > Boletos e mensalidades', estado: 'ABERTO', responsavel: null, criadoEm, dias: 3,
       aluno: 'Ana Beatriz da Silva', setor: 'Coordenação de Sistemas',
     })
     api({ 'GET /api/auth/me': () => [200, equipe], 'GET /api/chamados?escopo=fila': () => [200, [item(1, '2026-11-01T15:00:00Z'), item(2, '2026-11-03T15:00:00Z')]] })
     abrir('/univag/fila')
-    await screen.findByText('ONE-1')
+    await screen.findByText('ESC-000001')
     const [primeira, segunda] = linhas()
     for (const [linha, data] of [[primeira, 'aberto há 3 dias'], [segunda, 'aberto ontem']] as const) {
       expect(within(linha).getByText('Financeiro > Boletos e mensalidades', { exact: false })).toBeInTheDocument()
@@ -84,12 +84,12 @@ describe('listas de chamados revisadas', () => {
 
 describe('detalhe do chamado revisado', () => {
   const detalhe = (c: Chamado, quem = me()) =>
-    api({ 'GET /api/auth/me': () => [200, quem], 'GET /api/chamados/ONE-1': () => [200, c], 'POST /api/chamados/ONE-1/cancelar': () => [200, c] })
+    api({ 'GET /api/auth/me': () => [200, quem], 'GET /api/chamados/ESC-000001': () => [200, c], 'POST /api/chamados/ESC-000001/cancelar': () => [200, c] })
 
   it('aluno sem barra e Cancelar solicitação com confirmação', async () => {
     celular()
     const chamadas = detalhe(chamado({ estado: 'ABERTO', acoes: ['responder', 'cancelar'] }))
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
     const cancelar = await screen.findByRole('button', { name: 'Cancelar solicitação' })
     expect(screen.queryByRole('button', { name: 'Ações' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Mais' })).not.toBeInTheDocument()
@@ -99,21 +99,21 @@ describe('detalhe do chamado revisado', () => {
     await userEvent.click(cancelar)
     const dialogo = await screen.findByRole('dialog', { name: 'Cancelar a solicitação?' })
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Cancelar solicitação' }))
-    await waitFor(() => expect(chamadas.filter((c) => c.metodo === 'POST').map((c) => c.url)).toEqual(['/api/chamados/ONE-1/cancelar']))
+    await waitFor(() => expect(chamadas.filter((c) => c.metodo === 'POST').map((c) => c.url)).toEqual(['/api/chamados/ESC-000001/cancelar']))
   })
 
   it('sem formulário de resposta para a equipe em RESOLVIDO e FECHADO', async () => {
     const equipeDoChamado = (estado: string, acoes: string[]) => chamado({ estado, eventos: [], acoes, solicitante: 'Ana' })
     for (const [estado, acoes] of [['RESOLVIDO', ['nota', 'reclassificar']], ['FECHADO', []]] as const) {
       detalhe(equipeDoChamado(estado, [...acoes]), me({ papeis: ['ATENDENTE'], matriculas: [] }))
-      abrir('/univag/chamados/ONE-1')
+      abrir('/univag/chamados/ESC-000001')
       await screen.findByRole('heading', { name: 'preciso do boleto' })
       expect(screen.queryByLabelText('Responder')).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Enviar' })).not.toBeInTheDocument()
       cleanup()
     }
     detalhe(chamado({ estado: 'RESOLVIDO', acoes: ['responder', 'confirmar', 'rejeitar'] }))
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
     expect(await screen.findByLabelText('Responder (reabre a solicitação)')).toBeInTheDocument()
   })
   it('barra do celular da equipe assume, responde e abre o Mais', async () => {
@@ -123,17 +123,17 @@ describe('detalhe do chamado revisado', () => {
     const emAtendimento = { ...aberto, estado: 'EM_ATENDIMENTO', acoes: ['responder', 'nota', 'resolver', 'encaminhar'] }
     const chamadas = api({
       'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'], matriculas: [] })],
-      'GET /api/chamados/ONE-1': () => [200, aberto],
-      'POST /api/chamados/ONE-1/assumir': () => [200, emAtendimento],
+      'GET /api/chamados/ESC-000001': () => [200, aberto],
+      'POST /api/chamados/ESC-000001/assumir': () => [200, emAtendimento],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
     const assumir = await screen.findByRole('button', { name: 'Assumir' })
     expect(screen.getByRole('button', { name: 'Mais' })).toBeInTheDocument()
     await userEvent.click(assumir)
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Assumir chamado' }))
     await userEvent.click(await screen.findByRole('button', { name: 'Responder' }))
     expect(document.activeElement).toBe(screen.getByLabelText('Responder'))
-    expect(chamadas.filter((c) => c.metodo === 'POST').map((c) => c.url)).toEqual(['/api/chamados/ONE-1/assumir'])
+    expect(chamadas.filter((c) => c.metodo === 'POST').map((c) => c.url)).toEqual(['/api/chamados/ESC-000001/assumir'])
     await userEvent.click(screen.getByRole('button', { name: 'Mais' }))
     expect(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Encaminhar' })).toBeInTheDocument()
   })
@@ -146,10 +146,10 @@ describe('folha de ações do chamado', () => {
     let responder!: () => void
     api({
       'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'], matriculas: [] })],
-      'GET /api/chamados/ONE-1': () => [200, aberto],
-      'POST /api/chamados/ONE-1/assumir': () => new Promise((resolve) => (responder = () => resolve([200, { ...aberto, estado: 'EM_ATENDIMENTO' }]))),
+      'GET /api/chamados/ESC-000001': () => [200, aberto],
+      'POST /api/chamados/ESC-000001/assumir': () => new Promise((resolve) => (responder = () => resolve([200, { ...aberto, estado: 'EM_ATENDIMENTO' }]))),
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
     await userEvent.click(await screen.findByRole('button', { name: 'Assumir' }))
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Assumir chamado' }))
     await userEvent.click(screen.getByRole('button', { name: 'Mais' }))
@@ -172,8 +172,8 @@ describe('conversa com o assistente vista pela equipe', () => {
         { autor: 'ASSISTENTE', texto: `O boleto fica em ${url}`, criadaEm: '2026-11-02T12:00:05Z' },
       ],
     })
-    api({ 'GET /api/auth/me': () => [200, equipe], 'GET /api/chamados/ONE-1': () => [200, c] })
-    abrir('/univag/chamados/ONE-1')
+    api({ 'GET /api/auth/me': () => [200, equipe], 'GET /api/chamados/ESC-000001': () => [200, c] })
+    abrir('/univag/chamados/ESC-000001')
     await userEvent.click(await screen.findByRole('button', { name: /^Conversa com o assistente/ }))
     const link = await screen.findByRole('link', { name: /portal\.univag\.edu\.br\/financeiro\/boletos\/segunda-via/ })
     expect(link).toHaveAttribute('href', url)

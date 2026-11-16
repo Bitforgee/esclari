@@ -74,7 +74,7 @@ test.describe('C22 celular 360x780', () => {
   test.use({ hasTouch: true, isMobile: true })
 
   test('C22 Topo, AvisosPush, ListaDeEtapas e o X de Anexos medem 44 x 44', async ({ page }) => {
-    await abrir(page, 360, 780, '/univag/chamados/ONE-123', ['ALUNO'])
+    await abrir(page, 360, 780, '/univag/chamados/ESC-000123', ['ALUNO'])
     await expect(page.getByRole('button', { name: 'Voltar' })).toBeVisible()
     expect(await medida(page.getByRole('button', { name: 'Voltar' }))).toEqual([44, 44])
     expect(await medida(page.getByRole('button', { name: 'Ativar avisos neste aparelho' }))).toEqual([44, 44])

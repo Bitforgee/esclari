@@ -46,8 +46,8 @@ describe('assistente revisado', () => {
         {
           'POST /api/conversas': resposta(),
           'POST /api/conversas/7/avaliacao': () => [200, { desfecho: null }],
-          'POST /api/conversas/7/transferir': () => [201, { numero: 'ONE-5', estado: 'ABERTO', setor: 'Financeiro' }],
-          'GET /api/chamados/ONE-5': () => [404, { status: 404, detail: 'x' }],
+          'POST /api/conversas/7/transferir': () => [201, { numero: 'ESC-000005', estado: 'ABERTO', setor: 'Financeiro' }],
+          'GET /api/chamados/ESC-000005': () => [404, { status: 404, detail: 'x' }],
         },
         contato,
       )
@@ -57,11 +57,11 @@ describe('assistente revisado', () => {
       await userEvent.click(screen.getByRole('button', { name: /Falar com atendente/ }))
       await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Falar com atendente' }))
 
-      const titulo = await screen.findByText(comTexto('Sua solicitação ONE-5 foi para Financeiro'))
+      const titulo = await screen.findByText(comTexto('Sua solicitação ESC-000005 foi para Financeiro'))
       expect(screen.queryAllByText(Convite)).toHaveLength(0)
       expect(screen.queryByText(/Transferido para/)).not.toBeInTheDocument()
       expect(screen.getByText('A resposta chega em Solicitações e no seu e-mail.')).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: 'Ver solicitação' })).toHaveAttribute('href', '/univag/chamados/ONE-5')
+      expect(screen.getByRole('link', { name: 'Ver solicitação' })).toHaveAttribute('href', '/univag/chamados/ESC-000005')
       const bloco = titulo.closest('section') as HTMLElement
       if (contato === Contato) expect(within(bloco).getByRole('heading', { name: 'Contato do atendimento' })).toBeInTheDocument()
       else expect(screen.queryByRole('heading', { name: 'Contato do atendimento' })).not.toBeInTheDocument()

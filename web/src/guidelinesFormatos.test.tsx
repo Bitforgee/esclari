@@ -223,11 +223,11 @@ describe('translate no', () => {
     expect(fixas).toContain('sete@univag.edu.br')
   })
 
-  it('C44 o protocolo ONE-n da fila sai com translate no', async () => {
-    const chamado = { numero: 'ONE-1', titulo: 'boleto', categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 }
+  it('C44 o protocolo ESC-n da fila sai com translate no', async () => {
+    const chamado = { numero: 'ESC-000001', titulo: 'boleto', categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 }
     api({ 'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'] })], 'GET /api/chamados?escopo=fila': () => [200, [chamado]] })
     abrir('/univag/fila')
-    expect(fixo(await screen.findByText('ONE-1'))).toHaveAttribute('translate', 'no')
+    expect(fixo(await screen.findByText('ESC-000001'))).toHaveAttribute('translate', 'no')
   })
 
   it('C44 o endereço da instituição na lista da plataforma sai com translate no', async () => {
@@ -306,27 +306,27 @@ describe('translate no nos tokens que faltavam', () => {
     noToken(await screen.findByText('admin@demo.edu.br'))
   })
 
-  it('C44 o protocolo ONE-n da solicitação aberta no Assistente fica em span só do token', async () => {
-    const item = { numero: 'ONE-5', titulo: 'preciso do boleto', estado: 'ABERTO', criadoEm: '2026-11-02T12:00:00Z' }
+  it('C44 o protocolo ESC-n da solicitação aberta no Assistente fica em span só do token', async () => {
+    const item = { numero: 'ESC-000005', titulo: 'preciso do boleto', estado: 'ABERTO', criadoEm: '2026-11-02T12:00:00Z' }
     api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados?escopo=meus': () => [200, [item]] })
     abrir('/univag/assistente')
-    const protocolo = noToken(await screen.findByText('ONE-5'))
-    expect(protocolo.closest('a')).toHaveTextContent('Sua solicitação ONE-5 · Aberto')
+    const protocolo = noToken(await screen.findByText('ESC-000005'))
+    expect(protocolo.closest('a')).toHaveTextContent('Sua solicitação ESC-000005 · Aberto')
   })
 
-  it('C44 o protocolo ONE-n da transferência no Assistente fica em span só do token', async () => {
+  it('C44 o protocolo ESC-n da transferência no Assistente fica em span só do token', async () => {
     api({
       'GET /api/auth/me': () => [200, me()],
-      'POST /api/atendimento-direto': () => [201, { numero: 'ONE-1', estado: 'ABERTO', setor: 'Financeiro' }],
-      'GET /api/chamados/ONE-1': () => [200, chamadoPronto()],
+      'POST /api/atendimento-direto': () => [201, { numero: 'ESC-000001', estado: 'ABERTO', setor: 'Financeiro' }],
+      'GET /api/chamados/ESC-000001': () => [200, chamadoPronto()],
     })
     abrir('/univag/assistente')
     await userEvent.type(await screen.findByLabelText('Mensagem'), 'x')
     await userEvent.click(screen.getByRole('button', { name: /Falar com atendente/ }))
     const d = within(await screen.findByRole('dialog'))
     await userEvent.click(d.getByRole('button', { name: 'Falar com atendente' }))
-    const protocolo = noToken(await screen.findByText('ONE-1'))
-    expect(protocolo.closest('h2')).toHaveTextContent('Sua solicitação ONE-1 foi para Financeiro')
+    const protocolo = noToken(await screen.findByText('ESC-000001'))
+    expect(protocolo.closest('h2')).toHaveTextContent('Sua solicitação ESC-000001 foi para Financeiro')
   })
 })
 
@@ -359,9 +359,9 @@ describe('translate no na matrícula', () => {
   it('C44 a matrícula dos dados do aluno no chamado fica num span só do token', async () => {
     api({
       'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'] })],
-      'GET /api/chamados/ONE-1': () => [200, chamadoPronto({ eventos: [], solicitante: 'Aluno Teste' })],
+      'GET /api/chamados/ESC-000001': () => [200, chamadoPronto({ eventos: [], solicitante: 'Aluno Teste' })],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
     const numero = await screen.findByText('2000567890')
     expect(numero.tagName).toBe('SPAN')
     expect(numero).toHaveAttribute('translate', 'no')

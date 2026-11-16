@@ -108,7 +108,7 @@ describe('conversa com o assistente', () => {
   })
 
   it('falar com atendente sem conversa leva o texto digitado como descrição', async () => {
-    const chamadas = assistente({ 'POST /api/atendimento-direto': () => [201, { numero: 'ONE-1', estado: 'ABERTO', setor: 'Triagem' }], 'GET /api/chamados/ONE-1': () => [200, chamado()] })
+    const chamadas = assistente({ 'POST /api/atendimento-direto': () => [201, { numero: 'ESC-000001', estado: 'ABERTO', setor: 'Triagem' }], 'GET /api/chamados/ESC-000001': () => [200, chamado()] })
     await userEvent.type(await screen.findByLabelText('Mensagem'), 'x')
     await userEvent.click(screen.getByRole('button', { name: /Falar com atendente/ }))
     const d = await dialogo()
@@ -125,7 +125,7 @@ describe('conversa com o assistente', () => {
     await userEvent.paste('a'.repeat(2000))
     expect(falar()).toBeEnabled()
     await userEvent.click(falar())
-    expect(await screen.findByText(comTexto('Sua solicitação ONE-1 foi para Triagem'))).toBeInTheDocument()
+    expect(await screen.findByText(comTexto('Sua solicitação ESC-000001 foi para Triagem'))).toBeInTheDocument()
     expect(chamadas.find((c) => c.url === '/api/atendimento-direto')?.corpo).toEqual({ descricao: 'a'.repeat(2000) })
   })
 
@@ -144,8 +144,8 @@ describe('conversa com o assistente', () => {
   it('transferido mostra o autor só nas respostas do atendente', async () => {
     assistente({
       'POST /api/conversas': responde('transferir', 'Vou transferir.'),
-      'POST /api/conversas/7/transferir': () => [201, { numero: 'ONE-1', estado: 'ABERTO', setor: 'Financeiro' }],
-      'GET /api/chamados/ONE-1': () => [
+      'POST /api/conversas/7/transferir': () => [201, { numero: 'ESC-000001', estado: 'ABERTO', setor: 'Financeiro' }],
+      'GET /api/chamados/ESC-000001': () => [
         200,
         chamado({
           mensagens: [

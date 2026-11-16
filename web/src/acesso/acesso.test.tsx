@@ -540,7 +540,7 @@ describe('barra lateral com grupos', () => {
     ['cadastros', 'Cadastros'],
     ['aparencia', 'Aparência'],
     ['integracoes', 'Integrações'],
-    ['chamados/ONE-7', 'ONE-7'],
+    ['chamados/ESC-000007', 'ESC-000007'],
     ['trocar-senha', 'Trocar senha'],
   ])('título do cabeçalho por rota (%s)', async (caminho, titulo) => {
     api({ 'GET /api/auth/me': () => [200, me({ papeis: Todos })] })

@@ -112,9 +112,9 @@ async function abrirNovaInstituicao() {
 async function abrirChamado() {
   api({
     'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'], matriculas: [] })],
-    'GET /api/chamados/ONE-1': () => [200, chamado({ solicitante: 'Ana', eventos: [], acoes: ['responder', 'duplicado'], setores: [], categorias: [] })],
+    'GET /api/chamados/ESC-000001': () => [200, chamado({ solicitante: 'Ana', eventos: [], acoes: ['responder', 'duplicado'], setores: [], categorias: [] })],
   })
-  abrir('/univag/chamados/ONE-1')
+  abrir('/univag/chamados/ESC-000001')
   return screen.findByLabelText('Duplicado de outro pedido do mesmo aluno')
 }
 
@@ -259,7 +259,7 @@ describe('placeholders de exemplo', () => {
   })
 
   it('C15 protocolo do chamado', async () => {
-    expect(await abrirChamado()).toHaveAttribute('placeholder', 'Ex.: ONE-123…')
+    expect(await abrirChamado()).toHaveAttribute('placeholder', 'Ex.: ESC-000123…')
   })
 })
 

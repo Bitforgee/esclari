@@ -77,7 +77,7 @@ describe('links da resposta', () => {
     const resposta = `${Frase} ${Boletos}`
     api({
       'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'], matriculas: [] })],
-      'GET /api/chamados/ONE-1': () => [
+      'GET /api/chamados/ESC-000001': () => [
         200,
         chamado({
           transcricao: [
@@ -87,7 +87,7 @@ describe('links da resposta', () => {
         }),
       ],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
     await userEvent.click(await screen.findByRole('button', { name: /^Conversa com o assistente/ }))
     const equipe = (await screen.findByRole('link', { name: /portal\.univag\.edu\.br\/financeiro\/boletos/ })).closest('.is-assistant') as HTMLElement
     expect(equipe.querySelector('.whitespace-pre-wrap')!.textContent).toBe(Frase)

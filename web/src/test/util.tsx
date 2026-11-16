@@ -67,7 +67,7 @@ export function instituicao(parcial: Record<string, unknown> = {}) {
 
 export function chamado(parcial: Partial<Chamado> = {}): Chamado {
   return {
-    numero: 'ONE-1',
+    numero: 'ESC-000001',
     titulo: 'preciso do boleto',
     estado: 'EM_ATENDIMENTO',
     motivoFechamento: null,

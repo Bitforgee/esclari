@@ -190,11 +190,11 @@ test('raio pelo papel do componente', async ({ page }) => {
   await page.getByRole('menu').waitFor()
   todos('primeiro item do menu Ações', await quatro(page.getByRole('menuitem').first()), 4)
   todos('menu Ações de Artigos', await quatro(page.getByRole('menu')), 16)
-  await em(1440, '/univag/fila', (p) => p.getByText('ONE-123').waitFor())
+  await em(1440, '/univag/fila', (p) => p.getByText('ESC-000123').waitFor())
   todos('item ativo da barra lateral', await quatro(page.locator('[data-sidebar=menu-button][data-active=true]')), 4)
-  await em(390, '/univag/fila', (p) => p.getByText('ONE-123').waitFor())
+  await em(390, '/univag/fila', (p) => p.getByText('ESC-000123').waitFor())
   todos('linha da Fila', await quatro(page.getByRole('main').getByRole('listitem').first()), 0)
-  await em(390, '/univag/solicitacoes', (p) => p.getByText('ONE-123').waitFor())
+  await em(390, '/univag/solicitacoes', (p) => p.getByText('ESC-000123').waitFor())
   todos('linha de Minhas solicitações', await quatro(page.getByRole('main').getByRole('listitem').first()), 0)
 
   await em(1440, '/univag', (p) => p.getByLabel('CPF').waitFor())
@@ -209,15 +209,15 @@ test('raio pelo papel do componente', async ({ page }) => {
   todos('botão de link da resposta', await quatro(page.getByRole('link', { name: 'portal.univag.edu.br/financeiro/boletos/segunda-via' })), 6)
   todos('"Enviar"', await quatro(page.getByRole('button', { name: /Enviar/ })), 6)
 
-  await em(1440, '/univag/fila', (p) => p.getByText('ONE-123').waitFor())
+  await em(1440, '/univag/fila', (p) => p.getByText('ESC-000123').waitFor())
   todos('"Tema" na barra', await quatro(page.locator('[data-sidebar=footer]').getByRole('button', { name: 'Tema' })), 4)
   await pilula('selo "Aguardando aluno"', page.locator('[data-slot=badge]').filter({ hasText: 'Aguardando aluno' }).first())
   await em(1440, '/univag/matriculas', (p) => p.getByRole('heading', { level: 2 }).first().waitFor())
   await pilula('número "1" dos passos', page.locator('h2[id^=passo-] > span').first())
 
-  await em(1440, '/univag/chamados/ONE-123', (p) => p.getByText('Resumo gerado por IA').waitFor())
+  await em(1440, '/univag/chamados/ESC-000123', (p) => p.getByText('Resumo gerado por IA').waitFor())
   todos('cartão "Ações"', await quatro(page.locator('[data-slot=card]').filter({ has: page.getByText('Ações', { exact: true }) })), 12)
-  await em(1440, '/univag/fila', (p) => p.getByText('ONE-123').waitFor())
+  await em(1440, '/univag/fila', (p) => p.getByText('ESC-000123').waitFor())
   todos('caixa da tabela da Fila', await quatro(page.locator('[data-slot=table-container]').locator('..')), 0)
   await em(1440, '/univag/aparencia', (p) => p.getByLabel('Cor principal').waitFor())
   todos('painel da região "Prévia"', await quatro(page.getByRole('region', { name: 'Prévia' }).locator('> *').first()), 12)
@@ -226,10 +226,10 @@ test('raio pelo papel do componente', async ({ page }) => {
   await em(390, '/univag/conta', (p) => p.getByText('***.456.789-**').waitFor())
   todos('lista agrupada da Conta', await quatro(page.getByRole('main').locator('ul').first()), 12)
 
-  await em(1280, '/univag/chamados/ONE-123', (p) => p.getByText('Resumo gerado por IA').waitFor())
+  await em(1280, '/univag/chamados/ESC-000123', (p) => p.getByText('Resumo gerado por IA').waitFor())
   await page.getByRole('button', { name: 'Encaminhar' }).first().click()
   todos('Dialog "Encaminhar para outro setor?"', await quatro(page.getByRole('dialog', { name: 'Encaminhar para outro setor?' })), 16)
-  await em(390, '/univag/chamados/ONE-123', (p) => p.getByText('Resumo gerado por IA').waitFor())
+  await em(390, '/univag/chamados/ESC-000123', (p) => p.getByText('Resumo gerado por IA').waitFor())
   await page.getByRole('button', { name: 'Mais', exact: true }).click()
   const folha = await quatro(page.getByRole('dialog', { name: 'Mais ações' }))
   expect(folha.slice(0, 2), 'Sheet "Mais": cantos de cima').toEqual([16, 16])
@@ -631,8 +631,8 @@ test('foto de 32 px ao lado do nome do assistente', async ({ page }) => {
 test('solicitação em aberto com borda na cor de ação antes das perguntas', async ({ page }) => {
   await instalar(page)
   for (const largura of [390, 1440]) {
-    await em(page, largura, '/univag/assistente', (p) => p.getByRole('link', { name: /Sua solicitação ONE-123 · Em atendimento/ }).waitFor())
-    const link = page.getByRole('link', { name: /Sua solicitação ONE-123 · Em atendimento/ })
+    await em(page, largura, '/univag/assistente', (p) => p.getByRole('link', { name: /Sua solicitação ESC-000123 · Em atendimento/ }).waitFor())
+    const link = page.getByRole('link', { name: /Sua solicitação ESC-000123 · Em atendimento/ })
     await expect(link).toHaveCount(1)
     const [esquerda, cima, direita, baixo, cor] = await estilo(link, 'border-left-width', 'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-color')
     expect(parseFloat(esquerda), `${largura}: borda à esquerda`).toBeGreaterThanOrEqual(1)
@@ -870,7 +870,7 @@ const blocoDe = (p: Page, titulo: string) => p.getByRole('heading', { level: 2, 
 
 test('Dados do aluno sem caixa e com título', async ({ page }) => {
   for (const largura of [390, 1440]) {
-    await em(page, largura, '/univag/chamados/ONE-123', esperaDetalhe)
+    await em(page, largura, '/univag/chamados/ESC-000123', esperaDetalhe)
     for (const titulo of ['Dados do aluno']) {
       const h = page.getByRole('heading', { level: 2, name: titulo, exact: true })
       await expect(h, `${largura}: ${titulo}`).toHaveCount(1)
@@ -882,7 +882,7 @@ test('Dados do aluno sem caixa e com título', async ({ page }) => {
 test('detalhe sem caixa e com fundo tingido só no que pede ação', async ({ page }) => {
   await instalar(page)
   for (const largura of [390, 1440]) {
-    await em(page, largura, '/univag/chamados/ONE-123', esperaDetalhe)
+    await em(page, largura, '/univag/chamados/ESC-000123', esperaDetalhe)
     const dados = blocoDe(page, 'Dados do aluno')
     await expect(dados).toContainText('Ana Beatriz · matrícula 2000567890')
     const cadeia = await cadeiaAteAColuna(dados)
@@ -1073,8 +1073,8 @@ test('borda do campo Responder com 3:1', async ({ page }) => {
         for (const largura of [390, 1280]) {
           await emTema(page, tema)
           const aluno = papeis[0] === 'ALUNO'
-          const rotas = aluno ? (p: Page) => p.route('**/api/chamados/ONE-123', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ...chamadoSimulado(), eventos: null, mensagens: [] }) })) : undefined
-          await em(page, largura, '/univag/chamados/ONE-123', (p) => p.locator('#resposta').waitFor(), { aparencia: { ...comAparencia, cor: marca }, papeis, rotas })
+          const rotas = aluno ? (p: Page) => p.route('**/api/chamados/ESC-000123', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ...chamadoSimulado(), eventos: null, mensagens: [] }) })) : undefined
+          await em(page, largura, '/univag/chamados/ESC-000123', (p) => p.locator('#resposta').waitFor(), { aparencia: { ...comAparencia, cor: marca }, papeis, rotas })
           const campo = page.locator('#resposta')
           await expect(campo).toHaveCount(1)
           await expect(page.getByLabel('Nota interna'), `${tema} ${marca ?? 'sem cor'} ${papeis[0]} a ${largura}: Nota interna`).toHaveCount(aluno ? 0 : 1)
@@ -1086,10 +1086,10 @@ test('borda do campo Responder com 3:1', async ({ page }) => {
 })
 
 const abrirFormComProntas = (page: Page, largura: number, marca: string | undefined) =>
-  em(page, largura, '/univag/chamados/ONE-123', (p) => p.getByLabel('Resposta pronta').waitFor(), {
+  em(page, largura, '/univag/chamados/ESC-000123', (p) => p.getByLabel('Resposta pronta').waitFor(), {
     aparencia: { ...comAparencia, cor: marca },
     rotas: async (p) => {
-      await p.route('**/api/chamados/ONE-123', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ...chamadoSimulado(), setorId: 1 }) }))
+      await p.route('**/api/chamados/ESC-000123', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ...chamadoSimulado(), setorId: 1 }) }))
       await p.route('**/api/respostas-prontas*', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, setorId: 1, titulo: 'Boleto pronto', texto: 'Segue o boleto.' }]) }))
     },
   })
@@ -1186,8 +1186,8 @@ test('borda do form igual ao token no escuro e no preto', async ({ page }) => {
 test('nome do assistente entre a frase e a solicitação', async ({ page }) => {
   await instalar(page)
   for (const largura of [390, 1440]) {
-    await em(page, largura, '/univag/assistente', (p) => p.getByRole('link', { name: /Sua solicitação ONE-123 · Em atendimento/ }).waitFor())
-    const [frase, nome, link, primeira] = [page.getByText(Boasvindas, { exact: true }), page.getByText('Vagner, assistente virtual', { exact: true }), page.getByRole('link', { name: /Sua solicitação ONE-123/ }), page.getByRole('button', { name: Perguntas[0], exact: true })]
+    await em(page, largura, '/univag/assistente', (p) => p.getByRole('link', { name: /Sua solicitação ESC-000123 · Em atendimento/ }).waitFor())
+    const [frase, nome, link, primeira] = [page.getByText(Boasvindas, { exact: true }), page.getByText('Vagner, assistente virtual', { exact: true }), page.getByRole('link', { name: /Sua solicitação ESC-000123/ }), page.getByRole('button', { name: Perguntas[0], exact: true })]
     for (const l of [frase, nome, link, primeira]) await expect(l).toHaveCount(1)
     const [f, n, s, p] = [await caixa(frase), await caixa(nome), await caixa(link), await caixa(primeira)]
     expect(n.y, `${largura}: nome abaixo da frase`).toBeGreaterThanOrEqual(f.y + f.height - 1)

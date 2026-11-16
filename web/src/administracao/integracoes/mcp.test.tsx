@@ -9,7 +9,7 @@ const base = { usuario: 'Ana', criadoEm: '2026-11-01T15:00:00Z', expiraEm: '2027
 const ativo = { ...base, id: 1, nome: 'Cursor', final: 'wxyz', ultimoUsoEm: '2026-11-09T12:30:00Z', estado: 'ATIVO' }
 const expirado = { ...base, id: 2, nome: 'Antigo', final: 'abcd', expiraEm: '2026-10-01T15:00:00Z', ultimoUsoEm: null, estado: 'EXPIRADO' }
 const revogado = { ...base, id: 3, nome: 'Perdido', final: 'efgh', ultimoUsoEm: null, estado: 'REVOGADO' }
-const token = 'onemcp_univag.AbCdEfGhIjKlMnOpQrStUvWxYz0123456789_-AbCdE'
+const token = 'esclarimcp_univag.AbCdEfGhIjKlMnOpQrStUvWxYz0123456789_-AbCdE'
 
 const rotas = (get: Rota, extra: Record<string, Rota> = {}) =>
   api({

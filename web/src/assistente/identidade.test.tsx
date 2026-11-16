@@ -48,13 +48,13 @@ describe('boas-vindas do assistente', () => {
   it('solicitação em aberto antes das perguntas', async () => {
     const item = (numero: string, estado: string, criadoEm = '2026-11-02T12:00:00Z') => ({ numero, titulo: 'preciso do boleto', estado, criadoEm })
     const casos: [string, () => ReturnType<Rota>, [string, string, string] | null][] = [
-      ['ABERTO', () => [200, [item('ONE-5', 'ABERTO')]], ['ONE-5', 'Sua solicitação ONE-5 · Aberto', 'A equipe vai responder']],
-      ['EM_ATENDIMENTO', () => [200, [item('ONE-5', 'EM_ATENDIMENTO')]], ['ONE-5', 'Sua solicitação ONE-5 · Em atendimento', 'A equipe vai responder']],
-      ['AGUARDANDO_ALUNO', () => [200, [item('ONE-5', 'AGUARDANDO_ALUNO')]], ['ONE-5', 'Sua solicitação ONE-5 · Aguardando aluno', 'Responda para continuar']],
-      ['RESOLVIDO', () => [200, [item('ONE-5', 'RESOLVIDO')]], null],
-      ['FECHADO', () => [200, [item('ONE-5', 'FECHADO')]], null],
+      ['ABERTO', () => [200, [item('ESC-000005', 'ABERTO')]], ['ESC-000005', 'Sua solicitação ESC-000005 · Aberto', 'A equipe vai responder']],
+      ['EM_ATENDIMENTO', () => [200, [item('ESC-000005', 'EM_ATENDIMENTO')]], ['ESC-000005', 'Sua solicitação ESC-000005 · Em atendimento', 'A equipe vai responder']],
+      ['AGUARDANDO_ALUNO', () => [200, [item('ESC-000005', 'AGUARDANDO_ALUNO')]], ['ESC-000005', 'Sua solicitação ESC-000005 · Aguardando aluno', 'Responda para continuar']],
+      ['RESOLVIDO', () => [200, [item('ESC-000005', 'RESOLVIDO')]], null],
+      ['FECHADO', () => [200, [item('ESC-000005', 'FECHADO')]], null],
       ['vazia', () => [200, []], null],
-      ['várias', () => [200, [item('ONE-5', 'ABERTO', '2026-11-03T12:00:00Z'), item('ONE-9', 'RESOLVIDO', '2026-11-05T12:00:00Z'), item('ONE-7', 'AGUARDANDO_ALUNO', '2026-11-04T12:00:00Z')]], ['ONE-7', 'Sua solicitação ONE-7 · Aguardando aluno', 'Responda para continuar']],
+      ['várias', () => [200, [item('ESC-000005', 'ABERTO', '2026-11-03T12:00:00Z'), item('ESC-000009', 'RESOLVIDO', '2026-11-05T12:00:00Z'), item('ESC-000007', 'AGUARDANDO_ALUNO', '2026-11-04T12:00:00Z')]], ['ESC-000007', 'Sua solicitação ESC-000007 · Aguardando aluno', 'Responda para continuar']],
       ['500', () => [500, { status: 500, detail: 'Falha.' }], null],
     ]
     for (const [rotulo, rota, esperado] of casos) {

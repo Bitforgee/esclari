@@ -9,8 +9,8 @@ const atendente = me({ papeis: ['ATENDENTE'], matriculas: [] })
 const pdf = () => new File(['%PDF-1.4'], 'boleto.pdf', { type: 'application/pdf' })
 
 function detalhe(c: Chamado, rotas: Record<string, Rota> = {}, quem = atendente) {
-  const chamadas = api({ 'GET /api/auth/me': () => [200, quem], 'GET /api/chamados/ONE-1': () => [200, c], 'POST /api/chamados/ONE-1/mensagens': () => [201, c], ...rotas })
-  abrir('/univag/chamados/ONE-1')
+  const chamadas = api({ 'GET /api/auth/me': () => [200, quem], 'GET /api/chamados/ESC-000001': () => [200, c], 'POST /api/chamados/ESC-000001/mensagens': () => [201, c], ...rotas })
+  abrir('/univag/chamados/ESC-000001')
   return chamadas
 }
 

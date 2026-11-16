@@ -47,10 +47,10 @@ describe('barra de baixo', () => {
     [['ATENDENTE'], 'fila', 'Fila'],
     [['ATENDENTE'], 'indicadores', 'Indicadores'],
     [['ADMINISTRADOR'], 'usuarios', 'Gerir'],
-    [['ALUNO'], 'chamados/ONE-1', 'Solicitações'],
+    [['ALUNO'], 'chamados/ESC-000001', 'Solicitações'],
   ])('aba ativa da barra (%j em /%s)', async (papeis, rota, ativa) => {
     celular()
-    api(base(papeis, { 'GET /api/chamados/ONE-1': () => [200, chamado()] }))
+    api(base(papeis, { 'GET /api/chamados/ESC-000001': () => [200, chamado()] }))
     abrir(`/univag/${rota}`)
     const nav = await barra()
     const links = within(nav).getAllByRole('link')

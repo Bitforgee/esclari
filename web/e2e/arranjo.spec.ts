@@ -154,7 +154,7 @@ test.describe('Detalhe do chamado', () => {
   const abrirDetalhe = async (page: Page, largura: number) => {
     await page.setViewportSize({ width: largura, height: 900 })
     await simularApi(page)
-    await page.goto('/univag/chamados/ONE-123')
+    await page.goto('/univag/chamados/ESC-000123')
     await page.getByText('Resumo gerado por IA').waitFor()
     await assentar(page)
   }
@@ -188,7 +188,7 @@ test.describe('Detalhe do chamado', () => {
   test('arranjo Detalhe do chamado', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 740 })
     await simularApi(page)
-    await page.goto('/univag/chamados/ONE-123')
+    await page.goto('/univag/chamados/ESC-000123')
     await page.getByText('Resumo gerado por IA').waitFor()
     await page.getByRole('button', { name: /^Conversa com o assistente/ }).click()
 
@@ -290,14 +290,14 @@ test.describe('listas de chamados', () => {
     for (const caminho of ['/univag/solicitacoes', '/univag/fila']) {
       await page.setViewportSize({ width: 360, height: 740 })
       await page.goto(caminho)
-      const linha = page.getByRole('main').getByRole('listitem').filter({ hasText: 'ONE-123' })
+      const linha = page.getByRole('main').getByRole('listitem').filter({ hasText: 'ESC-000123' })
       await linha.waitFor()
       const conteudo = await caixa(page.locator('main > div > div').first())
       expect(await page.getByRole('main').getByRole('table').count(), caminho).toBe(0)
       const l = await caixa(linha)
       expect(conteudo.width - l.width, caminho).toBeLessThanOrEqual(2 + 1)
       expect(conteudo.width - l.width, caminho).toBeGreaterThanOrEqual(0)
-      for (const alvo of [linha.getByRole('link', { name: 'ONE-123' }), linha.getByText(/^Preciso da segunda via/).first(), linha.locator('[data-slot=badge]')]) {
+      for (const alvo of [linha.getByRole('link', { name: 'ESC-000123' }), linha.getByText(/^Preciso da segunda via/).first(), linha.locator('[data-slot=badge]')]) {
         const a = await caixa(alvo)
         expect(a.y, caminho).toBeGreaterThanOrEqual(l.y - 1)
         expect(a.y + a.height, caminho).toBeLessThanOrEqual(l.y + l.height + 1)
@@ -510,7 +510,7 @@ test.describe('arranjo restante', () => {
 
   test('Detalhe: cartão da equipe antes da conversa e ações que quebram em linhas', async ({ page }) => {
     await simularApi(page)
-    await page.goto('/univag/chamados/ONE-123')
+    await page.goto('/univag/chamados/ESC-000123')
     await page.getByText('Resumo gerado por IA').waitFor()
     await page.getByRole('button', { name: /^Conversa com o assistente/ }).click()
     const equipe = page.getByText('Resumo gerado por IA', { exact: true }).locator('..')
@@ -617,7 +617,7 @@ test.describe('redesign institucional', () => {
     await simularApi(page)
     await page.addInitScript(() => localStorage.setItem('one-tema', 'black'))
     await page.goto('/univag/fila')
-    await page.getByText('ONE-123').waitFor()
+    await page.getByText('ESC-000123').waitFor()
     expect(await page.evaluate(() => [...document.documentElement.classList].sort())).toEqual(['black', 'dark'])
     const pixel = await page.evaluate(() => {
       const ctx = document.createElement('canvas').getContext('2d')!
@@ -692,7 +692,7 @@ test.describe('redesign institucional', () => {
   test('superfícies de Visual', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await simularApi(page)
-    await page.goto('/univag/chamados/ONE-123')
+    await page.goto('/univag/chamados/ESC-000123')
     await page.getByText('Resumo gerado por IA').waitFor()
     await page.getByRole('button', { name: /^Conversa com o assistente/ }).click()
     expect(await page.locator('.is-user .whitespace-pre-wrap').first().evaluate((e) => getComputedStyle(e).lineHeight), 'leading-relaxed').toBe('26px')
@@ -710,7 +710,7 @@ test.describe('redesign institucional', () => {
   test('cartões sem sombra', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await simularApi(page)
-    await page.goto('/univag/chamados/ONE-123')
+    await page.goto('/univag/chamados/ESC-000123')
     await page.getByText('Resumo gerado por IA').waitFor()
     const acoes = page.locator('[data-slot=card]').filter({ has: page.getByText('Ações', { exact: true }) })
     await expect(acoes).toHaveCount(1)
@@ -834,7 +834,7 @@ test.describe('painel', () => {
     await simularApi(page)
     for (const w of [360, 1280]) {
       await page.setViewportSize({ width: w, height: 500 })
-      await page.goto('/univag/chamados/ONE-123')
+      await page.goto('/univag/chamados/ESC-000123')
       await page.getByText('Resumo gerado por IA').waitFor()
       const cabecalho = page.locator('main > header')
       expect(Math.abs((await caixa(cabecalho)).height - 49), `${w} px: altura`).toBeLessThanOrEqual(1)
@@ -1011,12 +1011,12 @@ test.describe('painel', () => {
     await simularApi(page)
     await page.setViewportSize({ width: 900, height: 800 })
     await page.goto('/univag/fila')
-    await page.getByText('ONE-123').waitFor()
+    await page.getByText('ESC-000123').waitFor()
     expect(await page.locator('main > div').evaluate((e) => [getComputedStyle(e).containerType, getComputedStyle(e).containerName])).toEqual(['inline-size', 'main'])
     await expect(page.getByRole('columnheader')).toHaveText(['Número', 'Título', 'Estado'])
     await page.evaluate(() => localStorage.setItem('one-barra', 'recolhida'))
     await page.goto('/univag/fila')
-    await page.getByText('ONE-123').waitFor()
+    await page.getByText('ESC-000123').waitFor()
     await expect(page.getByRole('columnheader')).toHaveText(['Número', 'Título', 'Categoria', 'Responsável', 'Aberto', 'Estado'])
   })
 
@@ -1024,7 +1024,7 @@ test.describe('painel', () => {
     await simularApi(page)
     await page.route('**/api/admin/setores', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, nome: 'Secretaria', triagem: true, ativo: true }]) }))
     const Telas5: [string, string, string[], string][] = [
-      ['/univag/fila', 'ONE-123', ['Categoria', 'Responsável', 'Aberto'], 'Financeiro > Boletos e mensalidades'],
+      ['/univag/fila', 'ESC-000123', ['Categoria', 'Responsável', 'Aberto'], 'Financeiro > Boletos e mensalidades'],
       ['/univag/usuarios', 'Carla Regina de Souza Albuquerque', ['CPF', 'E-mail', 'Papéis'], '123.456.789-09 · carla.regina.albuquerque@univag.edu.br · Atendente, Administrador'],
       ['/univag/artigos', 'Como emitir a segunda via', ['Categoria', 'Versão', 'Validade'], 'Financeiro > Boletos e mensalidades · versão 12'],
       ['/univag/documentos', 'Regulamento do estágio', ['Categoria', 'Versão', 'Arquivo'], 'Financeiro > Boletos e mensalidades · versão 3 · 42 páginas · regulamento-do-estagio-supervisionado-obrigatorio-2026.pdf'],
@@ -1063,16 +1063,16 @@ test.describe('painel', () => {
     for (const caminho of ['/univag/fila', '/univag/solicitacoes']) {
       await page.setViewportSize({ width: 1280, height: 800 })
       await page.goto(caminho)
-      const linha = page.getByRole('row').filter({ hasText: 'ONE-123' })
+      const linha = page.getByRole('row').filter({ hasText: 'ESC-000123' })
       await linha.waitFor()
       await linha.locator('[data-slot=badge]').click()
-      await expect(page, caminho).toHaveURL(/\/univag\/chamados\/ONE-123$/)
+      await expect(page, caminho).toHaveURL(/\/univag\/chamados\/ESC-000123$/)
       await page.goto(caminho)
       await linha.waitFor()
       let focado = false
       for (let i = 0; i < 40 && !focado; i++) {
         await page.keyboard.press('Tab')
-        focado = await page.evaluate(() => document.activeElement?.tagName === 'A' && document.activeElement.textContent === 'ONE-123')
+        focado = await page.evaluate(() => document.activeElement?.tagName === 'A' && document.activeElement.textContent === 'ESC-000123')
       }
       expect(focado, caminho).toBe(true)
     }
@@ -1107,7 +1107,7 @@ test.describe('painel', () => {
       await page.goto('/univag')
       await page.evaluate((v) => localStorage.setItem('one-barra', v), barraRecolhida ? 'recolhida' : 'aberta')
       await page.goto('/univag/fila')
-      await page.getByText('ONE-123').waitFor()
+      await page.getByText('ESC-000123').waitFor()
       const main = await caixa(page.locator('main'))
       const cabecalho = await caixa(page.locator('main > header'))
       const bloco = await caixa(page.locator('main > div > div').first())
@@ -1222,7 +1222,7 @@ test.describe('painel', () => {
     expect(valor.num, 'valor do compacto').toContain('tabular-nums')
 
     await page.goto('/univag/fila')
-    await page.getByText('ONE-123').waitFor()
+    await page.getByText('ESC-000123').waitFor()
     const cabecalho = await estilo(page.getByRole('columnheader', { name: 'Número' }))
     expect([cabecalho.tam, cabecalho.peso], 'cabeçalho da tabela').toEqual(['14px', '600'])
     const caixaTabela = page.locator('[data-slot=table-container]').locator('..')

@@ -178,7 +178,7 @@ const alunoMovel: Segmento = {
       id: 'protocolo',
       texto: 'Pronto: protocolo gerado e pedido enviado ao Financeiro.',
       acao: async (page) => {
-        const aviso = page.getByRole('heading', { name: /Sua solicitação ONE-\d+ foi para/ })
+        const aviso = page.getByRole('heading', { name: /Sua solicitação ESC-\d+ foi para/ })
         await expect(aviso).toBeVisible({ timeout: 30_000 })
         await apontar(page, aviso)
       },

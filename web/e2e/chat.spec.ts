@@ -102,8 +102,8 @@ function chamadoLongo() {
 async function chamado(page: Page, largura: number, itens: 'longo' | 'curto' = 'longo') {
   await page.setViewportSize({ width: largura, height: 800 })
   await simularApi(page)
-  await page.route('**/api/chamados/ONE-123', (rota) => rota.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(itens === 'longo' ? chamadoLongo() : chamadoSimulado()) }))
-  await page.goto('/univag/chamados/ONE-123')
+  await page.route('**/api/chamados/ESC-000123', (rota) => rota.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(itens === 'longo' ? chamadoLongo() : chamadoSimulado()) }))
+  await page.goto('/univag/chamados/ESC-000123')
   await page.getByTestId('linha-do-tempo').waitFor()
   await assentar(page)
 }

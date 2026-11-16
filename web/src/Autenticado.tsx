@@ -262,7 +262,7 @@ function Topo({ titulo, aluno, abas, slug, icone, nome, voltar }: { titulo: stri
             <span className="sr-only">Voltar</span>
           </Button>
         )}
-        {!voltar && <Sigla slug={slug} nome={nome} icone={icone} className="size-6 md:hidden" />}        <h1 translate={/^ONE-\d+$/.test(titulo) ? 'no' : undefined} className="truncate text-base font-medium">{titulo}</h1>
+        {!voltar && <Sigla slug={slug} nome={nome} icone={icone} className="size-6 md:hidden" />}        <h1 translate={/^ESC-\d+$/.test(titulo) ? 'no' : undefined} className="truncate text-base font-medium">{titulo}</h1>
         <div className="ms-auto flex shrink-0 items-center gap-1">{aluno && <AvisosPush />}</div>
       </div>
     </header>

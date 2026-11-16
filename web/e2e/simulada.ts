@@ -6,7 +6,7 @@ const EmailLongo = 'e'.repeat(46) + '@univag.edu.br'
 const longo = 'Preciso da segunda via do boleto de novembro, que veio com o valor da rematrícula do semestre anterior'
 
 export const chamadoSimulado = (estado = 'EM_ATENDIMENTO') => ({
-  numero: 'ONE-123', titulo: longo, estado, motivoFechamento: null, setor: 'Coordenação de Análise e Desenvolvimento de Sistemas',
+  numero: 'ESC-000123', titulo: longo, estado, motivoFechamento: null, setor: 'Coordenação de Análise e Desenvolvimento de Sistemas',
   categoria: 'Financeiro > Boletos e mensalidades', responsavel: 'Carla Regina de Souza', criadoEm: '2026-11-02T12:00:00Z', resolvidoEm: null,
   matricula: { numero: '2000567890', curso: 'Análise e Desenvolvimento de Sistemas', semestre: 3 }, solicitante: 'Ana Beatriz', origemCategoria: 'IA',
   resumo: 'Aluna pede a segunda via do boleto de novembro com valor corrigido.',
@@ -77,11 +77,11 @@ export async function simularApi(page: Page, papeis = ['ALUNO', 'ATENDENTE', 'AD
       return json(201, { conversaId: 1, resposta: { tipo: 'resposta', texto: 'O boleto do semestre fica no Portal do Aluno: https://portal.univag.edu.br/financeiro/boletos/segunda-via' } })
     if (caminho === '/api/chamados' && rota.request().url().includes('escopo=fila'))
       {
-      const fila = { numero: 'ONE-123', titulo: longo, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: 'Carla Regina de Souza', criadoEm: '2026-11-02T12:00:00Z', dias: 12 }
-      return json(200, mais([fila], { ...fila, numero: 'ONE-124', titulo: TituloLongo }))
+      const fila = { numero: 'ESC-000123', titulo: longo, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: 'Carla Regina de Souza', criadoEm: '2026-11-02T12:00:00Z', dias: 12 }
+      return json(200, mais([fila], { ...fila, numero: 'ESC-000124', titulo: TituloLongo }))
     }
-    if (caminho === '/api/chamados') return json(200, [{ numero: 'ONE-123', titulo: longo, estado: 'EM_ATENDIMENTO', criadoEm: '2026-11-02T12:00:00Z' }])
-    if (caminho === '/api/chamados/ONE-123') return json(200, chamadoSimulado())
+    if (caminho === '/api/chamados') return json(200, [{ numero: 'ESC-000123', titulo: longo, estado: 'EM_ATENDIMENTO', criadoEm: '2026-11-02T12:00:00Z' }])
+    if (caminho === '/api/chamados/ESC-000123') return json(200, chamadoSimulado())
     if (caminho === '/api/admin/usuarios')
       {
       const usuario = { id: 1, cpf: '12345678909', nome: 'Carla Regina de Souza Albuquerque', email: 'carla.regina.albuquerque@univag.edu.br', ativo: true, deveTrocarSenha: false, papeis: ['ATENDENTE', 'ADMINISTRADOR'], setores: [1] }
@@ -90,7 +90,7 @@ export async function simularApi(page: Page, papeis = ['ALUNO', 'ATENDENTE', 'AD
     if (caminho === '/api/admin/setores') return json(200, [{ id: 1, nome: 'Coordenação de Análise e Desenvolvimento de Sistemas', triagem: false, ativo: true }])
     if (['/api/admin/cursos', '/api/admin/fluxos', '/api/admin/respostas-prontas'].includes(caminho)) return json(200, [])
     if (caminho.startsWith('/api/admin/fluxos/')) return json(200, { numero: 1, etapas: [] })
-    if (caminho === '/api/chamados/ONE-123/subir') return json(200, chamadoSimulado())
+    if (caminho === '/api/chamados/ESC-000123/subir') return json(200, chamadoSimulado())
     if (/^\/api\/conversas\/\d+\/destino$/.test(caminho)) return json(200, { lideranca: false })
     if (caminho === '/api/admin/categorias') return json(200, [{ id: 1, nome: 'Financeiro > Boletos e mensalidades', ativa: true }])
     if (caminho === '/api/admin/artigos')
@@ -129,9 +129,9 @@ export const Telas: [string, string, (p: Page) => Promise<void>][] = [
       await p.getByText('Isso resolveu?').waitFor()
     },
   ],
-  ['Minhas solicitações', '/univag/solicitacoes', async (p) => void (await p.getByText('ONE-123').waitFor())],
-  ['Fila', '/univag/fila', async (p) => void (await p.getByText('ONE-123').waitFor())],
-  ['Detalhe do chamado', '/univag/chamados/ONE-123', async (p) => void (await p.getByText('Resumo gerado por IA').waitFor())],
+  ['Minhas solicitações', '/univag/solicitacoes', async (p) => void (await p.getByText('ESC-000123').waitFor())],
+  ['Fila', '/univag/fila', async (p) => void (await p.getByText('ESC-000123').waitFor())],
+  ['Detalhe do chamado', '/univag/chamados/ESC-000123', async (p) => void (await p.getByText('Resumo gerado por IA').waitFor())],
   ['Artigos', '/univag/artigos', async (p) => void (await p.getByText('ARQUIVADO').first().waitFor())],
   ['Indicadores', '/univag/indicadores', async (p) => void (await p.getByText('Indicador principal').waitFor())],
   ['Usuários', '/univag/usuarios', async (p) => void (await p.getByText('Carla Regina de Souza Albuquerque').waitFor())],

@@ -260,7 +260,7 @@ describe('tela Integrações', () => {
       'PUT /api/admin/moodle': (c) => [200, { ...vazia, ...(c as object), configurada: true }],
       'POST /api/admin/mcp/tokens': () => {
         tokens = [token(1, 'ATIVO')]
-        return [201, { id: 1, nome: 'T1', token: 'onemcp_x', final: 'wxyz', criadoEm: '2026-11-01T15:00:00Z', expiraEm: '2027-01-30T15:00:00Z' }]
+        return [201, { id: 1, nome: 'T1', token: 'esclarimcp_x', final: 'wxyz', criadoEm: '2026-11-01T15:00:00Z', expiraEm: '2027-01-30T15:00:00Z' }]
       },
       'DELETE /api/admin/mcp/tokens/1': () => {
         tokens = [token(1, 'REVOGADO')]

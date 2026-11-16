@@ -19,7 +19,7 @@ const Listas: [string, string, string, string, string?][] = [
 
 const atendente = me({ papeis: ['ALUNO', 'ATENDENTE'] })
 const fila = (estados: string[]) =>
-  estados.map((estado, i) => ({ numero: `ONE-${i + 1}`, titulo: `chamado ${i + 1}`, categoria: 'Boleto', estado, responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 }))
+  estados.map((estado, i) => ({ numero: `ESC-${String(i + 1).padStart(6, '0')}`, titulo: `chamado ${i + 1}`, categoria: 'Boleto', estado, responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 }))
 
 describe('Tabela', () => {
   it('selo de estado com cor por grupo', async () => {
@@ -32,7 +32,7 @@ describe('Tabela', () => {
     ]
     api({ 'GET /api/auth/me': () => [200, atendente], 'GET /api/chamados?escopo=fila': () => [200, fila(grupos.map(([estado]) => estado))] })
     abrir('/univag/fila')
-    await screen.findByText('ONE-1')
+    await screen.findByText('ESC-000001')
     for (const [, texto, classe] of grupos) expect(screen.getByText(texto, { selector: '[data-slot=badge]' }), texto).toHaveClass(classe)
   })
 
@@ -80,7 +80,7 @@ describe('Tabela', () => {
 
     servirFila(3)
     abrir('/univag/fila')
-    await screen.findByText('ONE-1')
+    await screen.findByText('ESC-000001')
     const linhasDeDados = [...document.querySelectorAll('[data-slot=table-body] > [data-slot=table-row]')]
     expect(linhasDeDados).toHaveLength(3)
     for (const linha of linhasDeDados) expect(linha.matches(seletor)).toBe(false)
@@ -90,7 +90,7 @@ describe('Tabela', () => {
     noCelular()
     servirFila(3)
     abrir('/univag/fila')
-    await screen.findByText('ONE-1')
+    await screen.findByText('ESC-000001')
     const cartoes = [...document.querySelectorAll('[data-slot=table-row]')]
     expect(cartoes).toHaveLength(3)
     for (const cartao of cartoes) expect(cartao.matches(seletor)).toBe(true)
@@ -146,7 +146,7 @@ describe('Tabela', () => {
     }
     servirFila(120)
     abrir('/univag/fila')
-    await screen.findByText('ONE-1')
+    await screen.findByText('ESC-000001')
     expect(document.querySelectorAll('[data-slot=table-body] > [data-slot=table-row]')).toHaveLength(50)
     expect(document.querySelector('table')).not.toBeNull()
   })

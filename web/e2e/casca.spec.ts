@@ -30,14 +30,14 @@ async function abrir(page: Page, largura: number, caminho: string, espera: (p: P
 }
 
 const Telas = [
-  ['Fila', '/univag/fila', (p: Page) => p.getByText('ONE-123').waitFor()],
+  ['Fila', '/univag/fila', (p: Page) => p.getByText('ESC-000123').waitFor()],
   ['Assistente', '/univag/assistente', (p: Page) => p.getByLabel('Mensagem').waitFor()],
-  ['Detalhe', '/univag/chamados/ONE-123', (p: Page) => p.getByText('Resumo gerado por IA').waitFor()],
+  ['Detalhe', '/univag/chamados/ESC-000123', (p: Page) => p.getByText('Resumo gerado por IA').waitFor()],
   ['Aparência', '/univag/aparencia', (p: Page) => p.getByLabel('Cor principal').waitFor()],
 ] as const
 const esperaAssistente = (p: Page) => p.getByLabel('Mensagem').waitFor()
 const esperaIndicadores = (p: Page) => p.getByText('Indicador principal').waitFor()
-const esperaFila = (p: Page) => p.getByText('ONE-123').waitFor()
+const esperaFila = (p: Page) => p.getByText('ESC-000123').waitFor()
 
 const lerFoco = (page: Page) =>
   page.evaluate(() => {
@@ -180,7 +180,7 @@ const Anexos: [string, string, string[], (p: Page) => Promise<void>][] = [
       await p.getByRole('button', { name: 'Novo documento' }).click()
     },
   ],
-  ['Detalhe do chamado', '/univag/chamados/ONE-123', ['ATENDENTE'], async (p) => void (await p.getByText('Anexos (PDF').waitFor())],
+  ['Detalhe do chamado', '/univag/chamados/ESC-000123', ['ATENDENTE'], async (p) => void (await p.getByText('Anexos (PDF').waitFor())],
 ]
 
 test('borda da área de anexos com 3:1', async ({ page }) => {
@@ -233,7 +233,7 @@ test('foco não cortado por overflow', async ({ page }) => {
 
   await abrir(page, 1280, '/univag/fila', esperaFila)
   const link = page.locator('[data-sidebar=content]').getByRole('link', { name: 'Indicadores' })
-  const primeira = page.getByRole('link', { name: 'ONE-123' })
+  const primeira = page.getByRole('link', { name: 'ESC-000123' })
   await expect(link).toHaveCount(1)
   await expect(primeira).toHaveCount(1)
   let medidos = 0
@@ -741,7 +741,7 @@ test('foco inteiro nos cartões, na primeira coluna e no Fechar', async ({ page 
   let medidas = 0
   for (const [rota, papeis] of [['/univag/fila', ['ATENDENTE']], ['/univag/solicitacoes', ['ALUNO']]] as const) {
     await abrir(page, 390, rota, esperaFila, { papeis: [...papeis] })
-    const link = page.getByRole('main').getByRole('link', { name: 'ONE-123' })
+    const link = page.getByRole('main').getByRole('link', { name: 'ESC-000123' })
     await expect(link, `${rota}: 1 link no cartão`).toHaveCount(1)
     await tabAte(page, link)
     const r = await link.evaluate(foraDoCorte, undefined)
@@ -759,7 +759,7 @@ test('foco inteiro nos cartões, na primeira coluna e no Fechar', async ({ page 
     medidas++
   }
   await abrir(page, 1280, '/univag/fila', esperaFila, { papeis: ['ATENDENTE'] })
-  const primeira = page.getByRole('link', { name: 'ONE-123' })
+  const primeira = page.getByRole('link', { name: 'ESC-000123' })
   await expect(primeira).toHaveCount(1)
   await tabAte(page, primeira)
   const caixas = (deslocamento?: string) =>
@@ -848,17 +848,17 @@ test('corte de 2 linhas sem o alto da terceira', async ({ page }) => {
   test.setTimeout(240_000)
   await instalar(page)
   const titulo = 'SOLICITAÇÃO DE SEGUNDA VIA DO BOLETO DA MENSALIDADE DE NOVEMBRO, ÁREA FINANCEIRA, ÍNDICE DE REMATRÍCULA DO SEMESTRE ANTERIOR: ÃO ÁGUA ÍNDIO'
-  const fila = { numero: 'ONE-123', titulo, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 2 }
+  const fila = { numero: 'ESC-000123', titulo, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 2 }
   const rotas = (p: Page) =>
     p.route(/\/api\/chamados\?escopo=/, (r) =>
-      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(r.request().url().includes('escopo=fila') ? [fila] : [{ numero: 'ONE-123', titulo, estado: 'AGUARDANDO_ALUNO', criadoEm: fila.criadoEm }]) }),
+      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(r.request().url().includes('escopo=fila') ? [fila] : [{ numero: 'ESC-000123', titulo, estado: 'AGUARDANDO_ALUNO', criadoEm: fila.criadoEm }]) }),
     )
   let medidas = 0
   for (const [rota, papeis] of [['/univag/fila', ['ATENDENTE']], ['/univag/solicitacoes', ['ALUNO']]] as const)
     for (const largura of [360, 390]) {
       const r = `${rota} a ${largura}`
       await abrir(page, largura, rota, esperaFila, { papeis: [...papeis], rotas })
-      const link = page.getByRole('main').getByRole('link', { name: /ONE-123/ })
+      const link = page.getByRole('main').getByRole('link', { name: /ESC-000123/ })
       await expect(link, `${r}: 1 link`).toHaveCount(1)
       const m = await page.locator('p[data-linha=assunto]').evaluate((p) => {
         const cortes = [...p.querySelectorAll('*')].filter((e) => getComputedStyle(e).overflowY !== 'visible')
@@ -980,12 +980,12 @@ test('sem dica presa depois de clicar fora do menu do usuário', async ({ page }
 test('link do cartão abre o chamado com 1 entrada no histórico', async ({ page }) => {
   await instalar(page)
   await abrir(page, 390, '/univag/fila', esperaFila, { papeis: ['ATENDENTE'] })
-  const link = page.getByRole('main').getByRole('link', { name: /ONE-123/ })
+  const link = page.getByRole('main').getByRole('link', { name: /ESC-000123/ })
   await expect(link, '1 link no cartão').toHaveCount(1)
-  await expect(link, 'nome com número e título').toHaveAccessibleName(/^ONE-123 Preciso/)
+  await expect(link, 'nome com número e título').toHaveAccessibleName(/^ESC-000123 Preciso/)
   const antes = await page.evaluate(() => history.length)
   await link.click()
-  await page.waitForURL('**/univag/chamados/ONE-123')
+  await page.waitForURL('**/univag/chamados/ESC-000123')
   expect(await page.evaluate(() => history.length), '1 entrada a mais').toBe(antes + 1)
   await page.goBack()
   await page.waitForURL('**/univag/fila')
@@ -1009,7 +1009,7 @@ test('foco inteiro no Fechar da gaveta', async ({ page }) => {
   await instalar(page)
   let medidas = 0
   for (const tema of Temas) {
-    await abrir(page, 390, '/univag/chamados/ONE-123', (p) => p.getByText('Resumo gerado por IA').waitFor(), { papeis: ['ATENDENTE'], tema })
+    await abrir(page, 390, '/univag/chamados/ESC-000123', (p) => p.getByText('Resumo gerado por IA').waitFor(), { papeis: ['ATENDENTE'], tema })
     const mais = page.getByRole('button', { name: 'Mais', exact: true })
     await expect(mais, `${tema}: 1 Mais`).toHaveCount(1)
     await tabAte(page, mais)

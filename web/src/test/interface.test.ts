@@ -300,7 +300,7 @@ describe('interface nova', () => {
         await screen.findByLabelText('Arquivo CSV')
         expect(tipo('Arquivo CSV')).toBe('file')
       }],
-      ['/univag/chamados/ONE-1', { 'GET /api/chamados/ONE-1': () => [200, chamado({ acoes: ['responder'] })] }, async () => {
+      ['/univag/chamados/ESC-000001', { 'GET /api/chamados/ESC-000001': () => [200, chamado({ acoes: ['responder'] })] }, async () => {
         await screen.findByLabelText('Anexos (PDF, JPG ou PNG, até 10 MB cada)')
         expect(tipo('Anexos (PDF, JPG ou PNG, até 10 MB cada)')).toBe('file')
       }],

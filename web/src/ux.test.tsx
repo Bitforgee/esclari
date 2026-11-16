@@ -145,8 +145,8 @@ describe('ux', () => {
   const Superficies: Superficie[] = [
     { nome: 'Minhas solicitações', papeis: ['ALUNO'], caminho: '/univag/solicitacoes', url: '/api/chamados?escopo=meus', oque: 'suas solicitações', depois: 'Nenhuma solicitação' },
     { nome: 'Fila', papeis: ['ATENDENTE'], caminho: '/univag/fila', url: '/api/chamados?escopo=fila', oque: 'a fila', depois: 'Fila em dia' },
-    { nome: 'detalhe como aluno', papeis: ['ALUNO'], caminho: '/univag/chamados/ONE-1', url: '/api/chamados/ONE-1', oque: 'a solicitação', depois: 'preciso do boleto', ok: chamado() },
-    { nome: 'detalhe como equipe', papeis: ['ATENDENTE'], caminho: '/univag/chamados/ONE-1', url: '/api/chamados/ONE-1', oque: 'o chamado', depois: 'preciso do boleto', ok: chamado({ eventos: [], resumo: 'x', solicitante: 'Ana', acoes: ['responder'] }) },
+    { nome: 'detalhe como aluno', papeis: ['ALUNO'], caminho: '/univag/chamados/ESC-000001', url: '/api/chamados/ESC-000001', oque: 'a solicitação', depois: 'preciso do boleto', ok: chamado() },
+    { nome: 'detalhe como equipe', papeis: ['ATENDENTE'], caminho: '/univag/chamados/ESC-000001', url: '/api/chamados/ESC-000001', oque: 'o chamado', depois: 'preciso do boleto', ok: chamado({ eventos: [], resumo: 'x', solicitante: 'Ana', acoes: ['responder'] }) },
     { nome: 'Artigos', papeis: ['ADMINISTRADOR'], caminho: '/univag/artigos', url: '/api/admin/artigos', oque: 'os artigos', vazios: ['/api/admin/categorias'], depois: 'Nenhum artigo' },
     { nome: 'Documentos', papeis: ['ADMINISTRADOR'], caminho: '/univag/documentos', url: '/api/admin/documentos', oque: 'os documentos', vazios: ['/api/admin/categorias'], depois: 'Nenhum documento' },
     { nome: 'Usuários', papeis: ['ADMINISTRADOR'], caminho: '/univag/usuarios', url: '/api/admin/usuarios', oque: 'os usuários', vazios: ['/api/admin/setores'], depois: 'Nenhum usuário' },
@@ -186,8 +186,8 @@ describe('ux', () => {
 
   it('erro de carregamento com Tentar de novo em 11 telas: 404 e 403 seguem com o detail da API', async () => {
     for (const [status, detail] of [[404, 'Chamado não encontrado.'], [403, 'Você não tem acesso a este chamado.']] as const) {
-      api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ONE-9': () => [status, { status, detail }] })
-      const { unmount } = abrirComLocal('/univag/chamados/ONE-9')
+      api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ESC-000009': () => [status, { status, detail }] })
+      const { unmount } = abrirComLocal('/univag/chamados/ESC-000009')
       const alerta = await screen.findByRole('alert')
       expect(alerta).toHaveTextContent(detail)
       expect(alerta).not.toHaveTextContent('Verifique sua conexão')
@@ -208,8 +208,8 @@ describe('ux', () => {
     api({
       'GET /api/auth/me': () => [200, me()],
       'POST /api/conversas': () => [201, { conversaId: 7, resposta: { tipo: 'sem_base', texto: 'Não encontrei.' } }],
-      'POST /api/conversas/7/transferir': () => [201, { numero: 'ONE-1', estado: 'ABERTO', setor: 'Financeiro' }],
-      'GET /api/chamados/ONE-1': () => [200, chamado()],
+      'POST /api/conversas/7/transferir': () => [201, { numero: 'ESC-000001', estado: 'ABERTO', setor: 'Financeiro' }],
+      'GET /api/chamados/ESC-000001': () => [200, chamado()],
     })
     abrir('/univag/assistente')
     await userEvent.type(await screen.findByLabelText('Mensagem'), 'preciso do boleto')
@@ -219,13 +219,13 @@ describe('ux', () => {
     await userEvent.click(screen.getByRole('button', { name: /Falar com atendente/ }))
     semChamado()
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Falar com atendente' }))
-    await screen.findByText(comTexto('Sua solicitação ONE-1 foi para Financeiro'))
+    await screen.findByText(comTexto('Sua solicitação ESC-000001 foi para Financeiro'))
     semChamado()
   })
 
   it.each([
-    ['Minhas solicitações', '/univag/solicitacoes', { 'GET /api/chamados?escopo=meus': () => [200, [{ numero: 'ONE-1', titulo: 'preciso do boleto', estado: 'ABERTO', criadoEm: '2026-11-02T12:00:00Z' }]] }, 'preciso do boleto'],
-    ['detalhe do chamado', '/univag/chamados/ONE-1', { 'GET /api/chamados/ONE-1': () => [200, chamado({ estado: 'ABERTO' })] }, 'preciso do boleto'],
+    ['Minhas solicitações', '/univag/solicitacoes', { 'GET /api/chamados?escopo=meus': () => [200, [{ numero: 'ESC-000001', titulo: 'preciso do boleto', estado: 'ABERTO', criadoEm: '2026-11-02T12:00:00Z' }]] }, 'preciso do boleto'],
+    ['detalhe do chamado', '/univag/chamados/ESC-000001', { 'GET /api/chamados/ESC-000001': () => [200, chamado({ estado: 'ABERTO' })] }, 'preciso do boleto'],
     ['Conta', '/univag/conta', {}, 'Trocar senha'],
   ])('aluno lê Solicitação e a equipe lê Chamado (%s)', async (_, caminho, rotas, espera) => {
     api({ 'GET /api/auth/me': () => [200, me()], ...(rotas as Record<string, Rota>) })

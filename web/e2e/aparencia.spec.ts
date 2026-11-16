@@ -162,13 +162,13 @@ test.describe('S9 arranjos das telas', () => {
 
   test('contato abaixo do número do chamado', async ({ page }) => {
     await simularApi(page, undefined, false, comAparencia)
-    await page.route('**/api/atendimento-direto', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ numero: 'ONE-123', estado: 'ABERTO', setor: 'Secretaria' }) }))
+    await page.route('**/api/atendimento-direto', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ numero: 'ESC-000123', estado: 'ABERTO', setor: 'Secretaria' }) }))
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/univag/assistente')
     await page.getByLabel('Mensagem').fill('quero falar com alguém sobre o meu boleto')
     await page.getByRole('button', { name: 'Falar com atendente' }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Falar com atendente' }).click()
-    const numero = await caixa(page.getByText(/Sua solicitação ONE-123 foi para/))
+    const numero = await caixa(page.getByText(/Sua solicitação ESC-000123 foi para/))
     const contato = await caixa(page.getByRole('heading', { name: 'Contato do atendimento' }))
     expect(contato.y, 'bloco de contato abaixo do número').toBeGreaterThan(numero.y + numero.height)
   })

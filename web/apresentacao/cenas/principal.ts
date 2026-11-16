@@ -118,7 +118,7 @@ export const aluna: Segmento = {
       id: 'protocolo',
       texto: 'Pronto: protocolo gerado, e o pedido vai para a Coordenação de ADS, pela regra da categoria.',
       acao: async (page) => {
-        const aviso = page.getByRole('heading', { name: /Sua solicitação ONE-\d+ foi para/ })
+        const aviso = page.getByRole('heading', { name: /Sua solicitação ESC-\d+ foi para/ })
         await expect(aviso).toContainText(Coordenacao, { timeout: 30_000 })
         await apontar(page, aviso)
       },

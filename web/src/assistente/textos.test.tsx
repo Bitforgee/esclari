@@ -31,7 +31,7 @@ const Assistente = [
   'Escolha a matrícula',
   'A conversa será encerrada.',
   'Voltar à conversa',
-  'Sua solicitação ONE-1 foi para Financeiro',
+  'Sua solicitação ESC-000001 foi para Financeiro',
   'A resposta chega em Solicitações e no seu e-mail.',
   'Ver solicitação',
   'Que bom que resolveu! Conversa encerrada.',
@@ -131,8 +131,8 @@ describe('textos', () => {
 
     montada = assistente({
       'POST /api/conversas': responde('transferir', 'Vou transferir você.'),
-      'POST /api/conversas/7/transferir': () => [201, { numero: 'ONE-1', estado: 'ABERTO', setor: 'Financeiro' }],
-      'GET /api/chamados/ONE-1': () => [200, chamado({ mensagens: [{ id: 1, tipo: 'PUBLICA', texto: 'Olá!', autor: 'Carla', doAluno: false, criadaEm: Agora }] })],
+      'POST /api/conversas/7/transferir': () => [201, { numero: 'ESC-000001', estado: 'ABERTO', setor: 'Financeiro' }],
+      'GET /api/chamados/ESC-000001': () => [200, chamado({ mensagens: [{ id: 1, tipo: 'PUBLICA', texto: 'Olá!', autor: 'Carla', doAluno: false, criadaEm: Agora }] })],
     })
     await enviar()
     await screen.findByRole('button', { name: 'Confirmar transferência' })

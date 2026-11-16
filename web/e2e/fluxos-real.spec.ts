@@ -194,7 +194,7 @@ test('o fluxo leva o chamado à liderança', async ({ browser, baseURL }) => {
 
   const titulo = page.getByRole('heading', { name: new RegExp(`foi para ${nomeDaLideranca}`) })
   await expect(titulo).toBeVisible()
-  numero = (await titulo.textContent())!.match(/ONE-\d+/)![0]
+  numero = (await titulo.textContent())!.match(/ESC-\d+/)![0]
   await contexto.close()
 })
 

@@ -20,8 +20,8 @@ function daEquipe(parcial: Partial<Chamado> = {}) {
 }
 
 function detalhe(c: Chamado, quem = equipe) {
-  api({ 'GET /api/auth/me': () => [200, quem], 'GET /api/chamados/ONE-1': () => [200, c] })
-  return abrir('/univag/chamados/ONE-1')
+  api({ 'GET /api/auth/me': () => [200, quem], 'GET /api/chamados/ESC-000001': () => [200, c] })
+  return abrir('/univag/chamados/ESC-000001')
 }
 
 const itens = async () => within(await screen.findByTestId('linha-do-tempo')).getAllByRole('listitem')
@@ -107,12 +107,12 @@ describe('linha do tempo do chamado', () => {
     const depois = { ...antes, estado: 'EM_ATENDIMENTO', eventos: [abertura, agora] } as Chamado
     const chamadas = api({
       'GET /api/auth/me': () => [200, equipe],
-      'GET /api/chamados/ONE-1': () => [200, antes],
-      'POST /api/chamados/ONE-1/assumir': () => [200, depois],
+      'GET /api/chamados/ESC-000001': () => [200, antes],
+      'POST /api/chamados/ESC-000001/assumir': () => [200, depois],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
     expect(await itens()).toHaveLength(2)
-    const leituras = () => chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/chamados/ONE-1').length
+    const leituras = () => chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/chamados/ESC-000001').length
     const antesDeAssumir = leituras()
 
     await userEvent.click(screen.getByRole('button', { name: 'Assumir' }))

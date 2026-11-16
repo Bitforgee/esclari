@@ -13,7 +13,7 @@ const Estados = ['Aberto', 'Em atendimento', 'Aguardando aluno', 'Resolvido', 'F
 const tela = () => screen.getByRole('main')
 
 const Detalhe = [
-  'ONE-1',
+  'ESC-000001',
   'preciso do boleto',
   'Financeiro · Boleto · Carla',
   'Ana · matrícula 2000567890 · ADS · 3º semestre',
@@ -85,8 +85,8 @@ const ValoresDaEquipe = [
 ]
 
 function detalhe(c: Chamado | Rota, quem = me({ papeis: ['ATENDENTE'], matriculas: [] }), rotas: Record<string, Rota> = {}) {
-  api({ 'GET /api/auth/me': () => [200, quem], 'GET /api/chamados/ONE-1': typeof c === 'function' ? c : () => [200, c], ...rotas })
-  return abrir('/univag/chamados/ONE-1')
+  api({ 'GET /api/auth/me': () => [200, quem], 'GET /api/chamados/ESC-000001': typeof c === 'function' ? c : () => [200, c], ...rotas })
+  return abrir('/univag/chamados/ESC-000001')
 }
 
 describe('textos', () => {
@@ -117,7 +117,7 @@ describe('textos', () => {
     montada = detalhe(daEquipe, undefined, { 'GET /api/respostas-prontas?setorId=5': () => [200, [{ id: 1, titulo: 'Boleto pronto', texto: 'Segue o boleto.' }]] })
     await screen.findByLabelText('Resposta pronta')
     await userEvent.click(await screen.findByRole('button', { name: /^Conversa com o assistente/ }))
-    expect(screen.getByLabelText('Duplicado de outro pedido do mesmo aluno')).toHaveAttribute('placeholder', 'Ex.: ONE-123…')
+    expect(screen.getByLabelText('Duplicado de outro pedido do mesmo aluno')).toHaveAttribute('placeholder', 'Ex.: ESC-000123…')
     t.conferir(tela(), [...ValoresDaEquipe, 'Boleto pronto'])
 
     await userEvent.click(screen.getByRole('button', { name: 'Encaminhar' }))
@@ -155,7 +155,7 @@ describe('textos', () => {
 
     rota(() => [200, itens])
     montada = abrir(caminho)
-    await screen.findByText('ONE-1')
+    await screen.findByText('ESC-000001')
     t.conferir(tela(), valores)
     montada.unmount()
 
@@ -168,8 +168,8 @@ describe('textos', () => {
     t.todos()
   }
 
-  const item = (n: number, estado: string, extra = {}) => ({ numero: `ONE-${n}`, titulo: `pedido ${n}`, estado, criadoEm: '2026-11-02T12:00:00Z', ...extra })
-  const Numeros = ['ONE-1', 'ONE-2', 'ONE-3', 'ONE-4', 'ONE-5', 'pedido']
+  const item = (n: number, estado: string, extra = {}) => ({ numero: `ESC-${String(n).padStart(6, '0')}`, titulo: `pedido ${n}`, estado, criadoEm: '2026-11-02T12:00:00Z', ...extra })
+  const Numeros = ['ESC-000001', 'ESC-000002', 'ESC-000003', 'ESC-000004', 'ESC-000005', 'pedido']
 
   it('textos Minhas solicitações', async () => {
     const itens = ['ABERTO', 'EM_ATENDIMENTO', 'AGUARDANDO_ALUNO', 'RESOLVIDO', 'FECHADO'].map((e, i) => item(i + 1, e))
@@ -193,6 +193,6 @@ describe('textos', () => {
       item(1, 'ABERTO', { categoria: 'Boleto', responsavel: null, dias: 1 }),
       item(2, 'EM_ATENDIMENTO', { categoria: 'Matrícula', responsavel: 'Carla', dias: 3 }),
     ]
-    await lista('/univag/fila', 'fila', ['Fila', 'Fila em dia', 'Nenhum chamado na fila dos seus setores.', 'Aberto', 'Em atendimento', 'Número', 'Título', 'Categoria', 'Responsável', 'Aberto', 'Estado', 'Mais antigos primeiro', 'Boleto · sem responsável · aberto há 3 dias', 'Matrícula · Carla · aberto há 3 dias', 'sem responsável', 'aberto há 3 dias', 'há 3 dias', 'Carla'], itens, ['ONE-1', 'ONE-2', 'pedido', '1', '2', 'Boleto', 'Matrícula'])
+    await lista('/univag/fila', 'fila', ['Fila', 'Fila em dia', 'Nenhum chamado na fila dos seus setores.', 'Aberto', 'Em atendimento', 'Número', 'Título', 'Categoria', 'Responsável', 'Aberto', 'Estado', 'Mais antigos primeiro', 'Boleto · sem responsável · aberto há 3 dias', 'Matrícula · Carla · aberto há 3 dias', 'sem responsável', 'aberto há 3 dias', 'há 3 dias', 'Carla'], itens, ['ESC-000001', 'ESC-000002', 'pedido', '1', '2', 'Boleto', 'Matrícula'])
   })
 })

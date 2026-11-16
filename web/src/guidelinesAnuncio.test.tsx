@@ -29,11 +29,11 @@ describe('rótulo pendente do BotaoAcao', () => {
   it('C27 Enviar vira Enviando… com aria-busy na resposta do chamado', async () => {
     api({
       'GET /api/auth/me': () => [200, atendente],
-      'GET /api/chamados/ONE-1': () => [200, chamado({ setorId: 5 } as object)],
+      'GET /api/chamados/ESC-000001': () => [200, chamado({ setorId: 5 } as object)],
       'GET /api/respostas-prontas?setorId=5': () => [200, []],
-      'POST /api/chamados/ONE-1/mensagens': eterna,
+      'POST /api/chamados/ESC-000001/mensagens': eterna,
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
     await userEvent.type(await screen.findByLabelText('Responder'), 'Já resolvemos.')
     await userEvent.click(screen.getByRole('button', { name: 'Enviar' }))
     const pendente = await screen.findByRole('button', { name: 'Enviando…' })
@@ -75,8 +75,8 @@ describe('carregamentos anunciados', () => {
   })
 
   it('C28 ChamadoDetalhe', async () => {
-    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ONE-1': eterna })
-    abrir('/univag/chamados/ONE-1')
+    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ESC-000001': eterna })
+    abrir('/univag/chamados/ESC-000001')
     await anuncia()
   })
 

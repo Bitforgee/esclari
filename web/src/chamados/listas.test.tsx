@@ -20,16 +20,16 @@ describe('listas de chamados', () => {
     lista('fila', () => [
       200,
       [
-        { numero: 'ONE-1', titulo: 'boleto', categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 },
-        { numero: 'ONE-2', titulo: 'matrícula', categoria: 'Matrícula', estado: 'EM_ATENDIMENTO', responsavel: 'Carla', criadoEm: '2026-10-30T12:00:00Z', dias: 3 },
+        { numero: 'ESC-000001', titulo: 'boleto', categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 },
+        { numero: 'ESC-000002', titulo: 'matrícula', categoria: 'Matrícula', estado: 'EM_ATENDIMENTO', responsavel: 'Carla', criadoEm: '2026-10-30T12:00:00Z', dias: 3 },
       ],
     ])
     abrir('/univag/fila')
-    const primeiro = (await screen.findByText('ONE-1')).closest('tr') as HTMLElement
-    expect(within(primeiro).getByText('ONE-1').closest('a')).toHaveAttribute('href', '/univag/chamados/ONE-1')
+    const primeiro = (await screen.findByText('ESC-000001')).closest('tr') as HTMLElement
+    expect(within(primeiro).getByText('ESC-000001').closest('a')).toHaveAttribute('href', '/univag/chamados/ESC-000001')
     expect(within(primeiro).getByText('Aberto')).toBeInTheDocument()
     expect(primeiro).toHaveTextContent('Boleto · sem responsável · aberto há 3 dias')
-    const segundo = screen.getByText('ONE-2').closest('tr') as HTMLElement
+    const segundo = screen.getByText('ESC-000002').closest('tr') as HTMLElement
     expect(within(segundo).getByText('Em atendimento')).toBeInTheDocument()
     expect(segundo).toHaveTextContent('Matrícula · Carla · aberto há 6 dias')
     expect(screen.queryByText('Nenhum chamado na fila dos seus setores.')).not.toBeInTheDocument()
@@ -37,29 +37,29 @@ describe('listas de chamados', () => {
   })
 
   it('Minhas solicitações lista os chamados do aluno sem a linha da equipe', async () => {
-    lista('meus', () => [200, [{ numero: 'ONE-3', titulo: 'histórico', estado: 'RESOLVIDO', criadoEm: '2026-11-02T12:00:00Z' }]])
+    lista('meus', () => [200, [{ numero: 'ESC-000003', titulo: 'histórico', estado: 'RESOLVIDO', criadoEm: '2026-11-02T12:00:00Z' }]])
     abrir('/univag/solicitacoes')
-    const item = (await screen.findByText('ONE-3')).closest('tr') as HTMLElement
-    expect(within(item).getByText('ONE-3').closest('a')).toHaveAttribute('href', '/univag/chamados/ONE-3')
-    expect(item).toHaveTextContent('ONE-3históricoResolvido')
+    const item = (await screen.findByText('ESC-000003')).closest('tr') as HTMLElement
+    expect(within(item).getByText('ESC-000003').closest('a')).toHaveAttribute('href', '/univag/chamados/ESC-000003')
+    expect(item).toHaveTextContent('ESC-000003históricoResolvido')
     expect(screen.queryByText(/Você ainda não tem solicitações/)).not.toBeInTheDocument()
   })
 
   it('colunas das listas de chamados', async () => {
-    lista('fila', () => [200, [{ numero: 'ONE-1', titulo: 'boleto', categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 }]])
+    lista('fila', () => [200, [{ numero: 'ESC-000001', titulo: 'boleto', categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 }]])
     const montada = abrir('/univag/fila')
-    const linha = (await screen.findByText('ONE-1')).closest('tr') as HTMLElement
+    const linha = (await screen.findByText('ESC-000001')).closest('tr') as HTMLElement
     expect(cabecalhos()).toEqual(['Número', 'Título', 'Categoria', 'Responsável', 'Aberto', 'Estado'])
     const celulas = within(linha).getAllByRole('cell')
-    expect(celulas[0]).toHaveTextContent(/^ONE-1$/)
+    expect(celulas[0]).toHaveTextContent(/^ESC-000001$/)
     expect(celulas[1]).toHaveTextContent(/^boleto.*aberto há \d+ dias$/)
     montada.unmount()
 
-    lista('meus', () => [200, [{ numero: 'ONE-3', titulo: 'histórico', estado: 'RESOLVIDO', criadoEm: '2026-11-02T12:00:00Z' }]])
+    lista('meus', () => [200, [{ numero: 'ESC-000003', titulo: 'histórico', estado: 'RESOLVIDO', criadoEm: '2026-11-02T12:00:00Z' }]])
     abrir('/univag/solicitacoes')
-    const item = (await screen.findByText('ONE-3')).closest('tr') as HTMLElement
+    const item = (await screen.findByText('ESC-000003')).closest('tr') as HTMLElement
     expect(cabecalhos()).toEqual(['Número', 'Título', 'Estado'])
-    expect(within(item).getAllByRole('cell')[0]).toHaveTextContent(/^ONE-3$/)
+    expect(within(item).getAllByRole('cell')[0]).toHaveTextContent(/^ESC-000003$/)
     expect(within(item).getAllByRole('cell')[1]).toHaveTextContent(/^histórico$/)
   })
 

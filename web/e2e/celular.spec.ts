@@ -145,8 +145,8 @@ test.describe('S2 celular', () => {
     await simularApi(page)
     let resolvido = false
     const json = (estado: string) => ({ status: 200, contentType: 'application/json', body: JSON.stringify(chamadoSimulado(estado)) })
-    await page.route('**/api/chamados/ONE-123', (rota) => rota.fulfill(json(resolvido ? 'RESOLVIDO' : 'ABERTO')))
-    await page.route('**/api/chamados/ONE-123/resolver', (rota) => {
+    await page.route('**/api/chamados/ESC-000123', (rota) => rota.fulfill(json(resolvido ? 'RESOLVIDO' : 'ABERTO')))
+    await page.route('**/api/chamados/ESC-000123/resolver', (rota) => {
       resolvido = true
       return rota.fulfill(json('RESOLVIDO'))
     })

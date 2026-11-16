@@ -42,9 +42,9 @@ describe('Conversa sem leitura de layout no render', () => {
     vi.stubGlobal('innerHeight', 700)
     api({
       'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'], matriculas: [] })],
-      'GET /api/chamados/ONE-1': () => [200, chamado({ solicitante: 'Ana', eventos: [], acoes: ['responder', 'nota'] })],
+      'GET /api/chamados/ESC-000001': () => [200, chamado({ solicitante: 'Ana', eventos: [], acoes: ['responder', 'nota'] })],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
     await screen.findByTestId('linha-do-tempo')
     expect(screen.queryByRole('button', { name: 'Ir para o mais recente' })).not.toBeInTheDocument()
 

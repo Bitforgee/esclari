@@ -34,18 +34,18 @@ test.describe('casca do celular com toque', () => {
   })
 
   test('troca de classe mantém a rota', async ({ page }) => {
-    await abrir(page, 390, 844, '/univag/chamados/ONE-123', ['ATENDENTE'])
-    await expect(titulo(page)).toHaveText('ONE-123')
+    await abrir(page, 390, 844, '/univag/chamados/ESC-000123', ['ATENDENTE'])
+    await expect(titulo(page)).toHaveText('ESC-000123')
     await expect(barra(page)).toHaveCount(0)
     await page.setViewportSize({ width: 1024, height: 800 })
     await expect(lateral(page)).toBeVisible()
     await expect(barra(page)).toHaveCount(0)
-    await expect(titulo(page)).toHaveText('ONE-123')
-    expect(new URL(page.url()).pathname).toBe('/univag/chamados/ONE-123')
+    await expect(titulo(page)).toHaveText('ESC-000123')
+    expect(new URL(page.url()).pathname).toBe('/univag/chamados/ESC-000123')
     await page.setViewportSize({ width: 390, height: 844 })
     await expect(lateral(page)).toHaveCount(0)
-    await expect(titulo(page)).toHaveText('ONE-123')
-    expect(new URL(page.url()).pathname).toBe('/univag/chamados/ONE-123')
+    await expect(titulo(page)).toHaveText('ESC-000123')
+    expect(new URL(page.url()).pathname).toBe('/univag/chamados/ESC-000123')
     await page.goto('/univag/fila')
     await titulo(page).waitFor()
     await expect(barra(page)).toHaveCount(1)
@@ -93,7 +93,7 @@ test.describe('casca do celular com toque', () => {
   })
 
   test('Voltar de 44 px', async ({ page }) => {
-    await abrir(page, 390, 844, '/univag/chamados/ONE-123')
+    await abrir(page, 390, 844, '/univag/chamados/ESC-000123')
     const voltar = page.getByRole('button', { name: 'Voltar' })
     const c = await caixa(voltar)
     expect(c.width).toBeGreaterThanOrEqual(44)
@@ -102,7 +102,7 @@ test.describe('casca do celular com toque', () => {
   })
 
   test('barra do chamado sozinha embaixo', async ({ page }) => {
-    await abrir(page, 390, 844, '/univag/chamados/ONE-123', ['ATENDENTE'])
+    await abrir(page, 390, 844, '/univag/chamados/ESC-000123', ['ATENDENTE'])
     await page.getByText('Resumo gerado por IA').waitFor()
     await expect(barra(page)).toHaveCount(0)
     const mais = page.getByRole('button', { name: 'Mais', exact: true })

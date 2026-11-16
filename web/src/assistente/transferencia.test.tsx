@@ -19,7 +19,7 @@ async function transferirConversa() {
   await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Falar com atendente' }))
 }
 
-const transferido: Rota = () => [201, { numero: 'ONE-1', estado: 'ABERTO', setor: 'Financeiro' }]
+const transferido: Rota = () => [201, { numero: 'ESC-000001', estado: 'ABERTO', setor: 'Financeiro' }]
 
 describe('transferência', () => {
   afterEach(() => {
@@ -34,7 +34,7 @@ describe('transferência', () => {
         { id: 3, numero: '2000567892', curso: 'Medicina', semestre: 1, situacao: 'INATIVA' },
       ],
     })
-    const chamadas = emConversa({ 'POST /api/atendimento-direto': transferido, 'GET /api/chamados/ONE-1': () => [200, chamado()] }, duas)
+    const chamadas = emConversa({ 'POST /api/atendimento-direto': transferido, 'GET /api/chamados/ESC-000001': () => [200, chamado()] }, duas)
     abrir('/univag/assistente')
 
     await userEvent.click(await screen.findByRole('button', { name: /Falar com atendente/ }))
@@ -47,14 +47,14 @@ describe('transferência', () => {
     await userEvent.selectOptions(within(dialogo).getByLabelText('Matrícula'), '2')
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Falar com atendente' }))
 
-    await screen.findByText(comTexto('Sua solicitação ONE-1 foi para Financeiro'))
+    await screen.findByText(comTexto('Sua solicitação ESC-000001 foi para Financeiro'))
     expect(chamadas.find((c) => c.url === '/api/atendimento-direto')?.corpo).toEqual({ descricao: 'Quero trancar o curso', matriculaId: 2 })
   })
 
   it('transferido mostra protocolo e respostas', async () => {
     const chamadas = emConversa({
       'POST /api/conversas/7/transferir': transferido,
-      'GET /api/chamados/ONE-1': () => [
+      'GET /api/chamados/ESC-000001': () => [
         200,
         chamado({
           mensagens: [
@@ -68,21 +68,21 @@ describe('transferência', () => {
 
     await transferirConversa()
 
-    expect(await screen.findByText(comTexto('Sua solicitação ONE-1 foi para Financeiro'))).toBeInTheDocument()
+    expect(await screen.findByText(comTexto('Sua solicitação ESC-000001 foi para Financeiro'))).toBeInTheDocument()
     expect(await screen.findByText('Olá! Vou reemitir seu boleto.')).toBeInTheDocument()
     expect(screen.getByText('Obrigada!')).toBeInTheDocument()
     expect(screen.getByText('preciso do boleto')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ver solicitação' })).toHaveAttribute('href', '/univag/chamados/ONE-1')
+    expect(screen.getByRole('link', { name: 'Ver solicitação' })).toHaveAttribute('href', '/univag/chamados/ESC-000001')
     expect(chamadas.find((c) => c.url === '/api/conversas/7/transferir')?.corpo).toEqual({})
   })
 
   it('atualiza chamado a cada 15 s', async () => {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
-    const chamadas = emConversa({ 'POST /api/conversas/7/transferir': transferido, 'GET /api/chamados/ONE-1': () => [200, chamado()] })
+    const chamadas = emConversa({ 'POST /api/conversas/7/transferir': transferido, 'GET /api/chamados/ESC-000001': () => [200, chamado()] })
     abrir('/univag/assistente')
     await transferirConversa()
-    await screen.findByText(comTexto('Sua solicitação ONE-1 foi para Financeiro'))
-    const leituras = () => chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/chamados/ONE-1').length
+    await screen.findByText(comTexto('Sua solicitação ESC-000001 foi para Financeiro'))
+    const leituras = () => chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/chamados/ESC-000001').length
     await waitFor(() => expect(leituras()).toBe(1))
 
     await vi.advanceTimersByTimeAsync(14_900)

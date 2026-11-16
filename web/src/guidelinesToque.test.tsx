@@ -55,8 +55,8 @@ afterEach(() => {
 describe('alvos de toque de 44 px', () => {
   it('C22 Topo: o Voltar do chamado e o botão de avisos do aluno usam o alvo de 44 px', async () => {
     celular()
-    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ONE-1': () => [200, chamado()], ...avisos() })
-    abrir('/univag/chamados/ONE-1')
+    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ESC-000001': () => [200, chamado()], ...avisos() })
+    abrir('/univag/chamados/ESC-000001')
     const cabecalho = (await screen.findByRole('heading', { level: 1 })).closest('header') as HTMLElement
     quarenta(within(cabecalho).getByRole('button', { name: 'Voltar' }))
     quarenta(await within(cabecalho).findByRole('button', { name: 'Ativar avisos neste aparelho' }))
@@ -127,8 +127,8 @@ describe('anel de foco visível', () => {
   })
 
   it('C23 disclosure da Conversa', async () => {
-    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ONE-1': () => [200, chamado()] })
-    abrir('/univag/chamados/ONE-1')
+    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ESC-000001': () => [200, chamado()] })
+    abrir('/univag/chamados/ESC-000001')
     foco(await screen.findByRole('button', { name: /^Conversa com o assistente/ }))
   })
 

@@ -246,7 +246,7 @@ test.describe('S1 contraste', () => {
   test('selos com contraste de 4,5:1 nos três temas', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 })
     const estados = [['ABERTO', 'Aberto'], ['EM_ATENDIMENTO', 'Em atendimento'], ['AGUARDANDO_ALUNO', 'Aguardando aluno'], ['RESOLVIDO', 'Resolvido'], ['FECHADO', 'Fechado']]
-    const fila = estados.map(([estado], i) => ({ numero: `ONE-${i + 1}`, titulo: `chamado ${i + 1}`, categoria: 'Boleto', estado, responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 }))
+    const fila = estados.map(([estado], i) => ({ numero: `ESC-${String(i + 1).padStart(6, '0')}`, titulo: `chamado ${i + 1}`, categoria: 'Boleto', estado, responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 }))
     const artigo = (id: number, estado: string) => ({ id, estado, categoriaId: 1, categoria: 'Boleto', versao: { id, numero: 1, titulo: `artigo ${id}`, perguntas: [], resposta: 'x', links: [] } })
     const usuario = { id: 1, cpf: '12345678909', nome: 'Carla', email: 'c@univag.edu.br', ativo: false, deveTrocarSenha: false, papeis: ['ATENDENTE'], setores: [1] }
     let medidos = 0
@@ -258,7 +258,7 @@ test.describe('S1 contraste', () => {
         await responder(page, /\/api\/admin\/artigos/, [artigo(1, 'ATIVO'), artigo(2, 'RASCUNHO'), artigo(3, 'ARQUIVADO')])
         await responder(page, /\/api\/admin\/usuarios/, [usuario])
         const selos: [string, string, string][] = [
-          ...estados.map(([, rotulo], i) => ['/univag/fila', rotulo, `ONE-${i + 1}`] as [string, string, string]),
+          ...estados.map(([, rotulo], i) => ['/univag/fila', rotulo, `ESC-${String(i + 1).padStart(6, '0')}`] as [string, string, string]),
           ...['Ativo', 'Rascunho', 'Arquivado'].map((rotulo, i) => ['/univag/artigos', rotulo, `artigo ${i + 1}`] as [string, string, string]),
           ['/univag/usuarios', 'Desativado', 'Carla'],
         ]
@@ -302,14 +302,14 @@ test.describe('S1 contraste', () => {
     await expect(page.getByRole('dialog')).toBeVisible()
     await semVerde(page.getByRole('dialog').getByRole('button', { name: 'Falar com atendente', exact: true }), ['default', 'outline'])
 
-    await page.goto('/univag/chamados/ONE-123')
+    await page.goto('/univag/chamados/ESC-000123')
     await page.getByText('Resumo gerado por IA').waitFor()
     await semVerde(page.getByRole('button', { name: 'Resolver', exact: true }), ['default', 'outline'])
 
     await page.unroute('**/api/**')
     await simularApi(page, ['ALUNO'])
-    await responder(page, /\/api\/chamados\/ONE-123/, { ...chamadoSimulado('RESOLVIDO'), eventos: null, resumo: null, acoes: ['confirmar'] })
-    await page.goto('/univag/chamados/ONE-123')
+    await responder(page, /\/api\/chamados\/ESC-000123/, { ...chamadoSimulado('RESOLVIDO'), eventos: null, resumo: null, acoes: ['confirmar'] })
+    await page.goto('/univag/chamados/ESC-000123')
     await semVerde(page.getByRole('button', { name: 'Confirmar resolução', exact: true }), ['default', 'outline'])
   })
 })
@@ -381,8 +381,8 @@ test.describe('S2 barra de abas', () => {
     await cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: { bottom: 34 } })
     const longo = 'Para emitir a segunda via do boleto do semestre, entre no Portal do Aluno, abra a área financeira e escolha o mês desejado. '.repeat(5)
     await page.route(/\/api\/conversas(\/1\/mensagens)?$/, (r) => r.fulfill(json({ conversaId: 1, resposta: { tipo: 'resposta', texto: longo } }, 201)))
-    await responder(page, /\/api\/chamados\?escopo=meus/, Array.from({ length: 20 }, (_, i) => ({ numero: `ONE-${i + 1}`, titulo: `Solicitação número ${i + 1}`, estado: 'EM_ATENDIMENTO', criadoEm: '2026-11-02T12:00:00Z' })))
-    await responder(page, /\/api\/chamados\/ONE-123/, { ...chamadoSimulado('ABERTO'), eventos: null, resumo: null, acoes: ['cancelar'] })
+    await responder(page, /\/api\/chamados\?escopo=meus/, Array.from({ length: 20 }, (_, i) => ({ numero: `ESC-${String(i + 1).padStart(6, '0')}`, titulo: `Solicitação número ${i + 1}`, estado: 'EM_ATENDIMENTO', criadoEm: '2026-11-02T12:00:00Z' })))
+    await responder(page, /\/api\/chamados\/ESC-000123/, { ...chamadoSimulado('ABERTO'), eventos: null, resumo: null, acoes: ['cancelar'] })
 
     const conferir = async (tela: string) => {
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
@@ -407,12 +407,12 @@ test.describe('S2 barra de abas', () => {
     }
     await conferir('Assistente')
     await page.goto('/univag/solicitacoes')
-    await page.getByText('ONE-20').waitFor()
+    await page.getByText('ESC-000020').waitFor()
     await conferir('Minhas solicitações')
     await page.goto('/univag/conta')
     await page.getByText('***.456.789-**').waitFor()
     await conferir('Conta')
-    await page.goto('/univag/chamados/ONE-123')
+    await page.goto('/univag/chamados/ESC-000123')
     await page.getByRole('button', { name: /Cancelar|Ações/ }).first().waitFor()
     await conferir('Detalhe do chamado')
   })
@@ -611,17 +611,17 @@ test.describe('S3 conversa', () => {
     await simularApi(page, ['ALUNO'], false, comAparencia)
     await respostas(page, 'O boleto fica no portal.')
     await page.route('**/api/conversas/1/avaliacao', (r) => r.fulfill(json({ desfecho: null })))
-    await page.route('**/api/conversas/1/transferir', (r) => r.fulfill(json({ numero: 'ONE-5', estado: 'ABERTO', setor: 'Financeiro' }, 201)))
+    await page.route('**/api/conversas/1/transferir', (r) => r.fulfill(json({ numero: 'ESC-000005', estado: 'ABERTO', setor: 'Financeiro' }, 201)))
     await page.goto('/univag/assistente')
     await perguntar(page, 'preciso do boleto')
     await page.getByRole('button', { name: 'Não' }).click()
     await page.getByRole('button', { name: /Falar com atendente/ }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Falar com atendente' }).click()
-    await expect(page.getByText('Sua solicitação ONE-5 foi para Financeiro')).toHaveCount(1)
+    await expect(page.getByText('Sua solicitação ESC-000005 foi para Financeiro')).toHaveCount(1)
     const medidas = await page.evaluate(() => {
       const por = (seletor: string, texto: string) => [...document.querySelectorAll(seletor)].filter((e) => e.textContent === texto)
       const contato = por('h3', 'Contato do atendimento')[0].closest('section')!
-      const alvos = [por('h2', 'Sua solicitação ONE-5 foi para Financeiro')[0], por('p', 'A resposta chega em Solicitações e no seu e-mail.')[0], contato, por('a', 'Ver solicitação')[0]]
+      const alvos = [por('h2', 'Sua solicitação ESC-000005 foi para Financeiro')[0], por('p', 'A resposta chega em Solicitações e no seu e-mail.')[0], contato, por('a', 'Ver solicitação')[0]]
       let comum: Element = alvos[0]
       while (!alvos.every((a) => comum.contains(a))) comum = comum.parentElement!
       const borda = (e: Element) => ['Top', 'Right', 'Bottom', 'Left'].map((l) => parseFloat(getComputedStyle(e)[`border${l}Width` as 'borderTopWidth']))
@@ -660,8 +660,8 @@ test.describe('S3 conversa', () => {
     expect(a.largura, 'a resposta passa de 1 linha').toBeGreaterThan(300)
     expect(a.largura).toBeLessThanOrEqual(a.limite + 1)
 
-    await page.route('**/api/chamados/ONE-123', (r) => r.fulfill(json({ ...chamadoSimulado(), transcricao: [{ autor: 'ALUNO', texto: Longa, criadaEm: '2026-11-02T12:00:00Z' }], mensagens: [] })))
-    await page.goto('/univag/chamados/ONE-123')
+    await page.route('**/api/chamados/ESC-000123', (r) => r.fulfill(json({ ...chamadoSimulado(), transcricao: [{ autor: 'ALUNO', texto: Longa, criadaEm: '2026-11-02T12:00:00Z' }], mensagens: [] })))
+    await page.goto('/univag/chamados/ESC-000123')
     await page.getByRole('button', { name: /^Conversa com o assistente/ }).click()
     const noChamado = page.getByText(Longa.trim().slice(0, 50))
     await expect(noChamado).toHaveCount(1)
@@ -713,17 +713,17 @@ test.describe('S3 conversa', () => {
 
 const longoTitulo = 'Preciso da segunda via do boleto de novembro, que veio com o valor da rematrícula do semestre anterior'
 const MeusTres = (titulo: string) => [
-  { numero: 'ONE-1', titulo, estado: 'AGUARDANDO_ALUNO', criadoEm: '2026-11-02T12:00:00Z' },
-  { numero: 'ONE-2', titulo: 'Segunda via', estado: 'ABERTO', criadoEm: '2026-11-01T12:00:00Z' },
-  { numero: 'ONE-3', titulo: 'Declaração', estado: 'RESOLVIDO', criadoEm: '2026-10-30T12:00:00Z' },
+  { numero: 'ESC-000001', titulo, estado: 'AGUARDANDO_ALUNO', criadoEm: '2026-11-02T12:00:00Z' },
+  { numero: 'ESC-000002', titulo: 'Segunda via', estado: 'ABERTO', criadoEm: '2026-11-01T12:00:00Z' },
+  { numero: 'ESC-000003', titulo: 'Declaração', estado: 'RESOLVIDO', criadoEm: '2026-10-30T12:00:00Z' },
 ]
 const listasDeChamados = async (page: Page, titulo = longoTitulo) => {
   await page.route(/\/api\/chamados\?escopo=meus/, (r) => r.fulfill(json(MeusTres(titulo))))
   await page.route(/\/api\/chamados\?escopo=fila/, (r) =>
     r.fulfill(
       json([
-        { numero: 'ONE-1', titulo, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 2 },
-        { numero: 'ONE-2', titulo: 'Segunda via', categoria: 'Financeiro > Boletos e mensalidades', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-03T12:00:00Z', dias: 1 },
+        { numero: 'ESC-000001', titulo, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 2 },
+        { numero: 'ESC-000002', titulo: 'Segunda via', categoria: 'Financeiro > Boletos e mensalidades', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-03T12:00:00Z', dias: 1 },
       ]),
     ),
   )
@@ -827,10 +827,10 @@ async function comoEquipe(page: Page, largura: number, estado = 'EM_ATENDIMENTO'
   await instalar(page)
   await page.setViewportSize({ width: largura, height: 844 })
   await simularApi(page)
-  await page.route('**/api/chamados/ONE-123', (r) =>
+  await page.route('**/api/chamados/ESC-000123', (r) =>
     r.fulfill(json({ ...chamadoSimulado(estado), acoes, setores: [{ id: 2, nome: 'Financeiro' }], categorias: [{ id: 3, nome: 'Boleto' }] })),
   )
-  await page.goto('/univag/chamados/ONE-123')
+  await page.goto('/univag/chamados/ESC-000123')
   await page.getByText('Resumo gerado por IA').waitFor()
 }
 const barraDe = (page: Page) => page.locator('div.fixed').filter({ has: page.getByRole('button', { name: /^(Mais|Assumir|Responder)$/ }) })
@@ -906,13 +906,13 @@ test.describe('S4 detalhe', () => {
       await page.setViewportSize({ width: largura, height: 844 })
       await simularApi(page, ['ALUNO'])
       const doAluno = (estado: string, acoes: string[]) => ({ ...chamadoSimulado(estado), eventos: null, resumo: null, solicitante: null, acoes })
-      await page.route('**/api/chamados/ONE-123', (r) => r.fulfill(json(doAluno('ABERTO', ['responder', 'cancelar']))))
+      await page.route('**/api/chamados/ESC-000123', (r) => r.fulfill(json(doAluno('ABERTO', ['responder', 'cancelar']))))
       const pedidos: string[] = []
-      await page.route('**/api/chamados/ONE-123/cancelar', (r) => {
+      await page.route('**/api/chamados/ESC-000123/cancelar', (r) => {
         pedidos.push(r.request().method())
         return r.fulfill(json(doAluno('FECHADO', [])))
       })
-      await page.goto('/univag/chamados/ONE-123')
+      await page.goto('/univag/chamados/ESC-000123')
       const cancelar = page.getByRole('button', { name: 'Cancelar solicitação' })
       await expect(cancelar).toHaveCount(1)
       await expect(page.getByRole('button', { name: /^(Ações|Mais)$/ })).toHaveCount(0)
@@ -1305,19 +1305,19 @@ test.describe('S7 acréscimos', () => {
 
   test('folha de ações guarda o que foi digitado', async ({ page }) => {
     await comoEquipe(page, 390)
-    await page.route('**/api/chamados/ONE-123/resolver', (r) => r.fulfill(json({ ...chamadoSimulado(), acoes: Abertos, setores: [{ id: 2, nome: 'Financeiro' }], categorias: [{ id: 3, nome: 'Boleto' }] })))
+    await page.route('**/api/chamados/ESC-000123/resolver', (r) => r.fulfill(json({ ...chamadoSimulado(), acoes: Abertos, setores: [{ id: 2, nome: 'Financeiro' }], categorias: [{ id: 3, nome: 'Boleto' }] })))
     const mais = () => page.getByRole('button', { name: 'Mais', exact: true }).click()
     const folha = () => page.getByRole('dialog', { name: 'Mais ações' })
     await mais()
     await folha().getByLabel('Resolução').fill('Boleto reemitido')
     await folha().getByLabel('Reclassificar').selectOption('3')
-    await folha().getByLabel('Duplicado de outro pedido do mesmo aluno').fill('ONE-9')
+    await folha().getByLabel('Duplicado de outro pedido do mesmo aluno').fill('ESC-000009')
     await folha().getByRole('button', { name: 'Fechar', exact: true }).click()
     await expect(folha()).toHaveCount(0)
     await mais()
     await expect(folha().getByLabel('Resolução')).toHaveValue('Boleto reemitido')
     await expect(folha().getByLabel('Reclassificar')).toHaveValue('3')
-    await expect(folha().getByLabel('Duplicado de outro pedido do mesmo aluno')).toHaveValue('ONE-9')
+    await expect(folha().getByLabel('Duplicado de outro pedido do mesmo aluno')).toHaveValue('ESC-000009')
     await folha().getByRole('button', { name: 'Resolver', exact: true }).click()
     await page.getByRole('dialog', { name: 'Resolver o chamado?' }).getByRole('button', { name: 'Resolver chamado' }).click()
     await expect(folha()).toHaveCount(0)
@@ -1329,11 +1329,11 @@ test.describe('S7 acréscimos', () => {
     await instalar(page)
     await simularApi(page)
     const dias = [0, 1, 2]
-    const item = (n: number) => ({ numero: `ONE-${200 + n}`, titulo: `Pedido ${n}`, categoria: 'Financeiro', estado: 'ABERTO', responsavel: null, criadoEm: new Date(Date.now() - n * 86_400_000).toISOString(), dias: n })
+    const item = (n: number) => ({ numero: `ESC-${String(200 + n).padStart(6, '0')}`, titulo: `Pedido ${n}`, categoria: 'Financeiro', estado: 'ABERTO', responsavel: null, criadoEm: new Date(Date.now() - n * 86_400_000).toISOString(), dias: n })
     await page.route(/\/api\/chamados\?escopo=fila/, (r) => r.fulfill(json(dias.map(item))))
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/univag/fila')
-    await page.getByText('ONE-200').waitFor()
+    await page.getByText('ESC-000200').waitFor()
     await expect(page.getByRole('columnheader', { name: 'Aberto', exact: true })).toHaveCount(1)
     await expect(page.getByRole('columnheader', { name: 'Dias' })).toHaveCount(0)
     const cabecalhos = await page.getByRole('columnheader').allTextContents()
@@ -1359,8 +1359,8 @@ test.describe('S7 acréscimos', () => {
     await page.route(/\/api\/chamados\?escopo=fila/, (r) =>
       r.fulfill(
         json([
-          { numero: 'ONE-1', titulo: Titulo104, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: null, criadoEm: antes(2), dias: 2 },
-          { numero: 'ONE-2', titulo: 'Segunda via', categoria: 'Financeiro > Boletos e mensalidades', estado: 'ABERTO', responsavel: null, criadoEm: antes(1), dias: 1 },
+          { numero: 'ESC-000001', titulo: Titulo104, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: null, criadoEm: antes(2), dias: 2 },
+          { numero: 'ESC-000002', titulo: 'Segunda via', categoria: 'Financeiro > Boletos e mensalidades', estado: 'ABERTO', responsavel: null, criadoEm: antes(1), dias: 1 },
         ]),
       ),
     )

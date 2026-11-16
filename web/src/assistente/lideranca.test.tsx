@@ -6,13 +6,13 @@ import { abrir, api, chamado, comTexto, me, type Rota } from '../test/util'
 const Aviso =
   'Sua dúvida vai primeiro para a liderança do seu semestre, formada por estudantes da sua turma. A liderança vê seu nome, curso, semestre e um resumo da dúvida. A conversa com o assistente e os anexos dela não são mostrados.'
 
-const transferido: Rota = () => [201, { numero: 'ONE-1', estado: 'ABERTO', setor: 'Líderes ADS' }]
+const transferido: Rota = () => [201, { numero: 'ESC-000001', estado: 'ABERTO', setor: 'Líderes ADS' }]
 
 function emConversa(rotas: Record<string, Rota> = {}, quem = me()) {
   return api({
     'GET /api/auth/me': () => [200, quem],
     'POST /api/conversas': () => [201, { conversaId: 7, resposta: { tipo: 'sem_base', texto: 'Não encontrei.' } }],
-    'GET /api/chamados/ONE-1': () => [200, chamado()],
+    'GET /api/chamados/ESC-000001': () => [200, chamado()],
     ...rotas,
   })
 }
@@ -40,7 +40,7 @@ describe('liderança do semestre', () => {
 
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Enviar à liderança' }))
 
-    await screen.findByText(comTexto('Sua solicitação ONE-1 foi para Líderes ADS'))
+    await screen.findByText(comTexto('Sua solicitação ESC-000001 foi para Líderes ADS'))
     expect(chamadas.find((c) => c.url === '/api/conversas/7/transferir')?.corpo).toEqual({})
   })
 
@@ -60,7 +60,7 @@ describe('liderança do semestre', () => {
     expect(within(dialogo).queryByRole('button', { name: 'Prefiro a coordenação' })).not.toBeInTheDocument()
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Enviar à liderança' }))
 
-    await screen.findByText(comTexto('Sua solicitação ONE-1 foi para Líderes ADS'))
+    await screen.findByText(comTexto('Sua solicitação ESC-000001 foi para Líderes ADS'))
     expect(chamadas.find((c) => c.url === '/api/conversas/7/transferir')?.corpo).toEqual({})
   })
 
@@ -75,7 +75,7 @@ describe('liderança do semestre', () => {
     expect(within(dialogo).queryByText(Aviso)).not.toBeInTheDocument()
     expect(nomesDosBotoes(dialogo)).toContain('Falar com atendente')
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Falar com atendente' }))
-    await screen.findByRole('heading', { name: /Sua solicitação ONE-1 foi para/ })
+    await screen.findByRole('heading', { name: /Sua solicitação ESC-000001 foi para/ })
     expect(chamadas.find((c) => c.url === '/api/conversas/7/transferir')?.corpo).toEqual({})
   })
 
@@ -124,7 +124,7 @@ describe('liderança do semestre', () => {
 
     await userEvent.selectOptions(within(dialogo).getByLabelText('Matrícula'), '1')
     await userEvent.click(await within(dialogo).findByRole('button', { name: 'Enviar à liderança' }))
-    await screen.findByRole('heading', { name: /Sua solicitação ONE-1 foi para/ })
+    await screen.findByRole('heading', { name: /Sua solicitação ESC-000001 foi para/ })
     expect(chamadas.find((c) => c.url === '/api/conversas/7/transferir')?.corpo).toEqual({ matriculaId: 1 })
   })
 
@@ -137,7 +137,7 @@ describe('liderança do semestre', () => {
     await userEvent.type(within(dialogo).getByLabelText('Descreva seu pedido'), 'Quero trancar o curso')
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Falar com atendente' }))
 
-    await screen.findByRole('heading', { name: /Sua solicitação ONE-1 foi para/ })
+    await screen.findByRole('heading', { name: /Sua solicitação ESC-000001 foi para/ })
     expect(chamadas.some((c) => c.url.includes('/destino'))).toBe(false)
     expect(chamadas.find((c) => c.url === '/api/atendimento-direto')?.corpo).toEqual({ descricao: 'Quero trancar o curso' })
   })

@@ -19,40 +19,40 @@ const equipe = me({ papeis: ['ATENDENTE'], matriculas: [] })
 
 describe('chamado', () => {
   it('detalhe do chamado carregando, erro e sem respostas', async () => {
-    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ONE-1': () => new Promise(() => {}) })
-    const carregando = abrir('/univag/chamados/ONE-1')
+    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ESC-000001': () => new Promise(() => {}) })
+    const carregando = abrir('/univag/chamados/ESC-000001')
     await screen.findByRole('navigation')
     expect(screen.getByRole('status', { name: 'Carregando' })).toHaveTextContent('Carregando…')
     expect(document.querySelector('.animate-spin')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { level: 2 })).not.toBeInTheDocument()
     carregando.unmount()
 
-    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ONE-1': () => [404, { status: 404, detail: 'Chamado não encontrado.' }] })
-    const comErro = abrir('/univag/chamados/ONE-1')
+    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ESC-000001': () => [404, { status: 404, detail: 'Chamado não encontrado.' }] })
+    const comErro = abrir('/univag/chamados/ESC-000001')
     expect(await screen.findByRole('alert')).toHaveTextContent('Chamado não encontrado.')
     expect(screen.getByRole('alert')).toHaveClass('text-destructive')
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
     comErro.unmount()
 
-    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ONE-1': () => [200, chamado({ mensagens: [] })] })
-    abrir('/univag/chamados/ONE-1')
+    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ESC-000001': () => [200, chamado({ mensagens: [] })] })
+    abrir('/univag/chamados/ESC-000001')
     expect(await screen.findByText('Nenhuma resposta ainda.')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'preciso do boleto' })).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('título do chamado em h2', async () => {
-    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ONE-1': () => [200, chamado()] })
-    abrir('/univag/chamados/ONE-1')
+    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ESC-000001': () => [200, chamado()] })
+    abrir('/univag/chamados/ESC-000001')
 
     expect(await screen.findByRole('heading', { level: 2, name: 'preciso do boleto' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('ONE-1')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('ESC-000001')
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
   })
 
   it('detalhe rotula Resumo gerado por IA', async () => {
-    api({ 'GET /api/auth/me': () => [200, equipe], 'GET /api/chamados/ONE-1': () => [200, daEquipe()] })
-    abrir('/univag/chamados/ONE-1')
+    api({ 'GET /api/auth/me': () => [200, equipe], 'GET /api/chamados/ESC-000001': () => [200, daEquipe()] })
+    abrir('/univag/chamados/ESC-000001')
 
     expect(await screen.findByText('Resumo gerado por IA')).toBeInTheDocument()
     expect(screen.getByText('Aluna não encontra o boleto de novembro.')).toBeInTheDocument()
@@ -60,8 +60,8 @@ describe('chamado', () => {
   })
 
   it('aluno não vê resumo no detalhe', async () => {
-    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ONE-1': () => [200, chamado()] })
-    abrir('/univag/chamados/ONE-1')
+    api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ESC-000001': () => [200, chamado()] })
+    abrir('/univag/chamados/ESC-000001')
 
     await userEvent.click(await screen.findByRole('button', { name: /^Conversa com o assistente/ }))
     expect(await screen.findByText('O boleto fica no portal.')).toBeInTheDocument()
@@ -76,7 +76,7 @@ describe('chamado', () => {
     const fonte = (versaoArtigoId: number, titulo: string, atualizado: boolean) => ({ tipo: 'ARTIGO' as const, versaoArtigoId, versaoDocumentoId: null, titulo, numero: 1, trechos: ['fica no Portal do Aluno'], atualizado })
     api({
       'GET /api/auth/me': () => [200, equipe],
-      'GET /api/chamados/ONE-1': () => [
+      'GET /api/chamados/ESC-000001': () => [
         200,
         daEquipe({
           transcricao: [
@@ -87,7 +87,7 @@ describe('chamado', () => {
         }),
       ],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
 
     await userEvent.click(await screen.findByRole('button', { name: /^Conversa com o assistente/ }))
     const antiga = (await screen.findByText('Resposta antiga.')).closest('.is-user, .is-assistant') as HTMLElement
@@ -101,7 +101,7 @@ describe('chamado', () => {
   it('transcrição mostra os anexos do aluno como links', async () => {
     api({
       'GET /api/auth/me': () => [200, equipe],
-      'GET /api/chamados/ONE-1': () => [
+      'GET /api/chamados/ESC-000001': () => [
         200,
         daEquipe({
           transcricao: [
@@ -112,7 +112,7 @@ describe('chamado', () => {
         }),
       ],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
 
     await userEvent.click(await screen.findByRole('button', { name: /^Conversa com o assistente/ }))
     const balao = (await screen.findByText('esse boleto está certo?')).closest('.is-user, .is-assistant') as HTMLElement
@@ -127,7 +127,7 @@ describe('chamado', () => {
   it('fonte de documento no detalhe', async () => {
     api({
       'GET /api/auth/me': () => [200, equipe],
-      'GET /api/chamados/ONE-1': () => [
+      'GET /api/chamados/ESC-000001': () => [
         200,
         daEquipe({
           transcricao: [
@@ -145,7 +145,7 @@ describe('chamado', () => {
         }),
       ],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
 
     await userEvent.click(await screen.findByRole('button', { name: /^Conversa com o assistente/ }))
     const resposta = (await screen.findByText('O estágio exige 300 horas.')).closest('.is-user, .is-assistant') as HTMLElement
@@ -162,7 +162,7 @@ describe('chamado', () => {
     const Trecho = 'https://portal.univag.edu.br/a?x=1&y=2#topo'
     api({
       'GET /api/auth/me': () => [200, equipe],
-      'GET /api/chamados/ONE-1': () => [
+      'GET /api/chamados/ESC-000001': () => [
         200,
         daEquipe({
           transcricao: [
@@ -171,7 +171,7 @@ describe('chamado', () => {
         }),
       ],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
     await userEvent.click(await screen.findByRole('button', { name: /^Conversa com o assistente/ }))
     const resposta = (await screen.findByText('Veja o portal.')).closest('.is-user, .is-assistant') as HTMLElement
     const citacao = resposta.querySelector('blockquote')!
@@ -182,10 +182,10 @@ describe('chamado', () => {
   it('detalhe relê o chamado a cada 15 s', async () => {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
     try {
-      const chamadas = api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ONE-1': () => [200, chamado()] })
-      abrir('/univag/chamados/ONE-1')
+      const chamadas = api({ 'GET /api/auth/me': () => [200, me()], 'GET /api/chamados/ESC-000001': () => [200, chamado()] })
+      abrir('/univag/chamados/ESC-000001')
       await screen.findByRole('heading', { name: 'preciso do boleto' })
-      const leituras = () => chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/chamados/ONE-1').length
+      const leituras = () => chamadas.filter((c) => c.metodo === 'GET' && c.url === '/api/chamados/ESC-000001').length
       expect(leituras()).toBe(1)
       await vi.advanceTimersByTimeAsync(14_999)
       expect(leituras()).toBe(1)
@@ -202,7 +202,7 @@ describe('chamado', () => {
     const evento = (tipo: string, ator: string, criadoEm: string, de: string | null = null, para: string | null = null) => ({ tipo, ator, doAluno: false, de, para, detalhe: null, criadoEm })
     api({
       'GET /api/auth/me': () => [200, equipe],
-      'GET /api/chamados/ONE-1': () => [
+      'GET /api/chamados/ESC-000001': () => [
         200,
         daEquipe({
           mensagens: [],
@@ -214,7 +214,7 @@ describe('chamado', () => {
         }),
       ],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
 
     const lis = within(await screen.findByTestId('linha-do-tempo')).getAllByRole('listitem')
     expect(lis.map((li) => li.textContent)).toEqual([
@@ -227,8 +227,8 @@ describe('chamado', () => {
 
   async function historico(eventos: { tipo: string; ator?: string; doAluno?: boolean; de?: string | null; para?: string | null; detalhe?: string | null }[]) {
     const completos = eventos.map((e) => ({ ator: 'Carla', doAluno: false, de: null, para: null, detalhe: null, criadoEm: '2026-11-02T12:00:00Z', ...e }))
-    api({ 'GET /api/auth/me': () => [200, equipe], 'GET /api/chamados/ONE-1': () => [200, daEquipe({ mensagens: [], eventos: completos })] })
-    abrir('/univag/chamados/ONE-1')
+    api({ 'GET /api/auth/me': () => [200, equipe], 'GET /api/chamados/ESC-000001': () => [200, daEquipe({ mensagens: [], eventos: completos })] })
+    abrir('/univag/chamados/ESC-000001')
     return within(await screen.findByTestId('linha-do-tempo')).getAllByRole('listitem').map((li) => li.textContent!.replace('02/11/2026 08:00 · ', ''))
   }
 
@@ -279,24 +279,24 @@ describe('chamado', () => {
   it('etapa do fluxo na coluna lateral', async () => {
     api({
       'GET /api/auth/me': () => [200, equipe],
-      'GET /api/chamados/ONE-1': () => [200, daEquipe({ fluxo: { versao: 1, etapa: 1, total: 2, destino: 'LIDERANCA_SEMESTRE', abrangencia: 'ADS, 3º semestre' } })],
-      'GET /api/chamados/ONE-2': () => [200, daEquipe({ numero: 'ONE-2', fluxo: null })],
+      'GET /api/chamados/ESC-000001': () => [200, daEquipe({ fluxo: { versao: 1, etapa: 1, total: 2, destino: 'LIDERANCA_SEMESTRE', abrangencia: 'ADS, 3º semestre' } })],
+      'GET /api/chamados/ESC-000002': () => [200, daEquipe({ numero: 'ESC-000002', fluxo: null })],
     })
-    const aberta = abrir('/univag/chamados/ONE-1')
+    const aberta = abrir('/univag/chamados/ESC-000001')
     expect(await screen.findByText('Etapa 1 de 2 · ADS, 3º semestre')).toBeInTheDocument()
     aberta.unmount()
 
-    abrir('/univag/chamados/ONE-2')
+    abrir('/univag/chamados/ESC-000002')
     await screen.findByText('Atendimento')
     expect(screen.queryByText(/^Etapa \d+ de \d+/)).not.toBeInTheDocument()
   })
   it('detalhe do líder sem a conversa nem o número de matrícula', async () => {
     api({
       'GET /api/auth/me': () => [200, equipe],
-      'GET /api/chamados/ONE-1': () =>
+      'GET /api/chamados/ESC-000001': () =>
         [200, daEquipe({ transcricao: [], matricula: { numero: null, curso: 'ADS', semestre: 3 }, categorias: null, setores: null, acoes: ['responder', 'nota', 'assumir', 'resolver', 'subir'], fluxo: { versao: 1, etapa: 1, total: 2, destino: 'LIDERANCA_SEMESTRE', abrangencia: 'ADS, 3º semestre' } })],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
 
     expect(await screen.findByText('Ana · ADS · 3º semestre')).toBeInTheDocument()
     expect(screen.queryByText('Conversa com o assistente')).not.toBeInTheDocument()
@@ -333,11 +333,11 @@ describe('chamado', () => {
   it('resposta pronta preenche o texto e o anexo vai junto', async () => {
     const chamadas = api({
       'GET /api/auth/me': () => [200, equipe],
-      'GET /api/chamados/ONE-1': () => [200, daEquipe({ setorId: 5 })],
+      'GET /api/chamados/ESC-000001': () => [200, daEquipe({ setorId: 5 })],
       'GET /api/respostas-prontas?setorId=5': () => [200, [{ id: 1, titulo: 'Boleto', texto: 'Seu boleto está no Portal do Aluno.' }]],
-      'POST /api/chamados/ONE-1/mensagens': () => [201, daEquipe({ setorId: 5 })],
+      'POST /api/chamados/ESC-000001/mensagens': () => [201, daEquipe({ setorId: 5 })],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
 
     await userEvent.selectOptions(await screen.findByLabelText('Resposta pronta'), '1')
     expect(screen.getByLabelText('Responder')).toHaveValue('Seu boleto está no Portal do Aluno.')
@@ -363,17 +363,17 @@ describe('chamado', () => {
 
   it('encaminhar pede setor e motivo', async () => {
     const detalhe = {
-      numero: 'ONE-1', titulo: 'boleto', estado: 'ABERTO', motivoFechamento: null, setor: 'Triagem', categoria: 'Não classificado', responsavel: null,
+      numero: 'ESC-000001', titulo: 'boleto', estado: 'ABERTO', motivoFechamento: null, setor: 'Triagem', categoria: 'Não classificado', responsavel: null,
       criadoEm: '2026-11-02T12:00:00Z', resolvidoEm: null, matricula: { numero: '2000567890', curso: 'ADS', semestre: 3 }, solicitante: 'Ana', resumo: null,
       origemCategoria: 'PADRAO', transcricao: [], mensagens: [], eventos: [], acoes: ['responder', 'nota', 'assumir', 'resolver', 'encaminhar', 'reclassificar'],
       setores: [{ id: 5, nome: 'Financeiro' }], categorias: [{ id: 3, nome: 'Boleto' }],
     }
     const chamadas = api({
       'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'], matriculas: [] })],
-      'GET /api/chamados/ONE-1': () => [200, detalhe],
-      'POST /api/chamados/ONE-1/encaminhar': () => [200, { ...detalhe, acoes: [] }],
+      'GET /api/chamados/ESC-000001': () => [200, detalhe],
+      'POST /api/chamados/ESC-000001/encaminhar': () => [200, { ...detalhe, acoes: [] }],
     })
-    abrir('/univag/chamados/ONE-1')
+    abrir('/univag/chamados/ESC-000001')
 
     await userEvent.click(await screen.findByRole('button', { name: 'Encaminhar' }))
     const dialogo = within(await screen.findByRole('dialog'))

@@ -17,7 +17,7 @@ describe('rotas', () => {
 
   it('C42 o mesmo vale para um caminho mais fundo e para quem está autenticado', async () => {
     api({ 'GET /api/instituicoes/univag': () => [200, marca], 'GET /api/auth/me': () => [200, aluno] })
-    abrir('/univag/chamados/ONE-1/anexos/9')
+    abrir('/univag/chamados/ESC-000001/anexos/9')
     expect(await screen.findByRole('heading', { level: 1, name: 'Página não encontrada' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Voltar ao início' })).toHaveAttribute('href', '/univag')
   })
@@ -57,10 +57,10 @@ describe('rotas', () => {
     api({
       'GET /api/instituicoes/univag': () => [200, marca],
       'GET /api/auth/me': () => [200, aluno],
-      'GET /api/chamados/ONE-1': () => [404, { status: 404, title: 'Não encontrado' }],
+      'GET /api/chamados/ESC-000001': () => [404, { status: 404, title: 'Não encontrado' }],
     })
-    abrir('/univag/chamados/ONE-1')
-    await waitFor(() => expect(document.title).toBe('ONE-1 · Univag'))
+    abrir('/univag/chamados/ESC-000001')
+    await waitFor(() => expect(document.title).toBe('ESC-000001 · Univag'))
   })
 
   it('C43 a primeira entrada na tela não rouba o foco', async () => {

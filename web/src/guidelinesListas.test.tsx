@@ -11,7 +11,7 @@ const mais = () => screen.queryByRole('button', { name: 'Mostrar mais 50' })
 const usuario = (i: number) => ({ id: i, cpf: '123.456.789-09', nome: `Pessoa ${i}`, email: `p${i}@univag.edu.br`, ativo: true, deveTrocarSenha: false, papeis: ['ALUNO'], setores: [] })
 const artigo = (i: number) => ({ id: i, estado: 'ATIVO', indexacao: null, categoriaId: 3, categoria: 'Estágio', visivelDe: null, visivelAte: null, versao: { id: i, numero: 1, titulo: `Artigo ${i}`, perguntas: [], resposta: 'x', links: [] } })
 const documento = (i: number) => ({ id: i, titulo: `Documento ${i}`, categoriaId: 3, categoria: 'Estágio', estado: 'ATIVO', indexacao: 'INDEXADO', versao: { id: i, numero: 1, nomeArquivo: `d${i}.pdf`, paginas: 2, criadaEm: '2026-11-02T12:00:00Z' } })
-const chamado = (i: number) => ({ numero: `ONE-${i}`, titulo: `chamado ${i}`, categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 })
+const chamado = (i: number) => ({ numero: `ESC-${String(i).padStart(6, '0')}`, titulo: `chamado ${i}`, categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 })
 
 const telas: [string, string, (n: number) => Record<string, Rota>][] = [
   ['Usuários', '/univag/usuarios', (n) => ({ 'GET /api/admin/usuarios': () => [200, sequencia(n).map(usuario)], 'GET /api/admin/setores': () => [200, []] })],
