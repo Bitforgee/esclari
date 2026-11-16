@@ -1,0 +1,36 @@
+using Microsoft.EntityFrameworkCore;
+using Esclari.Api.Chamados.Acoes;
+using Esclari.Api.Dados;
+
+namespace Esclari.Api.Chamados.Permissao;
+
+public static class AcoesChamado
+{
+    public static void Mapear(RouteGroupBuilder api)
+    {
+        ResponderChamado.Mapear(api);
+        AssumirChamado.Mapear(api);
+        ResolverChamado.Mapear(api);
+        ConfirmarChamado.Mapear(api);
+        RejeitarChamado.Mapear(api);
+        CancelarChamado.Mapear(api);
+        EncaminharChamado.Mapear(api);
+        ReclassificarChamado.Mapear(api);
+        MarcarDuplicado.Mapear(api);
+        SubirChamado.Mapear(api);
+    }
+
+    public static IResult? Texto(string? texto, string campo, string mensagem) =>
+        string.IsNullOrWhiteSpace(texto) || texto.Length > 4000 ? Problemas.Invalido(mensagem, campo) : null;
+
+    public static async Task<string?> NomeDoResponsavel(EsclariDb db, Chamado c) =>
+        c.ResponsavelId is { } id ? await db.Usuarios.Where(u => u.Id == id).Select(u => u.Nome).SingleAsync() : null;
+
+    public static async Task<IResult> RejeitarResolucao(EsclariDb db, AcessoChamado a, Usuario usuario, Prazos prazos, string motivo, List<Anexo>? anexos = null)
+    {
+        var c = a.Chamado;
+        var ativo = c.ResponsavelId is { } r && await db.Usuarios.AnyAsync(u => u.Id == r && u.Ativo);
+        var recusa = c.Rejeitar(usuario.Id, new(motivo, anexos ?? [], ativo, await NomeDoResponsavel(db, c), prazos.RejeicaoDias), a.Agora);
+        return recusa is null ? Results.Empty : Problemas.Erro(409, recusa.Motivo);
+    }
+}

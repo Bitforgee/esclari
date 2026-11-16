@@ -13,9 +13,9 @@ const base: Plataforma = {
   deploymentId: '7',
   authUrl: 'https://ava.teste/auth',
   jwksUrl: 'https://ava.teste/certs',
-  urlLogin: 'https://one.teste/login',
-  urlLancamento: 'https://one.teste/lancamento',
-  urlJwks: 'https://one.teste/jwks',
+  urlLogin: 'https://esclari.teste/login',
+  urlLancamento: 'https://esclari.teste/lancamento',
+  urlJwks: 'https://esclari.teste/jwks',
 }
 
 const tela = (dados: Plataforma) => (

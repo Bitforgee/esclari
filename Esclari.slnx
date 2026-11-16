@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Esclari.Api/Esclari.Api.csproj" />
+  <Project Path="Esclari.Api.Tests/Esclari.Api.Tests.csproj" />
+  <Folder Name="/web/">
+    <File Path="web/package.json" />
+  </Folder>
+</Solution>

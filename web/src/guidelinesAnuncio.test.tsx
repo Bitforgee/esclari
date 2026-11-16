@@ -7,7 +7,7 @@ import { abrir, api, chamado, instituicao, me, type Rota } from './test/util'
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
 const atendente = me({ papeis: ['ATENDENTE'], matriculas: [] })
 const eterna: Rota = () => new Promise(() => {})
-const moodle = { configurada: true, ativa: true, emissor: 'https://ava.teste', clientId: 'c1', deploymentId: '7', authUrl: 'https://ava.teste/auth', jwksUrl: 'https://ava.teste/certs', urlLogin: 'https://one.teste/login', urlLancamento: 'https://one.teste/lancamento', urlJwks: 'https://one.teste/jwks' }
+const moodle = { configurada: true, ativa: true, emissor: 'https://ava.teste', clientId: 'c1', deploymentId: '7', authUrl: 'https://ava.teste/auth', jwksUrl: 'https://ava.teste/certs', urlLogin: 'https://esclari.teste/login', urlLancamento: 'https://esclari.teste/lancamento', urlJwks: 'https://esclari.teste/jwks' }
 
 afterEach(() => {
   cleanup()

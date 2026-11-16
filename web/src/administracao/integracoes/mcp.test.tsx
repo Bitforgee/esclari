@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { abrir, api, instituicao, me, type Rota } from '../../test/util'
 
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
-const url = 'https://one.teste/api/mcp/univag'
+const url = 'https://esclari.teste/api/mcp/univag'
 const base = { usuario: 'Ana', criadoEm: '2026-11-01T15:00:00Z', expiraEm: '2027-01-30T15:00:00Z' }
 const ativo = { ...base, id: 1, nome: 'Cursor', final: 'wxyz', ultimoUsoEm: '2026-11-09T12:30:00Z', estado: 'ATIVO' }
 const expirado = { ...base, id: 2, nome: 'Antigo', final: 'abcd', expiraEm: '2026-10-01T15:00:00Z', ultimoUsoEm: null, estado: 'EXPIRADO' }

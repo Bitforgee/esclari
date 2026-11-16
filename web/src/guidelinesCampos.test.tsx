@@ -93,7 +93,7 @@ const usuarios: Record<string, Rota> = {
   'GET /api/admin/usuarios': () => [200, []],
   'GET /api/admin/setores': () => [200, []],
 }
-const moodle = { configurada: false, ativa: false, emissor: '', clientId: '', deploymentId: '', authUrl: '', jwksUrl: '', urlLogin: 'https://one.teste/login', urlLancamento: 'https://one.teste/lancamento', urlJwks: 'https://one.teste/jwks' }
+const moodle = { configurada: false, ativa: false, emissor: '', clientId: '', deploymentId: '', authUrl: '', jwksUrl: '', urlLogin: 'https://esclari.teste/login', urlLancamento: 'https://esclari.teste/lancamento', urlJwks: 'https://esclari.teste/jwks' }
 
 async function abrirUsuario() {
   api(usuarios)
@@ -201,7 +201,7 @@ describe('atributos dos campos de texto', () => {
       'GET /api/auth/me': () => [200, admin],
       'GET /api/instituicoes/univag': () => [200, instituicao()],
       'GET /api/admin/moodle': () => [200, moodle],
-      'GET /api/admin/mcp': () => [200, { url: 'https://one.teste/mcp', tokens: [] }],
+      'GET /api/admin/mcp': () => [200, { url: 'https://esclari.teste/mcp', tokens: [] }],
     })
     abrir('/univag/integracoes')
     for (const rotulo of ['Emissor (iss)', 'URL de autenticação', 'URL das chaves (JWKS)']) {
@@ -306,7 +306,7 @@ describe('erros de campo de Moodle, MCP e Aparência', () => {
       'GET /api/auth/me': () => [200, admin],
       'GET /api/instituicoes/univag': () => [200, instituicao()],
       'GET /api/admin/moodle': () => [200, moodleVazio],
-      'GET /api/admin/mcp': () => [200, { url: 'https://one.teste/api/mcp/univag', tokens: [] }],
+      'GET /api/admin/mcp': () => [200, { url: 'https://esclari.teste/api/mcp/univag', tokens: [] }],
       'PUT /api/admin/moodle': () => invalido({ clientId: ['Informe o Client ID.'], authUrl: ['A URL deve começar com https://.'] }),
     })
     abrir('/univag/integracoes')
@@ -324,7 +324,7 @@ describe('erros de campo de Moodle, MCP e Aparência', () => {
       'GET /api/auth/me': () => [200, admin],
       'GET /api/instituicoes/univag': () => [200, instituicao()],
       'GET /api/admin/moodle': () => [200, moodleVazio],
-      'GET /api/admin/mcp': () => [200, { url: 'https://one.teste/api/mcp/univag', tokens: [] }],
+      'GET /api/admin/mcp': () => [200, { url: 'https://esclari.teste/api/mcp/univag', tokens: [] }],
       'PUT /api/admin/moodle': () => invalido({ clientId: ['Informe o Client ID.'], authUrl: ['A URL deve começar com https://.'] }),
     })
     abrir('/univag/integracoes')
@@ -337,7 +337,7 @@ describe('erros de campo de Moodle, MCP e Aparência', () => {
       'GET /api/auth/me': () => [200, admin],
       'GET /api/instituicoes/univag': () => [200, instituicao()],
       'GET /api/admin/moodle': () => [200, moodleVazio],
-      'GET /api/admin/mcp': () => [200, { url: 'https://one.teste/api/mcp/univag', tokens: [] }],
+      'GET /api/admin/mcp': () => [200, { url: 'https://esclari.teste/api/mcp/univag', tokens: [] }],
       'POST /api/admin/mcp/tokens': () => invalido(erros),
     })
     abrir('/univag/integracoes?aba=mcp')
@@ -419,7 +419,7 @@ describe('erros de campo de Moodle, MCP e Aparência', () => {
       'GET /api/auth/me': () => [200, admin],
       'GET /api/instituicoes/univag': () => [200, instituicao()],
       'GET /api/admin/moodle': () => [200, moodleVazio],
-      'GET /api/admin/mcp': () => [200, { url: 'https://one.teste/api/mcp/univag', tokens: [] }],
+      'GET /api/admin/mcp': () => [200, { url: 'https://esclari.teste/api/mcp/univag', tokens: [] }],
     })
     abrir('/univag/integracoes')
     const campo = await screen.findByLabelText('Client ID')

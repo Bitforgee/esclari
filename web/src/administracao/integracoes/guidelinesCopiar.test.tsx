@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { abrir, api, instituicao, me } from '../../test/util'
 
-const moodle = { configurada: false, ativa: false, emissor: '', clientId: '', deploymentId: '', authUrl: '', jwksUrl: '', urlLogin: 'https://one.teste/login', urlLancamento: 'https://one.teste/lancamento', urlJwks: 'https://one.teste/jwks' }
-const mcp = { url: 'https://one.teste/api/mcp/univag', tokens: [] }
+const moodle = { configurada: false, ativa: false, emissor: '', clientId: '', deploymentId: '', authUrl: '', jwksUrl: '', urlLogin: 'https://esclari.teste/login', urlLancamento: 'https://esclari.teste/lancamento', urlJwks: 'https://esclari.teste/jwks' }
+const mcp = { url: 'https://esclari.teste/api/mcp/univag', tokens: [] }
 
 const telas: [string, boolean, string][] = [
   ['Moodle', false, 'URL de login'],

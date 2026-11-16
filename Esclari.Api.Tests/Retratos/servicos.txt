@@ -1,0 +1,20 @@
+## servicos
+Scoped Esclari.Api.Acesso.ValidadorLti -> Esclari.Api.Acesso.ValidadorLti
+Scoped Esclari.Api.Assistente.Respostas.Assistente -> Esclari.Api.Assistente.Respostas.Assistente
+Scoped Esclari.Api.Chamados.Permissao.AcessoChamado -> Esclari.Api.Chamados.Permissao.AcessoChamado
+Scoped Esclari.Api.Dados.EsclariDb -> Esclari.Api.Dados.EsclariDb
+Singleton Esclari.Api.Acesso.ChaveLti -> Esclari.Api.Acesso.ChaveLti
+Singleton Esclari.Api.Agendador -> Esclari.Api.Agendador
+Singleton Esclari.Api.Armazenamento -> fabrica
+Singleton Esclari.Api.Assistente.Busca.Embeddings -> Esclari.Api.Assistente.Busca.Embeddings
+Singleton Esclari.Api.Chamados.TempoReal.AvisarMudanca -> Esclari.Api.Chamados.TempoReal.AvisarMudanca
+Singleton Esclari.Api.Chamados.Push.IEnviadorPush -> Esclari.Api.Chamados.Push.EnviadorPush
+Singleton Esclari.Api.Chamados.Push.IEnviadorPush -> fabrica
+Singleton Esclari.Api.Email -> Esclari.Api.Email
+Singleton Esclari.Api.Prazos -> fabrica
+Transient Esclari.Api.Mcp.AutenticacaoMcp -> Esclari.Api.Mcp.AutenticacaoMcp
+## hospedados
+Singleton fabrica
+Singleton ModelContextProtocol.AspNetCore.IdleTrackingBackgroundService
+Singleton Microsoft.AspNetCore.DataProtection.Internal.DataProtectionHostedService
+Singleton Microsoft.AspNetCore.Hosting.GenericWebHostService

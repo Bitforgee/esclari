@@ -5,9 +5,9 @@ import { abrir, abrirComRoteador, api, instituicao, me, type Rota } from '../../
 
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
 const Urls = {
-  urlLogin: 'https://one.teste/api/moodle/univag/login',
-  urlLancamento: 'https://one.teste/api/moodle/univag/lancamento',
-  urlJwks: 'https://one.teste/api/moodle/univag/jwks',
+  urlLogin: 'https://esclari.teste/api/moodle/univag/login',
+  urlLancamento: 'https://esclari.teste/api/moodle/univag/lancamento',
+  urlJwks: 'https://esclari.teste/api/moodle/univag/jwks',
 }
 const vazia = { configurada: false, ativa: false, emissor: '', clientId: '', deploymentId: '', authUrl: '', jwksUrl: '', ...Urls }
 
@@ -16,13 +16,13 @@ const rotas = (get: Rota, extra: Record<string, Rota> = {}) =>
     'GET /api/auth/me': () => [200, admin],
     'GET /api/instituicoes/univag': () => [200, instituicao()],
     'GET /api/admin/moodle': get,
-    'GET /api/admin/mcp': () => [200, { url: 'https://one.teste/api/mcp/univag', tokens: [] }],
+    'GET /api/admin/mcp': () => [200, { url: 'https://esclari.teste/api/mcp/univag', tokens: [] }],
     ...extra,
   })
 
 const configurada = (ativa: boolean) => ({ ...vazia, configurada: true, ativa, emissor: 'https://ava.teste', clientId: 'cliente-1', deploymentId: '7', authUrl: 'https://ava.teste/auth', jwksUrl: 'https://ava.teste/certs' })
 const token = (id: number, estado: string) => ({ id, nome: `T${id}`, usuario: 'Ana', final: 'wxyz', criadoEm: '2026-11-01T15:00:00Z', expiraEm: '2027-01-30T15:00:00Z', ultimoUsoEm: null, estado })
-const urlMcp = 'https://one.teste/api/mcp/univag'
+const urlMcp = 'https://esclari.teste/api/mcp/univag'
 const comTokens = (tokens: unknown[]) => () => [200, { url: urlMcp, tokens }] as [number, unknown]
 const estadoDe = (nome: string) => {
   const aba = screen.getByRole('tab', { name: nome })

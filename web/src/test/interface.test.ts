@@ -103,7 +103,7 @@ describe('interface nova', () => {
     expect(todas).not.toHaveProperty(['recharts'])
     expect(lock.packages[''].dependencies).not.toHaveProperty(['recharts'])
     expect(arquivos).not.toContain('indicadores/Grafico.tsx')
-    const assets = '../One.Api/wwwroot/assets'
+    const assets = '../Esclari.Api/wwwroot/assets'
     expect(existsSync(assets) ? readdirSync(assets).filter((f) => f.startsWith('Grafico-')) : []).toEqual([])
   })
 

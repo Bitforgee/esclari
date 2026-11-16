@@ -139,7 +139,7 @@ describe('datas curtas', () => {
     api({
       'GET /api/auth/me': () => [200, admin],
       'GET /api/instituicoes/univag': () => [200, instituicao()],
-      'GET /api/admin/mcp': () => [200, { url: 'https://one.teste/api/mcp/univag', tokens: [token] }],
+      'GET /api/admin/mcp': () => [200, { url: 'https://esclari.teste/api/mcp/univag', tokens: [token] }],
       'GET /api/admin/moodle': () => [200, { configurada: false, ativa: false, emissor: '', clientId: '', deploymentId: '', authUrl: '', jwksUrl: '', urlLogin: '', urlLancamento: '', urlJwks: '' }],
     })
     abrir('/univag/integracoes?aba=mcp')

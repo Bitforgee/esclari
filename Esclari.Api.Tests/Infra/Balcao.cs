@@ -1,0 +1,118 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Esclari.Api.Dados;
+
+namespace Esclari.Api.Tests.Infra;
+
+public record Atendente(Usuario Usuario, HttpClient Cliente);
+
+public record Balcao(EsclariFactory F, Instituicao Instituicao, Aluno Aluno, Setor Triagem, Setor Outro, Atendente A, Atendente B, Atendente Alheio)
+{
+    public HttpClient ClienteAluno => Aluno.Cliente;
+
+    public static async Task<Balcao> Criar(EsclariFactory f, Instituicao? i = null)
+    {
+        i ??= await f.Instituicao(nome: "Univag");
+        var triagem = await f.Db(i.Id, db => db.Setores.SingleAsync(s => s.Triagem));
+        var outro = await f.Setor(i, "Financeiro");
+        return new Balcao(f, i, await f.AlunoLogado(i), triagem, outro,
+            await f.Atendente(i, triagem), await f.Atendente(i, triagem), await f.Atendente(i, outro));
+    }
+
+    public async Task<string> Chamado(string estado = EstadosChamado.Aberto, string descricao = "Preciso de ajuda com o boleto")
+    {
+        var r = await ClienteAluno.PostAsJsonAsync("/api/atendimento-direto", new { descricao });
+        Assert.Equal(HttpStatusCode.Created, r.StatusCode);
+        var numero = (await r.Json()).GetProperty("numero").GetString()!;
+        if (estado == EstadosChamado.Aberto) return numero;
+        Ok(await A.Cliente.PostAsync($"/api/chamados/{numero}/assumir", null));
+        if (estado == EstadosChamado.AguardandoAluno) Ok(await Mensagem(A.Cliente, numero, "Envie o comprovante, por favor.", aguardaAluno: true));
+        if (estado is EstadosChamado.Resolvido or EstadosChamado.Fechado) Ok(await A.Cliente.PostAsJsonAsync($"/api/chamados/{numero}/resolver", new { texto = "Boleto reemitido." }));
+        if (estado == EstadosChamado.Fechado) Ok(await ClienteAluno.PostAsync($"/api/chamados/{numero}/confirmar", null));
+        Assert.Equal(estado, (await Ler(numero)).Estado);
+        return numero;
+    }
+
+    static void Ok(HttpResponseMessage r) => Assert.True(r.IsSuccessStatusCode, $"{r.RequestMessage?.RequestUri}: {(int)r.StatusCode}");
+
+    public static Task<HttpResponseMessage> Mensagem(HttpClient c, string numero, string texto, string tipo = "PUBLICA", bool aguardaAluno = false) =>
+        c.PostAsync($"/api/chamados/{numero}/mensagens", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["tipo"] = tipo,
+            ["texto"] = texto,
+            ["aguardaAluno"] = aguardaAluno ? "true" : "false",
+        }));
+
+    public static Task<HttpResponseMessage> ComAnexos(HttpClient c, string numero, string texto, string tipo, params (string nome, byte[] bytes)[] arquivos)
+    {
+        var form = new MultipartFormDataContent { { new StringContent(tipo), "tipo" }, { new StringContent(texto), "texto" } };
+        foreach (var (nome, bytes) in arquivos) form.Add(new ByteArrayContent(bytes), "anexos", nome);
+        return c.PostAsync($"/api/chamados/{numero}/mensagens", form);
+    }
+
+    public static byte[] Arquivo(byte[] assinatura, int tamanho)
+    {
+        var b = new byte[tamanho];
+        Random.Shared.NextBytes(b);
+        assinatura.CopyTo(b, 0);
+        return b;
+    }
+
+    public static readonly byte[] Pdf = "%PDF"u8.ToArray(), Jpg = [0xFF, 0xD8, 0xFF], Png = [0x89, 0x50, 0x4E, 0x47], Exe = "MZ"u8.ToArray();
+
+    public Task Recuar(string numero, TimeSpan quanto) =>
+        F.Db(Instituicao.Id, db => db.Chamados.Where(c => c.Numero == numero).ExecuteUpdateAsync(s => s
+            .SetProperty(c => c.CriadoEm, c => c.CriadoEm - quanto)
+            .SetProperty(c => c.ResolvidoEm, c => c.ResolvidoEm - quanto)));
+
+    public Task<Chamado> Ler(string numero) => F.Db(Instituicao.Id, db => db.Chamados.SingleAsync(c => c.Numero == numero));
+
+    public Task<List<EventoChamado>> Eventos(string numero) =>
+        F.Db(Instituicao.Id, db => db.EventosChamado.Where(e => db.Chamados.Any(c => c.Id == e.ChamadoId && c.Numero == numero)).OrderBy(e => e.Id).ToListAsync());
+
+    public async Task<JsonElement> Detalhe(HttpClient c, string numero) => await (await c.GetAsync($"/api/chamados/{numero}")).Json();
+}
+
+public static class SementeAtendimento
+{
+    public static Task<Setor> Setor(this EsclariFactory f, Instituicao i, string nome) =>
+        f.Db(i.Id, async db =>
+        {
+            var s = Esclari.Api.Dados.Cadastros.Setor.Criar(nome);
+            db.Setores.Add(s);
+            await db.SaveChangesAsync();
+            return s;
+        });
+
+    public static async Task<Atendente> Atendente(this EsclariFactory f, Instituicao i, params Setor[] setores)
+    {
+        var u = await f.Usuario(i, [Papeis.Atendente]);
+        await f.Db(i.Id, async db =>
+        {
+            await db.VincularSetores(u.Id, [.. setores.Select(s => s.Id)]);
+        });
+        return new Atendente(u, await f.Entrar(i, u));
+    }
+
+    public static Task<Fluxo> Regra(this EsclariFactory f, Instituicao i, Categoria c, Setor? setor) =>
+        f.Fluxo(i, c, null, null, setor is null ? Etapa(DestinosEtapa.CoordenacaoCurso) : Etapa(DestinosEtapa.Setor, setor.Id));
+
+    public static EtapaFluxo.Dados Etapa(string destino, long? setorId = null, int? prazoHoras = null, double? x = null, double? y = null) =>
+        new(destino, setorId, prazoHoras, x, y);
+
+    public static Task<Fluxo> Fluxo(this EsclariFactory f, Instituicao i, Categoria c, long? cursoId, int? semestre, params EtapaFluxo.Dados[] etapas) =>
+        f.Fluxo(i, c, cursoId, semestre, true, etapas);
+
+    public static Task<Fluxo> Fluxo(this EsclariFactory f, Instituicao i, Categoria c, long? cursoId, int? semestre, bool publicar, params EtapaFluxo.Dados[] etapas) =>
+        f.Db(i.Id, async db =>
+        {
+            var fluxo = Esclari.Api.Dados.Fluxos.Fluxo.Criar(c.Id, cursoId, semestre);
+            fluxo.SalvarRascunho(etapas);
+            if (publicar) fluxo.Publicar(f.Relogio.GetUtcNow().UtcDateTime);
+            db.Fluxos.Add(fluxo);
+            await db.SaveChangesAsync();
+            return fluxo;
+        });
+}
