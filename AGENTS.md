@@ -5,7 +5,7 @@
 ## Projeto
 Esclari: helpdesk acadêmico multi-instituição. O aluno conversa com um assistente de IA que responde só com
 fontes publicadas da instituição (RAG) e pode falar com um atendente a qualquer momento; a equipe atende
-os chamados (protocolo ONE-n), mantém a base de conhecimento e acompanha os indicadores. Univag é a primeira instituição.
+os chamados (protocolo ESC-NNNNNN), mantém a base de conhecimento e acompanha os indicadores. Univag é a primeira instituição.
 
 - Backend: .NET 10 / ASP.NET Core minimal APIs / EF Core 10 + Npgsql / PostgreSQL 18 + pgvector, pasta `Esclari.Api/`
 - Web: React 19 + Vite 8 + TypeScript, PWA (`vite-plugin-pwa`), Tailwind v4 + shadcn/ui, pasta `web/`
