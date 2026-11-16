@@ -1,7 +1,7 @@
 import { expect, test, type APIRequestContext, type APIResponse } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
 
-const container = process.env.E2E_CONTAINER ?? 'esclari-plataforma'
+const container = process.env.E2E_CONTAINER ?? 'esclari-api-1'
 const mailpit = process.env.E2E_MAILPIT ?? 'http://localhost:8025'
 const sufixo = Date.now().toString(36)
 const doOperador = `operadora-${sufixo}`

@@ -26,7 +26,8 @@ os chamados (protocolo ESC-NNNNNN), mantém a base de conhecimento e acompanha o
 | Web: tipos + build | `npm --prefix web run build` (gera `Esclari.Api/wwwroot`) |
 | Web: testes | `npm --prefix web test` (Vitest + Testing Library) |
 | Web: cobertura | `npm --prefix web run coverage` |
-| E2E | `docker compose up -d --build` e depois `npm --prefix web run e2e` (Playwright contra :8080, 1 worker) |
+| E2E | `docker compose up -d --build`, `npm --prefix web run e2e:preparar` (cria as instituições `demo` e `e2e` se faltarem) e depois `npm --prefix web run e2e` (Playwright contra :8080, 1 worker) |
+| Ícones do PWA | `npm --prefix web run icones` (regrava `web/public/icons/*.png` no Chromium do Playwright) |
 | Nova migration | `dotnet ef migrations add <Nome> --project Esclari.Api --output-dir Dados/Migracoes` (`dotnet tool restore` antes) |
 
 - Gates do `web/` (AD-018): `crapper` abaixo de CRAP 10 e `dryer` sem candidato a 0.8, rodados dentro de `web/`.
