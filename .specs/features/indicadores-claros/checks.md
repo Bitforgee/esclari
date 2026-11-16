@@ -201,3 +201,7 @@ Cost: 7 testes na camada em 1 arquivo novo. Sem estas linhas, as bordas de fuso 
 - Mechanism: one builder
 
 - Base da feature: `8190316` ($b..HEAD é o que o Verificador lê)
+
+- **Boundary:** C1-C38 construídos; último commit de código `cebd19d`; base `8190316`
+- **Settled mid-build:** (1) emenda da porta 1 já descrita no topo (ncerradas, quarto segmento). (2) O texto de C28 e AC 27 sai "de 115 conversas com desfecho" e não "conversas e chamados", porque o denominador do indicador principal no cálculo existente (CalculoIndicadores) é só conversas com desfecho; escrever "e chamados" seria falso. (3) C37 foi executado contra o servidor Vite com a API simulada de `web/e2e/simulada.ts` (`npx playwright test` com `baseURL` do Vite), porque o e2e padrão exige `docker compose up --build`. (4) `crapper` sai 1 por `useModo` (CRAP 11, `Autenticado.tsx`) e `Usuarios` (10), ambos intocados por esta feature e anteriores a ela; nenhuma função de `indicadores/` passa de 9,2.
+- **Abandoned:** recharts (AD-037); campos novos em `/api/indicadores` (porta 1, alternativa rejeitada)
