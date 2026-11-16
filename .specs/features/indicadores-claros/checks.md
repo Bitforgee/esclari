@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/indicadores-claros/plan.md`
 
-42 checks em 5 slices · 2 one-way doors · 0 perguntas abertas (plano aprovado pelo usuário em 16/11: "siga com o que for recomendado eu confio em você"; recomendações aceitas: rota nova e mediana no lugar da média)
+43 checks em 5 slices · 2 one-way doors · 0 perguntas abertas (plano aprovado pelo usuário em 16/11: "siga com o que for recomendado eu confio em você"; recomendações aceitas: rota nova e mediana no lugar da média)
 
 **Como as provas rodam.** Na raiz `D:\esclari`, salvo `cd web &&`. API: `docker compose up -d postgres mailpit minio` e uma execução de `dotnet test` por vez. Vitest: `cd web && npx vitest run <arquivo> -t "<nome>"`. Um filtro que não seleciona teste sai com 0 (L-002): conferir a contagem. Mutação suspensa (AD-025).
 
@@ -157,6 +157,9 @@ Proof: `cd web && npx vitest run src/indicadores/series.test.tsx -t "tabela das 
 
 **C42** - A tabela da barra da fila traz as colunas Item, Quantidade e Percentual com as contagens 3, 6, 2 e 4 dos quatro estados (AC 14, AC 22)
 Proof: `cd web && npx vitest run src/indicadores/fila.test.tsx -t "fila por estado"`
+**C43** - As grades de medidas das seções 2 a 5 passam a duas ou três colunas em `@3xl/main` (Observable, celular deitado)
+Proof: `cd web && npx vitest run src/indicadores/series.test.tsx -t "as medidas das seções 2 a 5 ficam em duas colunas"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -223,4 +226,5 @@ Cost: 7 testes na camada em 1 arquivo novo. Sem estas linhas, as bordas de fuso 
 - **Boundary:** C1-C38 construídos; último commit de código `cebd19d`; base `8190316`
 - **Settled mid-build:** (1) emenda da porta 1 já descrita no topo (ncerradas, quarto segmento). (2) O texto de C28 e AC 27 sai "de 115 conversas com desfecho" e não "conversas e chamados", porque o denominador do indicador principal no cálculo existente (CalculoIndicadores) é só conversas com desfecho; escrever "e chamados" seria falso. (3) C37 foi executado contra o servidor Vite com a API simulada de `web/e2e/simulada.ts` (`npx playwright test` com `baseURL` do Vite), porque o e2e padrão exige `docker compose up --build`. (4) `crapper` sai 1 por `useModo` (CRAP 11, `Autenticado.tsx`) e `Usuarios` (10), ambos intocados por esta feature e anteriores a ela; nenhuma função de `indicadores/` passa de 9,2.
 - **Emendas aprovadas pelo dono em 16/11 ("resolva da melhor maneira"):** C1 e C28 reescritos para o texto emendado; Proof acrescentada em C15, C16 e C17 para os testes novos; C39 a C42 acrescentados para ordem das seções, quebra de colunas, alvo de toque, tabela das colunas e tabela da fila. Nenhuma asserção foi enfraquecida; o crapper deixou de falhar porque useModo e Usuarios foram refatorados sem mudar comportamento.
+- **Round 3 (final):** C42 passou a asserir os três cabeçalhos e as linhas completas (mutantes M4, M5 e M6 da rodada 3); C43 acrescentado para as grades das seções 2 a 5. Esses ajustes são só de teste e não tiveram rodada 4 de Verificador (limite de 3 do verify.md); ver AD-061.
 - **Abandoned:** recharts (AD-037); campos novos em `/api/indicadores` (porta 1, alternativa rejeitada)

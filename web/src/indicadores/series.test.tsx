@@ -125,6 +125,15 @@ describe('séries', () => {
     expect(grade).toHaveClass('grid-cols-1', '@3xl/main:grid-cols-2')
     expect(grade.querySelectorAll('figure')).toHaveLength(2)
   })
+  it('as medidas das seções 2 a 5 ficam em duas colunas a partir de um main de 768 px', async () => {
+    const s = await evolucao()
+
+    const grades = [...document.querySelectorAll('main section dl.grid')]
+    expect(grades.length).toBeGreaterThanOrEqual(4)
+    for (const g of grades) expect(g.className, g.textContent!.slice(0, 30)).toMatch(/@3xl\/main:grid-cols-[23]/)
+    expect(s.getByText('Chamados resolvidos')).toBeInTheDocument()
+  })
+
   it('valor do ponto nas duas linhas', async () => {
     const s = await evolucao({ granularidade: 'semana' })
 

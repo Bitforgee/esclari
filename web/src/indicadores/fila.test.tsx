@@ -47,7 +47,13 @@ describe('fila e tempos', () => {
     expect(s.getByText('O mais antigo espera há 9 dias')).toBeInTheDocument()
     expect(s.getByRole('img').getAttribute('aria-label')).toContain('Em atendimento: 6. Aguardando aluno: 2. Resolvido: 4. Total 15.')
     await userEvent.click(s.getByRole('button', { name: /Ver como tabela/ }))
-    expect(s.getAllByRole('row').slice(1).map((l) => within(l).getAllByRole('cell')[1].textContent)).toEqual(['3', '6', '2', '4'])
+    expect(s.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Item', 'Quantidade', 'Percentual'])
+    expect(s.getAllByRole('row').slice(1).map((l) => within(l).getAllByRole('cell').map((c) => c.textContent))).toEqual([
+      ['Aberto', '3', '20\u00a0%'],
+      ['Em atendimento', '6', '40\u00a0%'],
+      ['Aguardando aluno', '2', '13,3\u00a0%'],
+      ['Resolvido', '4', '26,7\u00a0%'],
+    ])
   })
 
   it('o mais antigo no singular e sem ele', async () => {
