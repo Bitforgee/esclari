@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext, type APIResponse, type Page } fro
 
 const slug = process.env.E2E_INSTITUICAO ?? 'e2e'
 const adminCpf = process.env.E2E_ADMIN_CPF ?? '123.456.789-09'
-const adminEmail = process.env.E2E_ADMIN_EMAIL ?? 'admin@e2e.one'
+const adminEmail = process.env.E2E_ADMIN_EMAIL ?? 'admin@e2e.esclari'
 const mailpit = process.env.E2E_MAILPIT ?? 'http://localhost:8025'
 const senhaAdmin = 'admin-e2e-revisao-1'
 const senhaAluno = 'aluno-e2e-revisao-1'
@@ -76,7 +76,7 @@ async function primeiroAcesso(request: APIRequestContext, cpf: string, email: st
 test('aluno navega pelas abas e sai pela Conta', async ({ browser, playwright, baseURL }) => {
   const rodada = Date.now()
   const alunoCpf = cpfValido(rodada)
-  const alunoEmail = `aluno.${rodada}@e2e.one`
+  const alunoEmail = `aluno.${rodada}@e2e.esclari`
 
   const admin = await playwright.request.newContext({ baseURL })
   const entrarAdmin = () => limitado(() => admin.post('/api/auth/login', { data: { instituicao: slug, cpf: adminCpf, senha: senhaAdmin } }))
@@ -132,7 +132,7 @@ test('atendente assume, responde e resolve no celular', async ({ browser, playwr
   test.setTimeout(480_000)
   const rodada = Date.now()
   const [alunoCpf, atendenteCpf] = [cpfValido(rodada), cpfValido(rodada + 7)]
-  const [alunoEmail, atendenteEmail] = [`aluno.${rodada}@e2e.one`, `atendente.${rodada}@e2e.one`]
+  const [alunoEmail, atendenteEmail] = [`aluno.${rodada}@e2e.esclari`, `atendente.${rodada}@e2e.esclari`]
 
   const admin = await playwright.request.newContext({ baseURL })
   const entrarAdmin = () => limitado(() => admin.post('/api/auth/login', { data: { instituicao: slug, cpf: adminCpf, senha: senhaAdmin } }))

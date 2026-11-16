@@ -308,8 +308,8 @@ const gestoraMovel: Segmento = {
 }
 
 export const roteiro: Roteiro = {
-  video: 'one-completo.mp4',
-  legendas: 'one-completo.srt',
+  video: 'esclari-completo.mp4',
+  legendas: 'esclari-completo.srt',
   segmentos: [
     {
       id: '00-abertura',

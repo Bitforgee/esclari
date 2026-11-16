@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto'
 
 const slug = process.env.E2E_INSTITUICAO ?? 'demo'
 const adminCpf = process.env.E2E_ADMIN_CPF ?? '123.456.789-09'
-const adminEmail = process.env.E2E_ADMIN_EMAIL ?? 'admin@demo.one'
+const adminEmail = process.env.E2E_ADMIN_EMAIL ?? 'admin@demo.esclari'
 const mailpit = process.env.E2E_MAILPIT ?? 'http://localhost:8025'
 const senhaAdmin = 'admin-e2e-minio-1'
 const senhaAluno = 'aluno-e2e-minio-1'
@@ -64,7 +64,7 @@ const sha = (b: Buffer) => createHash('sha256').update(b).digest('hex')
 test('aluno novo envia um PDF anexo e baixa os mesmos bytes do MinIO', async ({ browser, playwright, baseURL }) => {
   const rodada = Date.now()
   const alunoCpf = cpfValido(rodada)
-  const alunoEmail = `aluno.${rodada}@e2e.one`
+  const alunoEmail = `aluno.${rodada}@e2e.esclari`
 
   const admin = await playwright.request.newContext({ baseURL })
   const tokenAdmin = await primeiroAcesso(admin, adminCpf, adminEmail)
@@ -128,7 +128,7 @@ async function adminLogado(playwright: PlaywrightWorkerArgs['playwright'], baseU
 test('aluno anexa foto na conversa e a equipe baixa no chamado', async ({ browser, playwright, baseURL }) => {
   const rodada = Date.now()
   const alunoCpf = cpfValido(rodada)
-  const alunoEmail = `aluno.${rodada}@e2e.one`
+  const alunoEmail = `aluno.${rodada}@e2e.esclari`
   const admin = await adminLogado(playwright, baseURL)
 
   const eu = await (await admin.get('/api/auth/me')).json()

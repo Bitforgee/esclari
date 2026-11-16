@@ -38,7 +38,7 @@ export default defineConfig({
     }),
   ],
   resolve: { alias: { '@': path.resolve(__dirname, './src') } },
-  build: { outDir: '../One.Api/wwwroot', emptyOutDir: true },
+  build: { outDir: '../Esclari.Api/wwwroot', emptyOutDir: true },
   server: { proxy: { '/api': { target: 'http://localhost:5226', ws: true } } },
   test: {
     environment: 'jsdom',

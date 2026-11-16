@@ -1,7 +1,7 @@
 import { expect, test, type APIRequestContext, type APIResponse } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
 
-const container = process.env.E2E_CONTAINER ?? 'one-plataforma'
+const container = process.env.E2E_CONTAINER ?? 'esclari-plataforma'
 const mailpit = process.env.E2E_MAILPIT ?? 'http://localhost:8025'
 const sufixo = Date.now().toString(36)
 const doOperador = `operadora-${sufixo}`
@@ -18,7 +18,7 @@ function cpfValido(semente: number) {
   return d.join('')
 }
 
-const cli = (...args: string[]) => execFileSync('docker', ['exec', container, 'dotnet', 'One.Api.dll', 'instituicao', ...args], { encoding: 'utf8' })
+const cli = (...args: string[]) => execFileSync('docker', ['exec', container, 'dotnet', 'Esclari.Api.dll', 'instituicao', ...args], { encoding: 'utf8' })
 
 test.describe.configure({ timeout: 240_000 })
 async function limitado(chamar: () => Promise<APIResponse>) {
@@ -45,7 +45,7 @@ async function linkDoEmail(request: APIRequestContext, para: string) {
 
 test('operador cria e desativa uma instituição', async ({ browser, playwright, baseURL }) => {
   const cpf = cpfValido(Date.now() % 1_000_000_000)
-  const criada = cli('criar', '--slug', doOperador, '--nome', 'Operadora E2E', '--fuso', 'America/Cuiaba', '--admin-cpf', cpf, '--admin-nome', 'Ana Operadora', '--admin-email', `ana-${sufixo}@e2e.one`)
+  const criada = cli('criar', '--slug', doOperador, '--nome', 'Operadora E2E', '--fuso', 'America/Cuiaba', '--admin-cpf', cpf, '--admin-nome', 'Ana Operadora', '--admin-email', `ana-${sufixo}@e2e.esclari`)
   const token = criada.match(/definir-senha\?token=(\S+)/)![1]
   expect(cli('operador', '--slug', doOperador, '--cpf', cpf)).toContain('Operador Ana Operadora adicionado.')
   const api = await playwright.request.newContext({ baseURL })
@@ -59,7 +59,7 @@ test('operador cria e desativa uma instituição', async ({ browser, playwright,
   await expect(painel.getByText('Operadora E2E').first()).toBeVisible()
   await painel.getByRole('button', { name: 'Nova instituição' }).click()
   const dialogo = painel.getByRole('dialog')
-  const emailDaDemo = `admin-${sufixo}@demo.e2e.one`
+  const emailDaDemo = `admin-${sufixo}@demo.e2e.esclari`
   await dialogo.getByLabel('Nome').first().fill('Faculdade Demo')
   await dialogo.getByLabel('Endereço').fill(daDemo)
   const admin = dialogo.getByRole('group', { name: 'Primeiro administrador' })

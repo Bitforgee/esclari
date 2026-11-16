@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const saida = resolve(dirname(fileURLToPath(import.meta.url)), '../../One.Api/wwwroot')
+const saida = resolve(dirname(fileURLToPath(import.meta.url)), '../../Esclari.Api/wwwroot')
 const MARCAS = ['react-flow__', '@xyflow']
 const traz = (arquivo) => MARCAS.some((m) => readFileSync(arquivo, 'utf8').includes(m))
 

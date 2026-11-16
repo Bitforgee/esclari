@@ -23,7 +23,7 @@ function chaveOpenAi() {
   if (chave !== undefined) return chave
   chave = null
   try {
-    const segredos = execFileSync('dotnet', ['user-secrets', 'list', '--project', path.join(Raiz, 'One.Api')], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+    const segredos = execFileSync('dotnet', ['user-secrets', 'list', '--project', path.join(Raiz, 'Esclari.Api')], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
     chave = segredos.match(/^Llm:ChaveApi = (.+)$/m)?.[1].trim() ?? null
   } catch {
   }

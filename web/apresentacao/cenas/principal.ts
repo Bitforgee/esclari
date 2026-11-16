@@ -346,7 +346,7 @@ export const gestora: Segmento = {
 }
 
 async function indexado(page: Page) {
-  const sql = (c: string) => execFileSync('docker', ['compose', 'exec', '-T', 'postgres', 'psql', '-U', 'postgres', '-d', 'one', '-At', '-c', c], { cwd: path.resolve(import.meta.dirname, '..', '..', '..'), encoding: 'utf8' }).trim()
+  const sql = (c: string) => execFileSync('docker', ['compose', 'exec', '-T', 'postgres', 'psql', '-U', 'postgres', '-d', 'esclari', '-At', '-c', c], { cwd: path.resolve(import.meta.dirname, '..', '..', '..'), encoding: 'utf8' }).trim()
   const id = sql(`select id from instituicao where slug = '${execucao().slug}'`)
   for (let i = 0; Number(sql(`select count(*) from trecho_fonte where instituicao_id = ${id} and embedding is null`)) > 0; i++) {
     if (i > 60) throw new Error('o artigo novo não foi indexado em 2 minutos')
@@ -379,7 +379,7 @@ export const lucas: Segmento = {
 }
 
 export const roteiro: Roteiro = {
-  video: 'apresentacao-one.mp4',
+  video: 'apresentacao-esclari.mp4',
   legendas: 'legendas.srt',
   segmentos: [
     {

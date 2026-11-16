@@ -304,7 +304,7 @@ test.describe('PWA', () => {
     let total = 0
     for (const u of [...sans, ...serifa]) total += (await (await request.get(u)).body()).length
     expect(total).toBeLessThanOrEqual(90 * 1024)
-    const pasta = `${process.cwd()}/../One.Api/wwwroot/assets`
+    const pasta = `${process.cwd()}/../Esclari.Api/wwwroot/assets`
     expect(existsSync(pasta)).toBe(true)
     const arquivos = readdirSync(pasta)
     expect(arquivos.filter((a) => a.startsWith('inter-'))).toEqual([])

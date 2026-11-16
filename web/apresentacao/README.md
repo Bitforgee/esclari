@@ -11,7 +11,7 @@ em `apresentacao/dados.json` e `apresentacao/dados/` (fora do git):
 
 ```
 node apresentacao/preparar.ts           # instituição nova e limpa: univag-apresentacao-N -> saida/execucao.json
-node apresentacao/gerar.ts principal    # apresentação: saida/apresentacao-one.mp4 + saida/legendas.srt
+node apresentacao/gerar.ts principal    # apresentação: saida/apresentacao-esclari.mp4 + saida/legendas.srt
 node apresentacao/gerar.ts amostra      # amostra curta na API simulada: saida/amostra.mp4 + saida/amostra.srt
 ```
 

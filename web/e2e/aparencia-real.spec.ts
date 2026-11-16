@@ -3,7 +3,7 @@ import { crc32, deflateSync } from 'node:zlib'
 
 const slug = process.env.E2E_INSTITUICAO ?? 'demo'
 const adminCpf = process.env.E2E_ADMIN_CPF ?? '123.456.789-09'
-const adminEmail = process.env.E2E_ADMIN_EMAIL ?? 'admin@demo.one'
+const adminEmail = process.env.E2E_ADMIN_EMAIL ?? 'admin@demo.esclari'
 const mailpit = process.env.E2E_MAILPIT ?? 'http://localhost:8025'
 const senhaAdmin = 'admin-e2e-minio-1'
 const Cor = '#8a1538'

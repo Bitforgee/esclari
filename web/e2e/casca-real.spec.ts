@@ -2,7 +2,7 @@ import { expect, test, type APIRequestContext, type APIResponse, type Browser, t
 
 const slug = process.env.E2E_INSTITUICAO ?? 'e2e'
 const adminCpf = process.env.E2E_ADMIN_CPF ?? '123.456.789-09'
-const adminEmail = process.env.E2E_ADMIN_EMAIL ?? 'admin@e2e.one'
+const adminEmail = process.env.E2E_ADMIN_EMAIL ?? 'admin@e2e.esclari'
 const mailpit = process.env.E2E_MAILPIT ?? 'http://localhost:8025'
 const senhaAdmin = 'admin-e2e-identidade-1'
 const senhaAluno = 'aluno-e2e-identidade-1'
@@ -60,7 +60,7 @@ let numero: string
 test.beforeAll(async ({ playwright, baseURL }) => {
   test.setTimeout(240_000)
   const rodada = Date.now()
-  const [alunoCpf, alunoEmail] = [cpfValido(rodada), `aluno.${rodada}@e2e.one`]
+  const [alunoCpf, alunoEmail] = [cpfValido(rodada), `aluno.${rodada}@e2e.esclari`]
   admin = await playwright.request.newContext({ baseURL })
   const entrar = () => limitado(() => admin.post('/api/auth/login', { data: { instituicao: slug, cpf: adminCpf, senha: senhaAdmin } }))
   if ((await entrar()).status() !== 200) {

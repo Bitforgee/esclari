@@ -3,7 +3,7 @@ import { expect, test, type APIRequestContext, type APIResponse, type Browser, t
 
 const slug = process.env.E2E_INSTITUICAO ?? 'e2e'
 const adminCpf = process.env.E2E_ADMIN_CPF ?? '123.456.789-09'
-const adminEmail = process.env.E2E_ADMIN_EMAIL ?? 'admin@e2e.one'
+const adminEmail = process.env.E2E_ADMIN_EMAIL ?? 'admin@e2e.esclari'
 const mailpit = process.env.E2E_MAILPIT ?? 'http://localhost:8025'
 const portaDoModelo = Number(process.env.E2E_LLM_PORTA ?? 8090)
 const senhaAdmin = 'admin-e2e-fluxos-1'
@@ -118,7 +118,7 @@ test.beforeAll(async ({ playwright, baseURL }) => {
   const curso = await criado(await admin.post('/api/admin/cursos', { data: { nome: nomeDoCurso, setorCoordenacaoId: setorDaCoordenacao } }))
   const setorDaLideranca = await criado(await admin.post('/api/admin/setores', { data: { nome: nomeDaLideranca, cursoId: curso, semestre: 3 } }))
   categoriaDoModelo = await criado(await admin.post('/api/admin/categorias', { data: { nome: nomeDaCategoria, ativa: true } }))
-  const emails = { lider: `lider.${rodada}@e2e.one`, coord: `coord.${rodada}@e2e.one`, aluno: `aluna.${rodada}@e2e.one` }
+  const emails = { lider: `lider.${rodada}@e2e.esclari`, coord: `coord.${rodada}@e2e.esclari`, aluno: `aluna.${rodada}@e2e.esclari` }
   await criado(await admin.post('/api/admin/usuarios', { data: { cpf: liderCpf, nome: `Líder ${rodada}`, email: emails.lider, papeis: ['ATENDENTE'], setores: [setorDaLideranca] } }))
   await criado(await admin.post('/api/admin/usuarios', { data: { cpf: coordCpf, nome: `Coordenadora ${rodada}`, email: emails.coord, papeis: ['ATENDENTE'], setores: [setorDaCoordenacao] } }))
   const csv = `cpf;nome;email;matricula;curso;semestre;situacao\n${alunoCpf};${nomeDoAluno};${emails.aluno};${numeroDaMatricula};${nomeDoCurso};3;ATIVA\n`

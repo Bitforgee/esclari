@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: one
+      POSTGRES_DB: esclari
     ports:
       - "5432:5432"
     volumes:
@@ -25,9 +25,9 @@ services:
     image: cgr.dev/chainguard/minio@sha256:090010a3f73f6aa2dff606c61cd0de3640b22748abe19f4e48cce6dc9de7a53f
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: one
-      MINIO_ROOT_PASSWORD: one-minio-dev
-      MC_HOST_local: "http://one:one-minio-dev@localhost:9000"
+      MINIO_ROOT_USER: esclari
+      MINIO_ROOT_PASSWORD: esclari-minio-dev
+      MC_HOST_local: "http://esclari:esclari-minio-dev@localhost:9000"
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -49,15 +49,15 @@ services:
       mailpit:
         condition: service_started
     environment:
-      ConnectionStrings__One: "Host=postgres;Database=one;Username=postgres;Password=postgres;Gss Encryption Mode=Disable"
+      ConnectionStrings__Esclari: "Host=postgres;Database=esclari;Username=postgres;Password=postgres;Gss Encryption Mode=Disable"
       Smtp__Host: mailpit
       Smtp__Porta: "1025"
       App__UrlBase: "http://localhost:8080"
       Llm__ChaveApi: ${LLM_CHAVE_API:-}
       Armazenamento__Endpoint: "http://minio:9000"
-      Armazenamento__Chave: one
-      Armazenamento__Segredo: one-minio-dev
-      Armazenamento__Bucket: one
+      Armazenamento__Chave: esclari
+      Armazenamento__Segredo: esclari-minio-dev
+      Armazenamento__Bucket: esclari
       Push__ChavePublica: ${PUSH_CHAVE_PUBLICA:-}
       Push__ChavePrivada: ${PUSH_CHAVE_PRIVADA:-}
       Push__Assunto: ${PUSH_ASSUNTO:-}
