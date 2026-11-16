@@ -49,5 +49,5 @@ public static partial class Criacao
 
     public static EmailSaida EmailDeAcesso(IConfiguration cfg, Instituicao i, string para, string token, DateTime agora) => EmailSaida.Criar(para,
         $"[{i.Nome}] Crie sua senha",
-        $"Você é administrador de {i.Nome} no One.\n\nPara criar sua senha, abra o link abaixo (vale 60 minutos):\n{Tokens.Link(cfg, i.Slug, token)}\n", agora);
+        $"Você é administrador de {i.Nome} no Esclari.\n\nPara criar sua senha, abra o link abaixo (vale 60 minutos):\n{Tokens.Link(cfg, i.Slug, token)}\n", agora);
 }

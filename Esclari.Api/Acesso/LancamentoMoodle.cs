@@ -31,7 +31,7 @@ public sealed class LancamentoMoodleHandler(EsclariDb db, ValidadorLti validador
         var p = await db.PlataformasMoodle.FirstOrDefaultAsync(x => x.Ativa, ct);
         if (p is null) return Falha(Problemas.Erro(400, "O Moodle não está cadastrado nesta instituição."));
         var nonce = await Consumir(m.State, ct);
-        if (nonce is null) return Falha(Problemas.Erro(400, "O pedido de entrada expirou ou já foi usado. Abra o One pelo Moodle de novo."));
+        if (nonce is null) return Falha(Problemas.Erro(400, "O pedido de entrada expirou ou já foi usado. Abra o Esclari pelo Moodle de novo."));
         var dados = string.IsNullOrEmpty(m.IdToken) ? null : await validador.Validar(p, m.IdToken, nonce, ct);
         if (dados is null) return Falha(Problemas.Erro(400, "O Moodle enviou uma identificação inválida."));
         return await Entrar(i, p, dados, ct);

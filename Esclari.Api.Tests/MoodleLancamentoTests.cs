@@ -45,7 +45,7 @@ public class MoodleLancamentoTests(EsclariFactory f) : IClassFixture<EsclariFact
 
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         Assert.Equal($"/{i.Slug}", r.Destino());
-        Assert.StartsWith("one.auth=", r.Sessao());
+        Assert.StartsWith("esclari.auth=", r.Sessao());
         var eu = await c.GetAsync("/api/auth/me");
         Assert.Equal(HttpStatusCode.OK, eu.StatusCode);
         Assert.Equal(u.Id, (await eu.Json()).GetProperty("id").GetInt64());
@@ -122,7 +122,7 @@ public class MoodleLancamentoTests(EsclariFactory f) : IClassFixture<EsclariFact
         var r = await Entrar(i, "42", null, ajustar: d => d["exp"] = agora.AddSeconds(-59).ToUnixTimeSeconds());
 
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
-        Assert.StartsWith("one.auth=", r.Sessao());
+        Assert.StartsWith("esclari.auth=", r.Sessao());
     }
 
     [Theory]
@@ -159,7 +159,7 @@ public class MoodleLancamentoTests(EsclariFactory f) : IClassFixture<EsclariFact
         var r = await f.Cliente().Lancar(i.Slug, token, state);
 
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
-        Assert.StartsWith("one.auth=", r.Sessao());
+        Assert.StartsWith("esclari.auth=", r.Sessao());
     }
 
     [Fact]
@@ -192,13 +192,13 @@ public class MoodleLancamentoTests(EsclariFactory f) : IClassFixture<EsclariFact
         var primeiro = await Entrar(i, "77", u.Cpf.Valor, c);
 
         Assert.Equal($"/{i.Slug}", primeiro.Destino());
-        Assert.StartsWith("one.auth=", primeiro.Sessao());
+        Assert.StartsWith("esclari.auth=", primeiro.Sessao());
         var v = Assert.Single(await f.Vinculos(i));
         Assert.Equal((u.Id, MoodleFalso.Emissor, "77"), (v.UsuarioId, v.Emissor, v.Sub));
 
         var segundo = await Entrar(i, "77", null);
         Assert.Equal($"/{i.Slug}", segundo.Destino());
-        Assert.StartsWith("one.auth=", segundo.Sessao());
+        Assert.StartsWith("esclari.auth=", segundo.Sessao());
         Assert.Single(await f.Vinculos(i));
     }
 
@@ -285,6 +285,6 @@ public class MoodleLancamentoTests(EsclariFactory f) : IClassFixture<EsclariFact
         var respostas = await Task.WhenAll(Enumerable.Range(0, 2).Select(_ => f.Cliente().Lancar(i.Slug, token, state)));
 
         Assert.Equal([HttpStatusCode.Redirect, HttpStatusCode.BadRequest], respostas.Select(r => r.StatusCode).OrderBy(s => (int)s));
-        Assert.Equal(1, respostas.Count(r => r.Sessao().StartsWith("one.auth=")));
+        Assert.Equal(1, respostas.Count(r => r.Sessao().StartsWith("esclari.auth=")));
     }
 }

@@ -9,7 +9,7 @@ public class SpaTests
     public async Task Spa_em_slug_e_api_404_em_problem_json()
     {
         var wwwroot = Directory.CreateTempSubdirectory("esclari-wwwroot-").FullName;
-        await File.WriteAllTextAsync(Path.Combine(wwwroot, "index.html"), "<!doctype html><title>One</title><div id=\"raiz\">spa-esclari</div>");
+        await File.WriteAllTextAsync(Path.Combine(wwwroot, "index.html"), "<!doctype html><title>Esclari</title><div id=\"raiz\">spa-esclari</div>");
         await using var f = new EsclariFactory { WebRoot = wwwroot };
         await f.InitializeAsync();
 

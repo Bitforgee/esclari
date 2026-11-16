@@ -47,7 +47,7 @@ public class SessaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         {
             var r = await c.PostAsync("/api/auth/logout", null);
             Assert.Equal(HttpStatusCode.NoContent, r.StatusCode);
-            var cookie = Assert.Single(r.Headers.GetValues("Set-Cookie"), x => x.StartsWith("one.auth="));
+            var cookie = Assert.Single(r.Headers.GetValues("Set-Cookie"), x => x.StartsWith("esclari.auth="));
             var expira = DateTimeOffset.Parse(Regex.Match(cookie, "expires=([^;]+)", RegexOptions.IgnoreCase).Groups[1].Value);
             Assert.True(expira < DateTimeOffset.UtcNow);
         }

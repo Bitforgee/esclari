@@ -38,7 +38,7 @@ public static class MoodleSemente
     }
 
     public static string Sessao(this HttpResponseMessage r) =>
-        r.Headers.TryGetValues("Set-Cookie", out var c) ? c.FirstOrDefault(x => x.StartsWith("one.auth=")) ?? "" : "";
+        r.Headers.TryGetValues("Set-Cookie", out var c) ? c.FirstOrDefault(x => x.StartsWith("esclari.auth=")) ?? "" : "";
 
     public static string? Destino(this HttpResponseMessage r) => r.StatusCode == HttpStatusCode.Redirect ? r.Headers.Location?.OriginalString : null;
 

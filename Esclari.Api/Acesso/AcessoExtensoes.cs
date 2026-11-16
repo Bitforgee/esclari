@@ -15,7 +15,7 @@ public static class AcessoExtensoes
         s.AddSingleton<ITarefaAgendada, ApagarLancamentos>();
         s.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(o =>
         {
-            o.Cookie.Name = "one.auth";
+            o.Cookie.Name = "esclari.auth";
             o.Cookie.HttpOnly = true;
             o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             o.Cookie.SameSite = SameSiteMode.Strict;

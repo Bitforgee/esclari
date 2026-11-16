@@ -92,7 +92,7 @@ public class PushAgendadorTests(EsclariFactory f) : IClassFixture<EsclariFactory
         foreach (var dado in new[] { c.B.Aluno.Usuario.Nome, c.B.Aluno.Usuario.Email, c.B.Aluno.Usuario.Cpf.Valor, "Texto privado da mensagem", titulo })
             Assert.DoesNotContain(dado, payload);
         var raiz = System.Text.Json.JsonDocument.Parse(payload).RootElement;
-        Assert.NotEqual("One", raiz.GetProperty("titulo").GetString());
+        Assert.NotEqual("Esclari", raiz.GetProperty("titulo").GetString());
         Assert.DoesNotContain("chamado", raiz.GetProperty("titulo").GetString() + raiz.GetProperty("corpo").GetString(), StringComparison.OrdinalIgnoreCase);
     }
 

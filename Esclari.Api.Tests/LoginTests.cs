@@ -26,7 +26,7 @@ public class LoginTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(i.Slug, j.GetProperty("instituicao").GetProperty("slug").GetString());
         Assert.Equal("Univag", j.GetProperty("instituicao").GetProperty("nome").GetString());
 
-        var cookie = Assert.Single(r.Headers.GetValues("Set-Cookie"), c => c.StartsWith("one.auth="));
+        var cookie = Assert.Single(r.Headers.GetValues("Set-Cookie"), c => c.StartsWith("esclari.auth="));
         Assert.Contains("httponly", cookie.ToLowerInvariant());
         Assert.Contains("secure", cookie.ToLowerInvariant());
         Assert.Contains("samesite=strict", cookie.ToLowerInvariant());

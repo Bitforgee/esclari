@@ -39,7 +39,7 @@ public sealed class PrimeiroAcessoHandler(EsclariDb db, TimeProvider relogio, En
                 try
                 {
                     await email.Enviar(db, instituicao, u.Email, $"[{instituicao.Nome}] Crie sua senha",
-                        $"Olá, {u.Nome}.\n\nPara criar sua senha no One, abra o link abaixo. Ele vale por 60 minutos e só pode ser usado uma vez.\n\n{Tokens.Link(cfg, instituicao.Slug, token)}\n");
+                        $"Olá, {u.Nome}.\n\nPara criar sua senha no Esclari, abra o link abaixo. Ele vale por 60 minutos e só pode ser usado uma vez.\n\n{Tokens.Link(cfg, instituicao.Slug, token)}\n");
                 }
                 catch (Exception e)
                 {
