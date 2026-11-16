@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/marca-esclari/plan.md`
 
-25 checks em 4 slices · 4 portas de mão única · 0 perguntas abertas.
+26 checks em 4 slices · 4 portas de mão única · 0 perguntas abertas.
 
 Comandos (todos rodam em `D:\esclari`): testes da web com `npm --prefix web test -- <arquivo> -t "<nome>"`; testes da API com `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~<Classe>.<Teste>"`; e2e da marca com o servidor de dev (`npm --prefix web run dev`, porta 5173) e `$env:E2E_URL='http://localhost:5173'; npm --prefix web exec playwright test e2e/marca.spec.ts -g "<nome>"`.
 
@@ -69,6 +69,9 @@ Proof: `$env:E2E_URL='http://localhost:5173'; npm --prefix web exec playwright t
 
 **C25** - Com ícone da instituição, o <link rel="icon" type="image/svg+xml"> da marca sai de <head> e o PNG aponta para /api/instituicoes/univag/imagens/icone?v=2; sem ícone, o PNG volta a /icons/icon-192.png e o SVG volta a /marca/favicon.svg (AC 3, AC 11)
 Proof: `npm --prefix web test -- src/acesso/logo-esclari.test.tsx -t "favicon da marca some com icone da instituicao e volta sem ele"`
+
+**C26** - No tema escuro a imagem do logo na raiz fica branca: o img tem as classes dark:brightness-0 e dark:invert (lacuna achada na rodada 1 do Verifier; AC 10, direcao A de `direcoes.png`)
+Proof: `npm --prefix web test -- src/acesso/logo-esclari.test.tsx -t "raiz vira branca no tema escuro"`
 
 ### S3 - Guia de marca · 1 arquivo · ~6 KB · ~3k
 

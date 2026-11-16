@@ -36,6 +36,12 @@ describe('marca do Esclari', () => {
     expect(logo).toHaveAttribute('alt', 'Esclari')
   })
 
+  it('raiz vira branca no tema escuro', async () => {
+    abrir('/')
+    const logo = (await screen.findByRole('heading', { level: 1, name: 'Esclari' })).querySelector('img')!
+    expect(logo).toHaveClass('dark:brightness-0', 'dark:invert')
+  })
+
   it('marca do Esclari so aparece na raiz', async () => {
     api({ 'GET /api/instituicoes/univag': () => [200, comIdentidade] })
     abrir('/univag')
