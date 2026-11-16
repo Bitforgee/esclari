@@ -101,6 +101,30 @@ describe('séries', () => {
     fireEvent.pointerDown(grupo, { clientX: 390 })
     expect(await screen.findByText('12/11: 5 conversas')).toBeInTheDocument()
   })
+  it('tabela das colunas e alvo de toque de 44 px', async () => {
+    const s = await evolucao()
+    const f = figura(s, 'Conversas por dia')
+
+    const botao = f.getByRole('button', { name: /Ver como tabela/ })
+    expect(botao).toHaveClass('max-md:h-11', 'pointer-coarse:h-11')
+    await userEvent.click(botao)
+
+    const tabela = f.getByRole('table')
+    expect(within(tabela).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Dia', 'Conversas'])
+    expect(within(tabela).getAllByRole('row').slice(1).map((l) => within(l).getAllByRole('cell').map((c) => c.textContent))).toEqual([
+      ['10/11', '2'],
+      ['11/11', '12'],
+      ['12/11', '5'],
+    ])
+  })
+
+  it('o par de gráficos fica em duas colunas a partir de um main de 768 px', async () => {
+    await evolucao()
+
+    const grade = screen.getByText('Conversas por dia').closest('figure')!.parentElement!
+    expect(grade).toHaveClass('grid-cols-1', '@3xl/main:grid-cols-2')
+    expect(grade.querySelectorAll('figure')).toHaveLength(2)
+  })
   it('valor do ponto nas duas linhas', async () => {
     const s = await evolucao({ granularidade: 'semana' })
 

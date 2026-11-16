@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/indicadores-claros/plan.md`
 
-36 checks em 5 slices · 2 one-way doors · 0 perguntas abertas (plano aprovado pelo usuário em 16/11: "siga com o que for recomendado eu confio em você"; recomendações aceitas: rota nova e mediana no lugar da média)
+42 checks em 5 slices · 2 one-way doors · 0 perguntas abertas (plano aprovado pelo usuário em 16/11: "siga com o que for recomendado eu confio em você"; recomendações aceitas: rota nova e mediana no lugar da média)
 
 **Como as provas rodam.** Na raiz `D:\esclari`, salvo `cd web &&`. API: `docker compose up -d postgres mailpit minio` e uma execução de `dotnet test` por vez. Vitest: `cd web && npx vitest run <arquivo> -t "<nome>"`. Um filtro que não seleciona teste sai com 0 (L-002): conferir a contagem. Mutação suspensa (AD-025).
 
@@ -13,7 +13,7 @@ Plan: `.specs/features/indicadores-claros/plan.md`
 
 ### S1 - O assistente está resolvendo? · 5 arquivos · ~25k
 
-**C1** - `desfechos` traz `resolvidas`, `transferidas`, `abandonadas`, `encerradas` e `semDesfecho`, e a soma é o total de conversas criadas no período (AC 1)
+**C1** - `desfechos` traz `resolvidas`, `transferidas`, `abandonadas`, `encerradas` e `semDesfecho`, e a soma é o total de conversas criadas no período (AC 1, com a emenda das cinco chaves)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~IndicadoresDetalheTests.Desfechos_somam_o_total_de_conversas"`
 
 **C2** - Com `setorId`, `desfechos` é `null` e `conversas` é `null` em todo ponto (AC 2, AC 11)
@@ -60,14 +60,18 @@ Proof: `cd web && npx vitest run src/indicadores/series.test.tsx -t "duas linhas
 
 **C15** - Todo gráfico de série e de barras tem `role="img"` com `aria-label` com tipo, período, total e pico, e o botão "Ver como tabela" mostra a tabela com cabeçalhos e os mesmos valores (AC 14)
 Proof: `cd web && npx vitest run src/indicadores/series.test.tsx -t "ver como tabela"`
+Proof: `cd web && npx vitest run src/indicadores/desfechos.test.tsx -t "ver como tabela"`
+Proof: `cd web && npx vitest run src/indicadores/fila.test.tsx -t "fila por estado"`
 
 **C16** - Foco do teclado e toque em um ponto mostram "dia, valor de cada série" em texto de 12 px ou mais (AC 15)
 Proof: `cd web && npx vitest run src/indicadores/series.test.tsx -t "valor do ponto"`
+Proof: `cd web && npx vitest run src/indicadores/series.test.tsx -t "toque no gráfico"`
 
 ### S3 - A equipe responde a tempo? · 5 arquivos · ~30k
 
 **C17** - Para respostas de 1, 2, 3 e 10 horas: mediana 2,5 e p90 10 (posto mais próximo, índice ceil(0,9·n)−1) (AC 16)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~CalculoDetalheTests.Mediana_e_p90_da_primeira_resposta"`
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~CalculoDetalheTests.P90_usa_o_posto_mais_proximo_com_dez_valores"`
 
 **C18** - A resolução usa o mesmo desconto de "aguardando aluno" da média atual: um chamado de 10 h com 4 h aguardando conta 6 h (AC 17)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~CalculoDetalheTests.Resolucao_desconta_aguardando_aluno"`
@@ -101,7 +105,7 @@ Proof: `cd web && npx vitest run src/indicadores/variacao.test.tsx -t "direcao d
 **C27** - Sem variação quando o período anterior é `semDados`, quando a taxa é `null` em um dos períodos, ou quando há menos de 10 casos (9 omite, 10 mostra) (AC 26)
 Proof: `cd web && npx vitest run src/indicadores/variacao.test.tsx -t "omite a variacao"`
 
-**C28** - O Resumo mostra o indicador principal, a variação, "de 115 conversas e chamados com desfecho" e a definição "Resolvidas sem reabertura, sobre as conversas com desfecho." (AC 27)
+**C28** - O Resumo mostra o indicador principal, a variação, "de 115 conversas com desfecho" (emenda do AC 27) e a definição "Resolvidas sem reabertura, sobre as conversas com desfecho." (AC 27)
 Proof: `cd web && npx vitest run src/indicadores/resumo.test.tsx -t "resumo com denominador"`
 
 **C29** - Nenhuma variação nem segmento depende só de cor: toda variação tem seta e palavra, todo segmento tem texto (AC 28)
@@ -141,6 +145,18 @@ Proof: `npm --prefix web run build`
 Proof: `npm --prefix web run coverage && cd web && crapper --use-existing-coverage -s src --threshold 9.99`
 Proof: `cd web && dryer -s src/acesso -s src/assistente -s src/chamados -s src/conhecimento -s src/indicadores -s src/administracao --threshold 0.8 src/App.tsx src/Autenticado.tsx src/api.ts src/chamado.ts src/datas.ts src/sessao.ts`
 
+**C39** - As 6 seções aparecem na ordem Resumo, O assistente está resolvendo?, Quanto chega e como evolui?, A equipe responde a tempo?, Qualidade do atendimento, O que mais pesa, cada medida na sua seção, depois da barra do período (Surface da tela)
+Proof: `cd web && npx vitest run src/indicadores/indicadores.test.tsx -t "as seções vêm na ordem"`
+
+**C40** - O par de gráficos de "Quanto chega" fica em `grid-cols-1` e passa a duas colunas em `@3xl/main` (768 px de `main`); os rankings seguem em `@4xl/main` (Observable, celular deitado)
+Proof: `cd web && npx vitest run src/indicadores/series.test.tsx -t "duas colunas a partir de um main de 768"`
+Proof: `cd web && npx vitest run src/indicadores/indicadores.test.tsx -t "as medidas formatam taxa"`
+
+**C41** - O botão "Ver como tabela" tem `max-md:h-11` e `pointer-coarse:h-11` (44 px no toque) e o gráfico de colunas mostra a tabela Dia e Conversas com os mesmos valores (Observable, toque; AC 14)
+Proof: `cd web && npx vitest run src/indicadores/series.test.tsx -t "tabela das colunas e alvo de toque"`
+
+**C42** - A tabela da barra da fila traz as colunas Item, Quantidade e Percentual com as contagens 3, 6, 2 e 4 dos quatro estados (AC 14, AC 22)
+Proof: `cd web && npx vitest run src/indicadores/fila.test.tsx -t "fila por estado"`
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -161,6 +177,8 @@ Proof: `cd web && dryer -s src/acesso -s src/assistente -s src/chamados -s src/c
 | temas para contraste (4) | claro C36 · escuro C36 · preto C36 · claro com marca no limite C36 | - |
 | viewports (2) | 360×780 C37 · 844×390 C37 | - |
 | portas (2) | 1 C35 · 2 C31 | - |
+| seções da tela (6) | Resumo C39 · assistente C39 · evolução C39 · equipe C39 · qualidade C39 · categorias C39 | - |
+| quebras de coluna (2) | gráficos @3xl C40 · rankings @4xl C40 | - |
 | fusos (2 bordas) | 23:30 local do dia C11 · virada de semana C10 | - |
 
 - Afirmam status, rota ou formato: C1, C2, C20, C35, todos com prova que passa pela rota HTTP
@@ -204,4 +222,5 @@ Cost: 7 testes na camada em 1 arquivo novo. Sem estas linhas, as bordas de fuso 
 
 - **Boundary:** C1-C38 construídos; último commit de código `cebd19d`; base `8190316`
 - **Settled mid-build:** (1) emenda da porta 1 já descrita no topo (ncerradas, quarto segmento). (2) O texto de C28 e AC 27 sai "de 115 conversas com desfecho" e não "conversas e chamados", porque o denominador do indicador principal no cálculo existente (CalculoIndicadores) é só conversas com desfecho; escrever "e chamados" seria falso. (3) C37 foi executado contra o servidor Vite com a API simulada de `web/e2e/simulada.ts` (`npx playwright test` com `baseURL` do Vite), porque o e2e padrão exige `docker compose up --build`. (4) `crapper` sai 1 por `useModo` (CRAP 11, `Autenticado.tsx`) e `Usuarios` (10), ambos intocados por esta feature e anteriores a ela; nenhuma função de `indicadores/` passa de 9,2.
+- **Emendas aprovadas pelo dono em 16/11 ("resolva da melhor maneira"):** C1 e C28 reescritos para o texto emendado; Proof acrescentada em C15, C16 e C17 para os testes novos; C39 a C42 acrescentados para ordem das seções, quebra de colunas, alvo de toque, tabela das colunas e tabela da fila. Nenhuma asserção foi enfraquecida; o crapper deixou de falhar porque useModo e Usuarios foram refatorados sem mudar comportamento.
 - **Abandoned:** recharts (AD-037); campos novos em `/api/indicadores` (porta 1, alternativa rejeitada)

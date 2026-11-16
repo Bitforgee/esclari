@@ -395,21 +395,33 @@ export function Autenticado() {
   return <Casca me={me} slug={slug} ap={instituicao ?? normalizar({ nome: me.instituicao.nome })} />
 }
 
-function useModo(me: Me, slug?: string) {
-  const { pathname, key } = useLocation()
+function perfilDoModo(me: Me) {
+  return {
+    soAluno: me.papeis.length === 1 && me.papeis[0] === 'ALUNO',
+    equipe: me.papeis.some((p) => p === 'ATENDENTE' || p === 'ADMINISTRADOR'),
+    lista: me.papeis.includes('ATENDENTE') ? 'fila' : 'solicitacoes',
+  }
+}
+
+function useVoltar(slug: string | undefined, lista: string) {
+  const { key } = useLocation()
   const navegar = useNavigate()
+  return () => (key === 'default' ? navegar(`/${slug}/${lista}`, { replace: true }) : navegar(-1))
+}
+
+function useModo(me: Me, slug?: string) {
+  const { pathname } = useLocation()
   const celular = useConsulta(Celular)
   const deitado = useConsulta(Deitado)
-  const soAluno = me.papeis.length === 1 && me.papeis[0] === 'ALUNO'
-  const equipe = me.papeis.some((p) => p === 'ATENDENTE' || p === 'ADMINISTRADOR')
+  const { soAluno, equipe, lista } = perfilDoModo(me)
+  const voltarAoChamado = useVoltar(slug, lista)
   const noChamado = pathname.split('/')[2] === 'chamados'
   const abas = celular && (soAluno || !me.deveTrocarSenha)
-  const lista = me.papeis.includes('ATENDENTE') ? 'fila' : 'solicitacoes'
   return {
     abas,
     deitado,
     comBarra: abas && !(noChamado && equipe),
-    voltar: celular && noChamado ? () => (key === 'default' ? navegar(`/${slug}/${lista}`, { replace: true }) : navegar(-1)) : undefined,
+    voltar: celular && noChamado ? voltarAoChamado : undefined,
   }
 }
 

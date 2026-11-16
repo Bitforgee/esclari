@@ -121,6 +121,16 @@ function casa(u: Usuario, busca: string) {
 }
 
 const tituloDaJanela = (f?: Ficha) => (f?.id ? 'Editar usuário' : 'Novo usuário')
+const vazioDaBusca = (busca: string) =>
+  busca.trim() ? { Icone: Users, titulo: 'Nenhum resultado', frase: 'Nenhum usuário combina com a busca.' } : { Icone: Users, titulo: 'Nenhum usuário', frase: 'Cadastre a equipe ou importe as matrículas.' }
+
+function ConfirmarDesativacao({ usuario, fechar, confirmar }: { usuario?: Usuario; fechar: () => void; confirmar: () => void }) {
+  return (
+    <Confirmar aberto={!!usuario} fechar={fechar} titulo={`Desativar ${usuario?.nome}?`} botao="Desativar" destrutivo confirmar={confirmar}>
+      A pessoa perde o acesso na próxima requisição. Conversas, chamados e histórico ficam guardados; os chamados em que ela era responsável voltam para a fila do setor.
+    </Confirmar>
+  )
+}
 
 export function Usuarios() {
   const { dados, erro, recarregar } = useLeituras<{ usuarios: Usuario[]; setores: Setor[] }>({ usuarios: '/api/admin/usuarios', setores: '/api/admin/setores' })
@@ -154,7 +164,7 @@ export function Usuarios() {
         colunas={Colunas}
         itens={usuarios}
         erro={erro}
-        vazio={busca.trim() ? { Icone: Users, titulo: 'Nenhum resultado', frase: 'Nenhum usuário combina com a busca.' } : { Icone: Users, titulo: 'Nenhum usuário', frase: 'Cadastre a equipe ou importe as matrículas.' }}
+        vazio={vazioDaBusca(busca)}
       >
         {visiveis?.map((u) => (
           <LinhaUsuario key={u.id} u={u} setores={nomes} editar={() => abrir(ficha(u))} desativar={() => setDesativar(u)} pendente={acao.isPending} />
@@ -166,9 +176,7 @@ export function Usuarios() {
         {editando && <CamposDoUsuario editando={editando} setEditando={setEditando} setores={setores} erros={errosDeCampo(acao.error)} />}
       </Editor>
 
-      <Confirmar aberto={!!desativar} fechar={() => setDesativar(undefined)} titulo={`Desativar ${desativar?.nome}?`} botao="Desativar" destrutivo confirmar={confirmarDesativar}>
-        A pessoa perde o acesso na próxima requisição. Conversas, chamados e histórico ficam guardados; os chamados em que ela era responsável voltam para a fila do setor.
-      </Confirmar>
+      <ConfirmarDesativacao usuario={desativar} fechar={() => setDesativar(undefined)} confirmar={confirmarDesativar} />
     </div>
   )
 }
