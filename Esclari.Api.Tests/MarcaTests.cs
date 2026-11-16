@@ -64,4 +64,11 @@ public class MarcaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.DoesNotMatch(new Regex(@"(?<![A-Za-z])[Oo][Nn][Ee](?![a-z])"), compose);
         Assert.DoesNotContain("ConnectionStrings__One", compose);
     }
+
+    [Fact]
+    public void UserSecretsId_e_esclari_api()
+    {
+        var projeto = File.ReadAllText(Path.Combine(ArquiteturaTests.Raiz(), "Esclari.Api", "Esclari.Api.csproj"));
+        Assert.Equal("esclari-api", Regex.Match(projeto, @"<UserSecretsId>([^<]*)</UserSecretsId>").Groups[1].Value);
+    }
 }
