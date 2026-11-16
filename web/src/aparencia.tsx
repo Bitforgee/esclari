@@ -90,11 +90,18 @@ function barra(cor: string) {
   el.content = cor
 }
 
+function faviconDaMarca(visivel: boolean) {
+  const atual = document.head.querySelector('link[rel="icon"][type="image/svg+xml"]')
+  if (!visivel) atual?.remove()
+  else if (!atual) document.head.prepend(Object.assign(document.createElement('link'), { rel: 'icon', type: 'image/svg+xml', href: '/marca/favicon.svg' }))
+}
+
 function aplicar(slug: string | undefined, d: InstituicaoPublica | undefined, tema: keyof typeof CorDaBarra) {
   marcar(d?.cor)
   titular(d)
   const icone = iconeDe(slug, d)
-  ponto('link[rel="icon"]', 'link', { rel: 'icon', type: 'image/png' }, 'href', icone)
+  ponto('link[rel="icon"][type="image/png"]', 'link', { rel: 'icon', type: 'image/png' }, 'href', icone)
+  faviconDaMarca(icone === null)
   ponto('link[rel="apple-touch-icon"]', 'link', { rel: 'apple-touch-icon' }, 'href', icone)
   barra(d?.cor ?? CorDaBarra[tema])
   ponto('link[rel="manifest"]', 'link', { rel: 'manifest' }, 'href', manifestoDe(slug))

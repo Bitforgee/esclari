@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { mkdtempSync, readFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { inflateSync } from 'node:zlib'
@@ -14,7 +14,7 @@ const themeColor = vite.match(/theme_color:\s*'#([0-9a-fA-F]{6})'/)![1]
 const corDoManifesto = [0, 2, 4].map((i) => parseInt(themeColor.slice(i, i + 2), 16))
 const corDaMarca = [0x22, 0x4f, 0xa7]
 
-type Imagem = { largura: number; altura: number; pixel: (x: number, y: number) => number[] }
+type Imagem = { largura: number; altura: number; pixel: (x: number, y: number) => number[]; alfa: (x: number, y: number) => number }
 
 function decodificar(bytes: Buffer): Imagem {
   let posicao = 8
@@ -55,7 +55,12 @@ function decodificar(bytes: Buffer): Imagem {
       saida[y * linha + i] = (atual + previsto) & 255
     }
   }
-  return { largura, altura, pixel: (x, y) => [...saida.subarray(y * linha + x * canais, y * linha + x * canais + 3)] }
+  return {
+    largura,
+    altura,
+    pixel: (x, y) => [...saida.subarray(y * linha + x * canais, y * linha + x * canais + 3)],
+    alfa: (x, y) => (canais === 4 ? saida[y * linha + x * canais + 3] : 255),
+  }
 }
 
 const ehBranco = ([r, g, b]: number[]) => r >= 240 && g >= 240 && b >= 240
@@ -116,6 +121,53 @@ describe('icones do PWA', () => {
     expect(nomes.map(hash)).toEqual(antes)
   }, 60_000)
 
+  it('dimensoes dos quatro icones', () => {
+    const esperado: [string, number][] = [['icon-192.png', 192], ['icon-512.png', 512], ['icon-maskable-512.png', 512], ['apple-touch-icon.png', 180]]
+    for (const [nome, lado] of esperado) {
+      const imagem = decodificar(lerBytes(nome))
+      expect([nome, imagem.largura, imagem.altura]).toEqual([nome, lado, lado])
+    }
+  })
+
+  it('maskable e apple sao opacos', () => {
+    for (const nome of ['icon-maskable-512.png', 'apple-touch-icon.png']) {
+      const imagem = decodificar(lerBytes(nome))
+      for (let y = 0; y < imagem.altura; y++)
+        for (let x = 0; x < imagem.largura; x++) expect(imagem.alfa(x, y), `${nome} ${x},${y}`).toBe(255)
+    }
+  })
+
+  it('apple-touch-icon declarado', () => {
+    expect(readFileSync(resolve(raiz, 'index.html'), 'utf8')).toContain('<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />')
+    const imagem = decodificar(lerBytes('apple-touch-icon.png'))
+    expect(ehCorDaMarca(imagem.pixel(0, 0))).toBe(true)
+    expect(ehCorDaMarca(imagem.pixel(179, 179))).toBe(true)
+  })
+
+  it('gera os quatro icones com exit 0', () => {
+    const r = spawnSync(process.execPath, ['scripts/gerar-icones.mjs'], { cwd: raiz, encoding: 'utf8' })
+    expect(r.status, r.stderr).toBe(0)
+    for (const nome of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png']) expect(r.stdout).toContain(`icones: gravado ${nome}`)
+  }, 120_000)
+
+  it('sem simbolo.svg', () => {
+    const nomes = ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png']
+    const hash = (nome: string) => createHash('sha256').update(lerBytes(nome)).digest('hex')
+    const antes = nomes.map(hash)
+    const copia = mkdtempSync(join(raiz, '.tmp-sem-simbolo-'))
+    try {
+      mkdirSync(join(copia, 'scripts'))
+      copyFileSync(resolve(raiz, 'scripts/gerar-icones.mjs'), join(copia, 'scripts/gerar-icones.mjs'))
+      copyFileSync(resolve(raiz, 'vite.config.ts'), join(copia, 'vite.config.ts'))
+      const r = spawnSync(process.execPath, [join(copia, 'scripts/gerar-icones.mjs')], { cwd: copia, encoding: 'utf8' })
+      expect(r.status).toBe(1)
+      expect(r.stderr).toContain('simbolo.svg')
+      expect(existsSync(join(copia, 'public/icons'))).toBe(false)
+      expect(nomes.map(hash)).toEqual(antes)
+    } finally {
+      rmSync(copia, { recursive: true, force: true })
+    }
+  })
   it('manifesto lista os tres icones', () => {
     const icones = [...vite.matchAll(/\{\s*src:\s*'([^']+)',\s*sizes:\s*'([^']+)',\s*type:\s*'image\/png'(?:,\s*purpose:\s*'([^']+)')?\s*\}/g)].map(([, src, , purpose]) => [src, purpose])
     expect(icones).toEqual([

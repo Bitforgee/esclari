@@ -51,9 +51,10 @@ const Instituicoes = { 'GET /api/instituicoes/univag': () => [200, { nome: 'Univ
 
 describe('textos das telas de acesso', () => {
   it('textos raiz', () => {
-    const t = estados(['Esclari', 'Dúvidas, solicitações e respostas da sua instituição em um só lugar.', 'Abra o endereço da sua instituição, por exemplo /univag.'])
+    const t = estados(['Dúvidas, solicitações e respostas da sua instituição em um só lugar.', 'Abra o endereço da sua instituição, por exemplo /univag.'])
     api({})
     const { container } = abrir('/')
+    expect(within(container).getByRole('heading', { level: 1, name: 'Esclari' })).toContainElement(within(container).getByRole('img', { name: 'Esclari' }))
     t.conferir(container)
     t.todos()
   })

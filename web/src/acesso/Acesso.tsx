@@ -52,7 +52,7 @@ export function Raiz() {
   return (
     <Centro>
       <div className="flex flex-col items-center gap-3 text-center">
-        <H1 translate="no">Esclari</H1>
+        <H1 translate="no"><img src="/marca/logo-horizontal.svg" alt="Esclari" width={141} height={40} className="h-10 w-auto dark:brightness-0 dark:invert" /></H1>
         <p className="m-0 text-muted-foreground">{Frase}</p>
         <p className="m-0 text-muted-foreground">Abra o endereço da sua instituição, por exemplo /univag.</p>
       </div>

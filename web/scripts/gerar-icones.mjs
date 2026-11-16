@@ -1,4 +1,4 @@
-import { readFileSync, mkdirSync, writeFileSync, renameSync } from 'node:fs'
+import { existsSync, readFileSync, mkdirSync, writeFileSync, renameSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from '@playwright/test'
@@ -12,37 +12,41 @@ if (!fundo) {
   process.exit(1)
 }
 
-const ICONES = [
-  ['icon-192.png', 192, false],
-  ['icon-512.png', 512, false],
-  ['icon-maskable-512.png', 512, true],
-]
+const arquivoDoSimbolo = join(raiz, 'public', 'marca', 'simbolo.svg')
+if (!existsSync(arquivoDoSimbolo)) {
+  console.error('icones: não achei web/public/marca/simbolo.svg. Os ícones atuais não foram alterados.')
+  process.exit(1)
+}
+const contorno = readFileSync(arquivoDoSimbolo, 'utf8').match(/\sd="([^"]+)"/)?.[1]
+if (!contorno) {
+  console.error('icones: web/public/marca/simbolo.svg não tem um <path d="...">. Os ícones atuais não foram alterados.')
+  process.exit(1)
+}
 
-function svg(tamanho, mascaravel) {
-  const x = tamanho * 0.3
-  const y = tamanho * 0.25
-  const largura = tamanho * 0.4
-  const altura = tamanho * 0.5
-  const traco = tamanho * 0.1
-  const barras = [
-    [x, y, traco, altura],
-    [x, y, largura, traco],
-    [x, y + altura / 2 - traco / 2, largura * 0.85, traco],
-    [x, y + altura - traco, largura, traco],
-  ]
-  const retangulos = barras.map(([bx, by, bl, ba]) => `<rect x="${bx}" y="${by}" width="${bl}" height="${ba}" fill="#ffffff" shape-rendering="crispEdges"/>`).join('')
-  const margem = mascaravel ? 0 : tamanho * 0.06
-  const placa = mascaravel
-    ? `<rect width="${tamanho}" height="${tamanho}" fill="${MARCA}"/>`
-    : `<rect width="${tamanho}" height="${tamanho}" fill="${fundo}"/><rect x="${margem}" y="${margem}" width="${tamanho - 2 * margem}" height="${tamanho - 2 * margem}" rx="${tamanho * 0.18}" fill="${MARCA}"/>`
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${tamanho}" height="${tamanho}" viewBox="0 0 ${tamanho} ${tamanho}">${placa}${retangulos}</svg>`
+const ICONES = [
+  ['icon-192.png', 192, 'any'],
+  ['icon-512.png', 512, 'any'],
+  ['icon-maskable-512.png', 512, 'maskable'],
+  ['apple-touch-icon.png', 180, 'apple'],
+]
+const ESCALA = { any: 0.72, apple: 0.72, maskable: 0.68 }
+
+function svg(tamanho, modo) {
+  const u = tamanho / 64
+  const simbolo = `<path fill="#ffffff" fill-rule="evenodd" transform="translate(${32 * u} ${32 * u}) scale(${u * ESCALA[modo]}) translate(-32 -32)" d="${contorno}"/>`
+  const margem = tamanho * 0.06
+  const placa =
+    modo === 'any'
+      ? `<rect width="${tamanho}" height="${tamanho}" fill="${fundo}"/><rect x="${margem}" y="${margem}" width="${tamanho - 2 * margem}" height="${tamanho - 2 * margem}" rx="${tamanho * 0.18}" fill="${MARCA}"/>`
+      : `<rect width="${tamanho}" height="${tamanho}" fill="${MARCA}"/>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${tamanho}" height="${tamanho}" viewBox="0 0 ${tamanho} ${tamanho}">${placa}${simbolo}</svg>`
 }
 
 async function renderizar() {
   const navegador = await chromium.launch()
   try {
     const imagens = []
-    for (const [nome, tamanho, mascaravel] of ICONES) {
+    for (const [nome, tamanho, modo] of ICONES) {
       const pagina = await navegador.newPage()
       const dados = await pagina.evaluate(async ([conteudo, lado]) => {
         const imagem = new Image()
@@ -53,7 +57,7 @@ async function renderizar() {
         tela.height = lado
         tela.getContext('2d').drawImage(imagem, 0, 0, lado, lado)
         return tela.toDataURL('image/png')
-      }, [svg(tamanho, mascaravel), tamanho])
+      }, [svg(tamanho, modo), tamanho])
       imagens.push([nome, Buffer.from(dados.split(',')[1], 'base64')])
       await pagina.close()
     }
