@@ -310,7 +310,7 @@ describe('App instalado', () => {
     expect(barra().getByTestId('barra-do-app')).toHaveStyle({ backgroundColor: hex('123456') })
   })
 
-  it('tela inicial sem ícone usa o do One', async () => {
+  it('tela inicial sem ícone usa o do Esclari', async () => {
     rotas()
     abrir('/univag/aparencia?aba=app')
     await screen.findByLabelText('Nome do app')
@@ -351,7 +351,7 @@ describe('App instalado', () => {
 })
 
 describe('Cores prontas', () => {
-  const Nomes = ['Azul One', 'Verde', 'Vinho', 'Roxo', 'Laranja', 'Grafite', 'Petróleo', 'Marrom']
+  const Nomes = ['Azul Esclari', 'Verde', 'Vinho', 'Roxo', 'Laranja', 'Grafite', 'Petróleo', 'Marrom']
 
   it('oito cores prontas com contraste', async () => {
     rotas()
@@ -369,12 +369,12 @@ describe('Cores prontas', () => {
     rotas()
     abrir('/univag/aparencia')
     const grupo = within(await screen.findByRole('radiogroup', { name: 'Cores prontas' }))
-    await userEvent.click(grupo.getByRole('radio', { name: 'Azul One' }))
+    await userEvent.click(grupo.getByRole('radio', { name: 'Azul Esclari' }))
     expect(screen.getByLabelText('Cor principal')).toHaveValue(hex('224fa7'))
     const entrar = previa().getByRole('button', { name: 'Entrar', hidden: true })
     expect(entrar.closest('.previa-marca') as HTMLElement).toHaveStyle(`--marca-previa: ${hex('224fa7')}`)
     const marcados = grupo.getAllByRole('radio').map((r) => `${r.getAttribute('aria-label') ?? r.textContent}:${r.getAttribute('aria-checked')}`)
-    expect(marcados).toEqual(Nomes.map((n) => `${n}:${n === 'Azul One'}`))
+    expect(marcados).toEqual(Nomes.map((n) => `${n}:${n === 'Azul Esclari'}`))
 
     await digitar('Cor principal', hex('123456'))
     expect(grupo.getAllByRole('radio').map((r) => r.getAttribute('aria-checked'))).toEqual(Array(8).fill('false'))
@@ -388,7 +388,7 @@ describe('Cores prontas', () => {
     expect(screen.getByLabelText('Cor principal')).toHaveValue(hex('ffff00'))
     expect(screen.getByText(/^Contraste com o branco:/)).toHaveClass('text-destructive')
     expect(salvar()).toBeDisabled()
-    await userEvent.click(screen.getByRole('radio', { name: 'Azul One' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Azul Esclari' }))
     expect(salvar()).toBeEnabled()
   })
 })

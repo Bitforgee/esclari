@@ -27,8 +27,8 @@ const Validades = [30, 90, 365]
 const Estados: Record<Item['estado'], string> = { ATIVO: 'Ativo', EXPIRADO: 'Expirado', REVOGADO: 'Revogado' }
 const Colunas = [{ titulo: 'Nome' }, { titulo: 'Dono', largo: true }, { titulo: 'Final', largo: true }, { titulo: 'Criado', largo: true }, { titulo: 'Vence', largo: true }, { titulo: 'Último uso', largo: true }, { titulo: 'Estado' }, { titulo: '' }]
 
-const comandoClaude = (url: string, token: string) => `claude mcp add --transport http one ${url} --header "Authorization: Bearer ${token}"`
-const jsonDoCliente = (url: string, token: string) => JSON.stringify({ mcpServers: { one: { url, headers: { Authorization: `Bearer ${token}` } } } })
+const comandoClaude = (url: string, token: string) => `claude mcp add --transport http esclari ${url} --header "Authorization: Bearer ${token}"`
+const jsonDoCliente = (url: string, token: string) => JSON.stringify({ mcpServers: { esclari: { url, headers: { Authorization: `Bearer ${token}` } } } })
 
 function LinhaDoToken({ t, fuso, revogar }: { t: Item; fuso: string; revogar: () => void }) {
   const criado = dataCurta(t.criadoEm, fuso)

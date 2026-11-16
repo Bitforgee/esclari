@@ -176,7 +176,7 @@ describe('acesso', () => {
     for (const proibido of ['next-themes', 'ai', '@ai-sdk/react', 'streamdown']) expect(todas[proibido], proibido).toBeUndefined()
   })
 
-  it('Tema grava a escolha em one-tema', async () => {
+  it('Tema grava a escolha em esclari-tema', async () => {
     localStorage.clear()
     api({ 'GET /api/auth/me': () => [200, me()] })
     abrir('/univag/trocar-senha')
@@ -185,7 +185,7 @@ describe('acesso', () => {
     await userEvent.keyboard('{Escape}')
     for (const [rotulo, valor, classes] of [['Escuro', 'dark', ['dark']], ['Claro', 'light', ['light']], ['Preto', 'black', ['dark', 'black']], ['Sistema', 'system', ['light']]] as const) {
       await escolherTema(rotulo)
-      expect(localStorage.getItem('one-tema'), rotulo).toBe(valor)
+      expect(localStorage.getItem('esclari-tema'), rotulo).toBe(valor)
       expect([...document.documentElement.classList].sort(), rotulo).toEqual([...classes].sort())
     }
     expect(document.documentElement).not.toHaveClass('dark')
@@ -384,7 +384,7 @@ describe('acesso', () => {
 
 const montarTema = () =>
   render(
-    <ThemeProvider defaultTheme="system" storageKey="one-tema">
+    <ThemeProvider defaultTheme="system" storageKey="esclari-tema">
       <Toaster containerAriaLabel="Notificações" />
     </ThemeProvider>,
   )
@@ -396,7 +396,7 @@ afterEach(() => {
 
 describe('tema (redesign-institucional)', () => {
   it('Toaster escuro no tema Preto', async () => {
-    localStorage.setItem('one-tema', 'black')
+    localStorage.setItem('esclari-tema', 'black')
     montarTema()
     act(() => void toast('Artigo salvo.'))
     const lista = await new Promise<Element>((ok) => {
@@ -410,9 +410,9 @@ describe('tema (redesign-institucional)', () => {
     expect(document.documentElement).toHaveClass('dark', 'black')
   })
 
-  it('valor antigo de one-tema', () => {
+  it('valor antigo de esclari-tema', () => {
     for (const [valor, classe] of [['light', 'light'], ['dark', 'dark'], ['system', 'light']]) {
-      localStorage.setItem('one-tema', valor)
+      localStorage.setItem('esclari-tema', valor)
       const { unmount } = montarTema()
       expect(document.documentElement, valor).toHaveClass(classe)
       expect(document.documentElement, valor).not.toHaveClass('black')
@@ -482,15 +482,15 @@ describe('barra lateral com grupos', () => {
 
   const estado = () => document.querySelector('[data-slot=sidebar]')!.getAttribute('data-state')
 
-  it('alternar barra grava one-barra', async () => {
+  it('alternar barra grava esclari-barra', async () => {
     api({ 'GET /api/auth/me': () => [200, me()] })
     abrir('/univag/trocar-senha')
     await userEvent.click(await alternarBarra())
     expect(estado()).toBe('collapsed')
-    expect(localStorage.getItem('one-barra')).toBe('recolhida')
+    expect(localStorage.getItem('esclari-barra')).toBe('recolhida')
     await userEvent.click(await alternarBarra())
     expect(estado()).toBe('expanded')
-    expect(localStorage.getItem('one-barra')).toBe('aberta')
+    expect(localStorage.getItem('esclari-barra')).toBe('aberta')
   })
 
   it.each([
@@ -498,8 +498,8 @@ describe('barra lateral com grupos', () => {
     ['aberta', 'expanded'],
     [null, 'expanded'],
     ['xyz', 'expanded'],
-  ])('estado inicial da barra por one-barra (%s)', async (valor, esperado) => {
-    if (valor !== null) localStorage.setItem('one-barra', valor)
+  ])('estado inicial da barra por esclari-barra (%s)', async (valor, esperado) => {
+    if (valor !== null) localStorage.setItem('esclari-barra', valor)
     api({ 'GET /api/auth/me': () => [200, me()] })
     abrir('/univag/trocar-senha')
     await alternarBarra()

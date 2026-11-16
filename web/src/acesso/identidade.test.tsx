@@ -32,7 +32,7 @@ describe('textos do login', () => {
       await screen.findByLabelText('CPF')
       for (const texto of Base) expect(screen.getAllByText(texto), `${login} ${texto}`).toHaveLength(1)
       expect(screen.getByText('CG')).toBeInTheDocument()
-      expect(screen.queryByText('One')).not.toBeInTheDocument()
+      expect(screen.queryByText('Esclari')).not.toBeInTheDocument()
       expect(screen.getAllByText(Apoio), `${login} apoio`).toHaveLength(1)
       unmount()
     }
@@ -41,7 +41,7 @@ describe('textos do login', () => {
   it('raiz sem ilustração', () => {
     api({})
     abrir('/')
-    expect(screen.getByRole('heading', { name: 'One' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Esclari' })).toBeInTheDocument()
     expect(screen.getByText('Dúvidas, solicitações e respostas da sua instituição em um só lugar.')).toBeInTheDocument()
     expect(screen.getByText('Abra o endereço da sua instituição, por exemplo /univag.')).toBeInTheDocument()
     expect(document.querySelectorAll('svg')).toHaveLength(0)

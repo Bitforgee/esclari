@@ -12,9 +12,9 @@ function push(dados: string | null) {
 
 describe('service worker', () => {
   it('push mostra a notificação com a tag do chamado', () => {
-    const corpo = (n: string) => JSON.stringify({ titulo: 'One', corpo: `Seu chamado ${n} foi atualizado.`, url: `/univag/chamados/${n}` })
+    const corpo = (n: string) => JSON.stringify({ titulo: 'Esclari', corpo: `Seu chamado ${n} foi atualizado.`, url: `/univag/chamados/${n}` })
     const a = push(corpo('ESC-000012'))
-    expect(a.mostrar).toHaveBeenCalledWith('One', { body: 'Seu chamado ESC-000012 foi atualizado.', icon: '/icons/icon-192.png', tag: 'ESC-000012', data: { url } })
+    expect(a.mostrar).toHaveBeenCalledWith('Esclari', { body: 'Seu chamado ESC-000012 foi atualizado.', icon: '/icons/icon-192.png', tag: 'ESC-000012', data: { url } })
     expect(a.espera).toHaveBeenCalledTimes(1)
     const tag = (m: ReturnType<typeof push>) => (m.mostrar.mock.calls[0] as unknown as [string, { tag: string }])[1].tag
     expect(tag(push(corpo('ESC-000012')))).toBe(tag(a))
@@ -27,7 +27,7 @@ describe('service worker', () => {
     ['array', '[]'],
     ['objeto vazio', '{}'],
   ])('push sem JSON legível mostra o texto padrão (%s)', (_, dados) => {
-    expect(push(dados).mostrar).toHaveBeenCalledWith('One', { body: 'Sua solicitação foi atualizada.', icon: '/icons/icon-192.png', tag: undefined, data: { url: undefined } })
+    expect(push(dados).mostrar).toHaveBeenCalledWith('Esclari', { body: 'Sua solicitação foi atualizada.', icon: '/icons/icon-192.png', tag: undefined, data: { url: undefined } })
   })
 
   it('aviso com o ícone da instituição', () => {
@@ -54,7 +54,7 @@ describe('service worker', () => {
   })
 
   it('ícone só do próprio app: carga ilegível usa o texto e o ícone padrão', () => {
-    expect(push('olá').mostrar).toHaveBeenCalledWith('One', { body: 'Sua solicitação foi atualizada.', icon: '/icons/icon-192.png', tag: undefined, data: { url: undefined } })
+    expect(push('olá').mostrar).toHaveBeenCalledWith('Esclari', { body: 'Sua solicitação foi atualizada.', icon: '/icons/icon-192.png', tag: undefined, data: { url: undefined } })
   })
 
   it('texto reserva fala em solicitação', () => {

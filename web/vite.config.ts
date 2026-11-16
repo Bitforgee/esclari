@@ -15,8 +15,8 @@ export default defineConfig({
       filename: 'sw.ts',
       registerType: 'autoUpdate',
       manifest: {
-        name: 'One',
-        short_name: 'One',
+        name: 'Esclari',
+        short_name: 'Esclari',
         description: 'Atendimento ao aluno da sua instituição',
         lang: 'pt-BR',
         start_url: '/',

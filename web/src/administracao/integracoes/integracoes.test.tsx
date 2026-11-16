@@ -75,8 +75,8 @@ describe('tela Integrações', () => {
     abrir('/univag/integracoes')
     await screen.findByLabelText('Emissor (iss)')
     const moodle = screen.getByRole('heading', { name: 'Moodle', level: 2 })
-    expect(moodle.nextElementSibling).toHaveTextContent(/^Alunos que entram pela atividade One no Moodle chegam ao assistente sem digitar CPF nem senha\./)
-    expect(screen.getAllByText(/^Alunos que entram pela atividade One/)).toHaveLength(1)
+    expect(moodle.nextElementSibling).toHaveTextContent(/^Alunos que entram pela atividade Esclari no Moodle chegam ao assistente sem digitar CPF nem senha\./)
+    expect(screen.getAllByText(/^Alunos que entram pela atividade Esclari/)).toHaveLength(1)
     await userEvent.click(screen.getByRole('tab', { name: 'MCP' }))
     const mcp = await screen.findByRole('heading', { name: 'MCP', level: 2 })
     expect(mcp.nextElementSibling).toHaveTextContent(/^Conecte a IA que você já usa/)
@@ -326,8 +326,8 @@ describe('tela Integrações', () => {
     expect(screen.queryByText('Moodle salvo e ativo.')).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
     const aviso = (await screen.findByText('Moodle salvo e ativo.')).closest('[role="status"]')!
-    expect(aviso.textContent).toBe('Moodle salvo e ativo.Para testar, abra a atividade One no Moodle com uma conta de aluno.')
-    expect(aviso).toHaveTextContent('Para testar, abra a atividade One no Moodle com uma conta de aluno.')
+    expect(aviso.textContent).toBe('Moodle salvo e ativo.Para testar, abra a atividade Esclari no Moodle com uma conta de aluno.')
+    expect(aviso).toHaveTextContent('Para testar, abra a atividade Esclari no Moodle com uma conta de aluno.')
   })
 
   it('aviso fixo com a entrada desligada', async () => {

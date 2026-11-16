@@ -1,4 +1,4 @@
-# Vídeo de apresentação do One
+# Vídeo de apresentação do Esclari
 
 Grava o app com o Playwright (cursor visível, legenda, selo do papel), narra cada passo com voz sintetizada e
 monta um MP4 com legendas `.srt`. Tudo o que é gerado fica em `saida/` (fora do git).

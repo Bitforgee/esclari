@@ -127,7 +127,7 @@ describe('marca da instituição', () => {
     abrir('/univag')
     await screen.findByLabelText('CPF')
     expect(screen.queryByRole('img', { name: 'Univag' })).not.toBeInTheDocument()
-    expect(screen.queryByText('One')).not.toBeInTheDocument()
+    expect(screen.queryByText('Esclari')).not.toBeInTheDocument()
     expect(document.querySelector('span.bg-primary')).toHaveTextContent('U')
   })
 

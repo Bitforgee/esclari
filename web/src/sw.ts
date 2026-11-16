@@ -17,7 +17,7 @@ declare global {
 
 export const Negados = [/^\/api\//]
 const IconePadrao = '/icons/icon-192.png'
-const Padrao = { titulo: 'One', corpo: 'Sua solicitação foi atualizada.', icone: IconePadrao }
+const Padrao = { titulo: 'Esclari', corpo: 'Sua solicitação foi atualizada.', icone: IconePadrao }
 
 const iconeDoApp = (i: unknown) => (typeof i === 'string' && /^\/api\/instituicoes\/[a-z0-9-]{3,30}\/imagens\/icone\?v=[0-9]+$|^\/icons\/icon-[0-9]+\.png$/.test(i) ? i : IconePadrao)
 

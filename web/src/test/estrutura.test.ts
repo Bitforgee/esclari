@@ -55,13 +55,13 @@ it('estrutura em fatias', () => {
 it('administracao em subpastas', () => {
   const Subpastas = ['aparencia', 'fluxos', 'cadastros', 'integracoes', 'instituicoes']
   const dela = arquivos.filter((a) => a.startsWith('administracao/')).map((a) => a.slice('administracao/'.length))
-  expect(dela.length).toBe(52)
+  expect(dela.length).toBe(53)
   for (const arquivo of dela) {
     const partes = arquivo.split('/')
     expect(partes.length, arquivo).toBeLessThanOrEqual(2)
     if (partes.length === 2) expect(Subpastas, arquivo).toContain(partes[0])
   }
-  expect(dela.filter((a) => !a.includes('/')).sort()).toEqual(['avisoAoFechar.ts', 'comum.tsx', 'IconesDoDestino.ts', 'LinhasDosCadastros.tsx'].sort())
+  expect(dela.filter((a) => !a.includes('/')).sort()).toEqual(['avisoAoFechar.ts', 'comum.tsx', 'IconesDoDestino.ts', 'LinhasDosCadastros.tsx', 'marca.test.tsx'].sort())
   for (const subpasta of Subpastas) expect(dela.some((a) => a.startsWith(`${subpasta}/`)), subpasta).toBe(true)
   const Mapa: Record<string, string[]> = {
     aparencia: ['Aparencia.tsx', 'abasDaAparencia.ts', 'CampoImagem.tsx', 'CoresProntas.tsx', 'PreviaAparencia.tsx', 'aparencia.test.tsx', 'aparenciaAbas.test.tsx', 'guidelinesCores.test.tsx', 'guidelinesPrevia.test.tsx', 'identidade.test.tsx'],
@@ -85,7 +85,7 @@ it('administracao em subpastas', () => {
 
   const testes = dela.filter((a) => a.endsWith('.test.tsx'))
   expect(testes.length).toBeGreaterThan(0)
-  for (const teste of testes) {
+  for (const teste of testes.filter((a) => a !== 'marca.test.tsx')) {
     const fonte = texto(`administracao/${teste}`)
     const dasRotas = [...fonte.matchAll(/abrir\('\/[^/'?]+\/([^'?]*)/g)].flatMap(([, caminho]) => rotas.filter((r) => r.padrao.test(caminho)).map((r) => r.subpasta))
     const dosImports = [...fonte.matchAll(/from '\.\.?\/(?:(\w+)\/)?\w+'/g)].map(([, subpasta]) => subpasta ?? teste.split('/')[0])

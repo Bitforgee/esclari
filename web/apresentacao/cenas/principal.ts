@@ -384,9 +384,9 @@ export const roteiro: Roteiro = {
   segmentos: [
     {
       id: '00-abertura',
-      cartao: { titulo: 'One — atendimento acadêmico com IA', subtitulo: 'Centro Universitário de Várzea Grande', nota: 'Dados de demonstração' },
+      cartao: { titulo: 'Esclari — atendimento acadêmico com IA', subtitulo: 'Centro Universitário de Várzea Grande', nota: 'Dados de demonstração' },
       passos: [
-        { id: 'abertura-1', texto: 'O One é o atendimento ao estudante: um assistente com IA responde dúvidas a qualquer hora do dia.' },
+        { id: 'abertura-1', texto: 'O Esclari é o atendimento ao estudante: um assistente com IA responde dúvidas a qualquer hora do dia.' },
         { id: 'abertura-2', texto: 'Quando a dúvida precisa de uma pessoa, a conversa vira uma solicitação e vai para o setor certo.' },
       ],
     },
@@ -398,7 +398,7 @@ export const roteiro: Roteiro = {
     cartao('30-gestor', 'Visão do gestor', 'Base de conhecimento, cadastros e indicadores', ['Por fim, a visão da gestão.']),
     gestora,
     lucas,
-    cartao('99-fim', 'One', 'Aluno: resposta na hora · Coordenação: caso com contexto · Gestão: base e indicadores', [
+    cartao('99-fim', 'Esclari', 'Aluno: resposta na hora · Coordenação: caso com contexto · Gestão: base e indicadores', [
       'Resumindo: o aluno tem resposta na hora, a coordenação recebe o caso com contexto e a gestão acompanha tudo.',
     ]),
   ],

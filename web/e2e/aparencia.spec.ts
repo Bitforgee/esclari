@@ -87,7 +87,7 @@ test.describe('S4 marca da instituição', () => {
       ['dark', semAparencia, 'oklch(0.72 0.12 262)'],
     ]
     for (const [tema, dados, referencia] of casos) {
-      await page.addInitScript((t) => localStorage.setItem('one-tema', t), tema)
+      await page.addInitScript((t) => localStorage.setItem('esclari-tema', t), tema)
       await simularApi(page, undefined, false, dados)
       await page.goto('/univag')
       await page.getByRole('button', { name: 'Entrar' }).waitFor()
@@ -138,7 +138,7 @@ test.describe('S4 marca da instituição', () => {
   })
 })
 
-const noIcone = (page: Page) => page.addInitScript(() => localStorage.setItem('one-barra', 'recolhida'))
+const noIcone = (page: Page) => page.addInitScript(() => localStorage.setItem('esclari-barra', 'recolhida'))
 
 test.describe('S9 arranjos das telas', () => {
   test('foto do assistente à esquerda do balão', async ({ page }) => {

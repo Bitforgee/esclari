@@ -3,7 +3,7 @@ import { simularApi, Telas } from './simulada'
 
 test('manifesto e service worker', async ({ page, request }) => {
   const manifesto = await (await request.get('/manifest.webmanifest')).json()
-  expect(manifesto.name).toBe('One')
+  expect(manifesto.name).toBe('Esclari')
   const tamanhos = manifesto.icons.map((i: { sizes: string }) => i.sizes)
   expect(tamanhos).toEqual(expect.arrayContaining(['192x192', '512x512']))
   for (const icone of manifesto.icons) {

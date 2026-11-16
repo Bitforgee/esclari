@@ -21,7 +21,7 @@ const rotas = (get: Rota, extra: Record<string, Rota> = {}) =>
   })
 
 const problema = (status: number, detail: string, errors?: Record<string, string[]>) => [status, { title: 'Erro', status, detail, ...(errors ? { errors } : {}) }] as [number, unknown]
-const comando = (alvo: string) => `claude mcp add --transport http one ${url} --header "Authorization: Bearer ${alvo}"`
+const comando = (alvo: string) => `claude mcp add --transport http esclari ${url} --header "Authorization: Bearer ${alvo}"`
 
 describe('aba MCP', () => {
   it('aba MCP lista os tokens', async () => {
@@ -103,7 +103,7 @@ describe('aba MCP', () => {
     expect(within(dialogo).getByText('Se você não copiar, apague este token e crie outro.')).toBeInTheDocument()
     expect(within(dialogo).getByText(token)).toBeInTheDocument()
     expect(within(dialogo).getByText(comando(token))).toBeInTheDocument()
-    expect(within(dialogo).getByText(`{"mcpServers":{"one":{"url":"${url}","headers":{"Authorization":"Bearer ${token}"}}}}`)).toBeInTheDocument()
+    expect(within(dialogo).getByText(`{"mcpServers":{"esclari":{"url":"${url}","headers":{"Authorization":"Bearer ${token}"}}}}`)).toBeInTheDocument()
     expect(within(dialogo).queryByRole('button', { name: 'Cancelar' })).not.toBeInTheDocument()
     expect(within(dialogo).queryByRole('button', { name: 'Criar token' })).not.toBeInTheDocument()
 
@@ -284,7 +284,7 @@ describe('aba MCP', () => {
 
     expect(await screen.findByRole('heading', { name: 'Como conectar', level: 2 })).toBeInTheDocument()
     expect(screen.getByText(comando('<seu-token>'))).toBeInTheDocument()
-    expect(screen.getByText(`{"mcpServers":{"one":{"url":"${url}","headers":{"Authorization":"Bearer <seu-token>"}}}}`)).toBeInTheDocument()
+    expect(screen.getByText(`{"mcpServers":{"esclari":{"url":"${url}","headers":{"Authorization":"Bearer <seu-token>"}}}}`)).toBeInTheDocument()
     expect(screen.getByText('Claude.ai e ChatGPT na web ainda não conectam: pedem OAuth.')).toBeInTheDocument()
   })
 })

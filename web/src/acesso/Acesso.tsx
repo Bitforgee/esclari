@@ -52,7 +52,7 @@ export function Raiz() {
   return (
     <Centro>
       <div className="flex flex-col items-center gap-3 text-center">
-        <H1 translate="no">One</H1>
+        <H1 translate="no">Esclari</H1>
         <p className="m-0 text-muted-foreground">{Frase}</p>
         <p className="m-0 text-muted-foreground">Abra o endereço da sua instituição, por exemplo /univag.</p>
       </div>
@@ -194,8 +194,8 @@ function Formulario<T extends FieldValues>({ schema, enviar, botao, className, c
 const schemaLogin = z.object({ cpf: obrigatorio, senha: obrigatorio })
 
 const VoltaDoMoodle: Record<string, string> = {
-  'sem-cadastro': 'Não encontramos seu cadastro no One. Fale com a secretaria.',
-  inativo: 'Seu acesso ao One está desativado. Fale com a secretaria.',
+  'sem-cadastro': 'Não encontramos seu cadastro no Esclari. Fale com a secretaria.',
+  inativo: 'Seu acesso ao Esclari está desativado. Fale com a secretaria.',
   'use-senha': 'Equipe entra com CPF e senha.',
 }
 

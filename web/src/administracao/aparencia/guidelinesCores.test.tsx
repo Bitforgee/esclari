@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { abrir, api, instituicao, me } from '../../test/util'
 
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
-const Nomes = ['Azul One', 'Verde', 'Vinho', 'Roxo', 'Laranja', 'Grafite', 'Petróleo', 'Marrom']
+const Nomes = ['Azul Esclari', 'Verde', 'Vinho', 'Roxo', 'Laranja', 'Grafite', 'Petróleo', 'Marrom']
 
 async function grupo() {
   const { nome: _, ...aparencia } = instituicao()
@@ -20,7 +20,7 @@ const marcada = (g: Grupo) => g.getAllByRole('radio').filter((r) => r.getAttribu
 describe('CoresProntas por teclado', () => {
   it('C25 só uma cor entra na ordem de Tab: a marcada, ou a primeira sem marcada', async () => {
     const g = await grupo()
-    expect(paradas(g)).toEqual(['Azul One'])
+    expect(paradas(g)).toEqual(['Azul Esclari'])
     expect(g.getAllByRole('radio').filter((r) => r.tabIndex === -1)).toHaveLength(7)
     await userEvent.click(g.getByRole('radio', { name: 'Vinho' }))
     expect(paradas(g)).toEqual(['Vinho'])
@@ -28,18 +28,18 @@ describe('CoresProntas por teclado', () => {
 
   it('C25 ArrowRight e ArrowLeft movem a seleção e o foco, com volta ao fim do grupo', async () => {
     const g = await grupo()
-    g.getByRole('radio', { name: 'Azul One' }).focus()
+    g.getByRole('radio', { name: 'Azul Esclari' }).focus()
     await userEvent.keyboard('{ArrowRight}')
     expect(marcada(g)).toEqual(['Verde'])
     expect(g.getByRole('radio', { name: 'Verde' })).toHaveFocus()
     await userEvent.keyboard('{ArrowRight}{ArrowLeft}{ArrowLeft}')
-    expect(marcada(g)).toEqual(['Azul One'])
+    expect(marcada(g)).toEqual(['Azul Esclari'])
     await userEvent.keyboard('{ArrowLeft}')
     expect(marcada(g)).toEqual([Nomes[7]])
     expect(g.getByRole('radio', { name: 'Marrom' })).toHaveFocus()
     expect(paradas(g)).toEqual(['Marrom'])
     await userEvent.keyboard('{ArrowRight}')
-    expect(marcada(g)).toEqual(['Azul One'])
+    expect(marcada(g)).toEqual(['Azul Esclari'])
   })
 
   it('C25 Tab atravessa o grupo numa só parada', async () => {

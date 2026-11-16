@@ -558,11 +558,11 @@ test('login com foto abaixo de 1024: faixa de 160 px acima do formulário', asyn
     }
 })
 
-test('raiz com One em serifa', async ({ page }) => {
+test('raiz com Esclari em serifa', async ({ page }) => {
   for (const largura of [360, 1280]) {
     await page.setViewportSize({ width: largura, height: 740 })
     await page.goto('/')
-    const titulo = page.getByRole('heading', { name: 'One' })
+    const titulo = page.getByRole('heading', { name: 'Esclari' })
     await titulo.waitFor()
     await page.evaluate(() => document.fonts.ready)
     expect(await familia(titulo), `${largura}: serifa`).toMatch(/^"Source Serif 4 Variable"/)
@@ -1026,7 +1026,7 @@ const contraste = (x: number[], y: number[]) => {
   const [claro, escuro] = [luminancia(x), luminancia(y)].sort((p, q) => q - p)
   return (claro + 0.05) / (escuro + 0.05)
 }
-const emTema = (page: Page, tema: string) => page.addInitScript((t) => localStorage.setItem('one-tema', t), tema)
+const emTema = (page: Page, tema: string) => page.addInitScript((t) => localStorage.setItem('esclari-tema', t), tema)
 
 test('foco das perguntas com 3:1 nos três temas', async ({ page }) => {
   test.setTimeout(240_000)

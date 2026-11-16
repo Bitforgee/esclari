@@ -313,9 +313,9 @@ export const roteiro: Roteiro = {
   segmentos: [
     {
       id: '00-abertura',
-      cartao: { titulo: 'One — atendimento acadêmico com IA', subtitulo: 'Computador e celular: a plataforma completa', nota: 'Dados de demonstração' },
+      cartao: { titulo: 'Esclari — atendimento acadêmico com IA', subtitulo: 'Computador e celular: a plataforma completa', nota: 'Dados de demonstração' },
       passos: [
-        { id: 'abertura-1', texto: 'O One é o atendimento ao estudante: um assistente com IA responde dúvidas a qualquer hora do dia.' },
+        { id: 'abertura-1', texto: 'O Esclari é o atendimento ao estudante: um assistente com IA responde dúvidas a qualquer hora do dia.' },
         { id: 'abertura-2', texto: 'Quando a dúvida precisa de uma pessoa, a conversa vira uma solicitação e vai para o setor certo.' },
         { id: 'abertura-3', texto: 'Vamos ver tudo funcionando, primeiro no computador e depois no celular.' },
       ],
@@ -329,11 +329,11 @@ export const roteiro: Roteiro = {
     gestora,
     lucas,
     plataforma,
-    cartao('50-celular', 'Versão mobile', 'O mesmo One, no celular', ['Agora, o mesmo sistema no celular.']),
+    cartao('50-celular', 'Versão mobile', 'O mesmo Esclari, no celular', ['Agora, o mesmo sistema no celular.']),
     alunoMovel,
     atendenteMovel,
     gestoraMovel,
-    cartao('99-fim', 'One', 'Aluno: resposta na hora · Equipe: caso com contexto · Gestão: base, fluxos e indicadores', [
+    cartao('99-fim', 'Esclari', 'Aluno: resposta na hora · Equipe: caso com contexto · Gestão: base, fluxos e indicadores', [
       'Resumindo: o aluno tem resposta na hora, a equipe recebe o caso com contexto e a gestão acompanha tudo, no computador e no celular.',
     ]),
   ],

@@ -63,7 +63,7 @@ function PainelMcp({ estado }: { estado?: Estado }) {
       titulo="MCP"
       estado={estado}
       acao={<Button onClick={() => setNovo(true)}>Novo token</Button>}
-      introducao="Conecte a IA que você já usa (Claude Code, Cursor) aos chamados, à base de conhecimento e aos indicadores do One. O acesso é só de leitura e segue o seu papel."
+      introducao="Conecte a IA que você já usa (Claude Code, Cursor) aos chamados, à base de conhecimento e aos indicadores do Esclari. O acesso é só de leitura e segue o seu papel."
       oque="a integração com o MCP"
       chave="mcp-admin"
       url="/api/admin/mcp"
@@ -94,7 +94,7 @@ export function Integracoes() {
         <AbaIntegracao<Plataforma>
           titulo="Moodle"
           estado={estados.moodle}
-          introducao="Alunos que entram pela atividade One no Moodle chegam ao assistente sem digitar CPF nem senha. A equipe continua entrando com CPF e senha."
+          introducao="Alunos que entram pela atividade Esclari no Moodle chegam ao assistente sem digitar CPF nem senha. A equipe continua entrando com CPF e senha."
           oque="a integração com o Moodle"
           chave="moodle-admin"
           url="/api/admin/moodle"

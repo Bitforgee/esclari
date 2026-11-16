@@ -8,8 +8,8 @@ export const roteiro: Roteiro = {
   segmentos: [
     {
       id: '00-abertura',
-      cartao: { titulo: 'One — atendimento acadêmico com IA', subtitulo: 'Amostra do kit de gravação', nota: 'Dados de demonstração' },
-      passos: [{ id: 'abertura', texto: 'Esta é uma amostra curta da apresentação do One.' }],
+      cartao: { titulo: 'Esclari — atendimento acadêmico com IA', subtitulo: 'Amostra do kit de gravação', nota: 'Dados de demonstração' },
+      passos: [{ id: 'abertura', texto: 'Esta é uma amostra curta da apresentação do Esclari.' }],
     },
     {
       id: '01-aluno',
@@ -34,7 +34,7 @@ export const roteiro: Roteiro = {
     },
     {
       id: '99-fim',
-      cartao: { titulo: 'Obrigado', subtitulo: 'One — atendimento acadêmico com IA' },
+      cartao: { titulo: 'Obrigado', subtitulo: 'Esclari — atendimento acadêmico com IA' },
       passos: [{ id: 'fim', texto: 'Fim da amostra.' }],
     },
   ],

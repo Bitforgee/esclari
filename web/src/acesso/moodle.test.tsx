@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { abrir, api, instituicao } from '../test/util'
 
 const Motivos = [
-  ['sem-cadastro', 'Não encontramos seu cadastro no One. Fale com a secretaria.'],
-  ['inativo', 'Seu acesso ao One está desativado. Fale com a secretaria.'],
+  ['sem-cadastro', 'Não encontramos seu cadastro no Esclari. Fale com a secretaria.'],
+  ['inativo', 'Seu acesso ao Esclari está desativado. Fale com a secretaria.'],
   ['use-senha', 'Equipe entra com CPF e senha.'],
 ] as const
 

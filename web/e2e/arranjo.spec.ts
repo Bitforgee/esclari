@@ -360,7 +360,7 @@ test.describe('acesso', () => {
         await page.goto(caminho)
         const rotulo = `${caminho} a ${largura}`
         if (caminho === '/') {
-          const titulo = page.getByRole('heading', { name: 'One' })
+          const titulo = page.getByRole('heading', { name: 'Esclari' })
           await titulo.waitFor()
           const cartao = titulo.locator('xpath=../..')
           const c = await caixa(cartao)
@@ -457,7 +457,7 @@ test.describe('arranjo restante', () => {
 
   test('raiz com a marca e o texto centralizados', async ({ page }) => {
     await page.goto('/')
-    for (const t of [page.getByText('One', { exact: true }), page.getByText('Abra o endereço da sua instituição')]) {
+    for (const t of [page.getByText('Esclari', { exact: true }), page.getByText('Abra o endereço da sua instituição')]) {
       const c = await caixa(t)
       expect(Math.abs(c.x + c.width / 2 - 180)).toBeLessThanOrEqual(1)
     }
@@ -615,7 +615,7 @@ test.describe('arranjo restante', () => {
 test.describe('redesign institucional', () => {
   test('tema Preto com fundo preto', async ({ page }) => {
     await simularApi(page)
-    await page.addInitScript(() => localStorage.setItem('one-tema', 'black'))
+    await page.addInitScript(() => localStorage.setItem('esclari-tema', 'black'))
     await page.goto('/univag/fila')
     await page.getByText('ESC-000123').waitFor()
     expect(await page.evaluate(() => [...document.documentElement.classList].sort())).toEqual(['black', 'dark'])
@@ -723,7 +723,7 @@ const Conteiner = '[data-slot=sidebar-container]'
 
 test.describe('painel', () => {
   const largura = async (page: Page) => Math.round((await caixa(page.locator(Conteiner))).width)
-  const recolhida = (page: Page) => page.addInitScript(() => localStorage.setItem('one-barra', 'recolhida'))
+  const recolhida = (page: Page) => page.addInitScript(() => localStorage.setItem('esclari-barra', 'recolhida'))
 
   test('painel barra aberta', async ({ page }) => {
     await simularApi(page)
@@ -736,7 +736,7 @@ test.describe('painel', () => {
       expect(Math.abs(b.x), `${w} px: x`).toBeLessThanOrEqual(1)
       expect(Math.abs(b.width - 256), `${w} px: largura`).toBeLessThanOrEqual(1)
       expect(Math.abs(b.height - 800), `${w} px: altura da janela`).toBeLessThanOrEqual(1)
-      const marca = await caixa(barra.getByText('One', { exact: true }))
+      const marca = await caixa(barra.getByText('Esclari', { exact: true }))
       const instituicao = await caixa(barra.getByTestId('instituicao'))
       const primeiroGrupo = await caixa(barra.getByText('Atendimento', { exact: true }))
       expect(marca.y + marca.height, `${w} px: marca acima do 1º grupo`).toBeLessThanOrEqual(primeiroGrupo.y + 1)
@@ -759,11 +759,11 @@ test.describe('painel', () => {
     await alternar.click()
     await expect.poll(() => largura(page)).toBe(48)
     await expect.poll(inicioDoMain).toBe(48)
-    expect(await page.evaluate(() => localStorage.getItem('one-barra'))).toBe('recolhida')
+    expect(await page.evaluate(() => localStorage.getItem('esclari-barra'))).toBe('recolhida')
     await alternar.click()
     await expect.poll(() => largura(page)).toBe(256)
     await expect.poll(inicioDoMain).toBe(256)
-    expect(await page.evaluate(() => localStorage.getItem('one-barra'))).toBe('aberta')
+    expect(await page.evaluate(() => localStorage.getItem('esclari-barra'))).toBe('aberta')
   })
 
   test('painel barra recolhida', async ({ page }) => {
@@ -781,7 +781,7 @@ test.describe('painel', () => {
     }
     for (const nome of ['Atendimento', 'Conhecimento', 'Administração']) expect((await caixa(barra.getByText(nome, { exact: true }))).width, `título ${nome}`).toBeLessThanOrEqual(1)
     expect((await caixa(barra.getByTestId('instituicao'))).width, 'instituição').toBeLessThanOrEqual(1)
-    expect((await caixa(barra.getByText('One', { exact: true }))).width, 'One').toBeLessThanOrEqual(1)
+    expect((await caixa(barra.getByText('Esclari', { exact: true }))).width, 'Esclari').toBeLessThanOrEqual(1)
     await barra.getByRole('link', { name: 'Usuários' }).hover()
     await expect(page.getByRole('tooltip'), 'dica ao passar o mouse').toHaveText('Usuários')
     await barra.getByRole('link', { name: 'Artigos' }).focus()
@@ -997,7 +997,7 @@ test.describe('painel', () => {
         for (const estado of estados) {
           await page.setViewportSize({ width: w, height: 800 })
           await page.goto('/univag')
-          await page.evaluate((v) => localStorage.setItem('one-barra', v), estado)
+          await page.evaluate((v) => localStorage.setItem('esclari-barra', v), estado)
           await page.goto(caminho)
           await preparar(page)
           const [rolagem, janela] = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth])
@@ -1014,7 +1014,7 @@ test.describe('painel', () => {
     await page.getByText('ESC-000123').waitFor()
     expect(await page.locator('main > div').evaluate((e) => [getComputedStyle(e).containerType, getComputedStyle(e).containerName])).toEqual(['inline-size', 'main'])
     await expect(page.getByRole('columnheader')).toHaveText(['Número', 'Título', 'Estado'])
-    await page.evaluate(() => localStorage.setItem('one-barra', 'recolhida'))
+    await page.evaluate(() => localStorage.setItem('esclari-barra', 'recolhida'))
     await page.goto('/univag/fila')
     await page.getByText('ESC-000123').waitFor()
     await expect(page.getByRole('columnheader')).toHaveText(['Número', 'Título', 'Categoria', 'Responsável', 'Aberto', 'Estado'])
@@ -1105,7 +1105,7 @@ test.describe('painel', () => {
     for (const [w, barraRecolhida, lado, topo] of [[360, false, 16, 16], [768, true, 16, 24], [1280, false, 24, 24]] as const) {
       await page.setViewportSize({ width: w, height: 800 })
       await page.goto('/univag')
-      await page.evaluate((v) => localStorage.setItem('one-barra', v), barraRecolhida ? 'recolhida' : 'aberta')
+      await page.evaluate((v) => localStorage.setItem('esclari-barra', v), barraRecolhida ? 'recolhida' : 'aberta')
       await page.goto('/univag/fila')
       await page.getByText('ESC-000123').waitFor()
       const main = await caixa(page.locator('main'))
@@ -1293,7 +1293,7 @@ test.describe('entrada institucional', () => {
         const r = `${caminho} a ${w}`
         const sigla = marca(page).locator('span')
         const o = await caixa(sigla)
-        expect(await marca(page).getByText('One').count(), `${r}: sem "One"`).toBe(0)
+        expect(await marca(page).getByText('Esclari').count(), `${r}: sem "Esclari"`).toBe(0)
         expect(await marca(page).locator('svg').count(), `${r}: sem ícone`).toBe(0)
         expect(await estilo(sigla, 'width', 'height', 'background-color', 'font-weight'), `${r}: iniciais`).toEqual(['48px', '48px', await cor(page, '--primary'), '700'])
         expect(await sigla.textContent(), `${r}: iniciais`).toBe('CG')

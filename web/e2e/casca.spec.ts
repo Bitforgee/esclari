@@ -22,7 +22,7 @@ async function abrir(page: Page, largura: number, caminho: string, espera: (p: P
   await page.unroute('**/api/**').catch(() => {})
   await simularApi(page, papeis, false, { ...comAparencia, cor: marca })
   await rotas?.(page)
-  await page.addInitScript((t) => localStorage.setItem('one-tema', t), tema)
+  await page.addInitScript((t) => localStorage.setItem('esclari-tema', t), tema)
   await page.setViewportSize({ width: largura, height: altura })
   await page.goto(caminho)
   await espera(page)
@@ -811,7 +811,7 @@ test('ordem do rodapé e recolher dentro da barra', async ({ page, browser }) =>
   const contexto = await browser.newContext({ hasTouch: true, viewport: { width: 1024, height: 768 }, serviceWorkers: 'block' })
   const p = await contexto.newPage()
   await instalar(p)
-  await p.addInitScript(() => localStorage.setItem('one-barra', 'recolhida'))
+  await p.addInitScript(() => localStorage.setItem('esclari-barra', 'recolhida'))
   await abrir(p, 1024, '/univag/fila', esperaFila, { papeis: ['ATENDENTE'] })
   expect(await p.evaluate(() => matchMedia('(pointer: coarse)').matches), 'ponteiro grosso').toBe(true)
   await expect(p.locator('[data-slot=sidebar][data-state=collapsed]')).toHaveCount(1)
@@ -928,7 +928,7 @@ test('barra do ranking embaixo do rótulo no estreito', async ({ page }) => {
 test('dica nos ícones do rodapé com a barra recolhida, sem dica no usuário', async ({ page }) => {
   await instalar(page)
   for (const estado of ['recolhida', 'aberta']) {
-    await page.addInitScript((e) => localStorage.setItem('one-barra', e), estado)
+    await page.addInitScript((e) => localStorage.setItem('esclari-barra', e), estado)
     await abrir(page, 1280, '/univag/fila', esperaFila, { papeis: ['ATENDENTE'] })
     await expect(page.locator(`[data-slot=sidebar][data-state=${estado === 'aberta' ? 'expanded' : 'collapsed'}]`), `${estado}: estado da barra`).toHaveCount(1)
     const rodape = page.locator('[data-sidebar=footer]')
@@ -961,7 +961,7 @@ test('dica nos ícones do rodapé com a barra recolhida, sem dica no usuário', 
 
 test('sem dica presa depois de clicar fora do menu do usuário', async ({ page }) => {
   await instalar(page)
-  await page.addInitScript(() => localStorage.setItem('one-barra', 'recolhida'))
+  await page.addInitScript(() => localStorage.setItem('esclari-barra', 'recolhida'))
   await abrir(page, 1280, '/univag/fila', esperaFila, { papeis: ['ATENDENTE'] })
   const usuario = page.locator('[data-sidebar=footer]').getByRole('button', { name: /Ana/ })
   await expect(usuario, '1 linha do usuário').toHaveCount(1)

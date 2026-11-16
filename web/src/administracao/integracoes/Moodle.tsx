@@ -38,7 +38,7 @@ type Valores = Record<Chave, string> & { ativa: boolean }
 const valoresDe = (p: Plataforma): Valores => ({ ativa: p.configurada ? p.ativa : true, emissor: p.emissor, clientId: p.clientId, deploymentId: p.deploymentId, authUrl: p.authUrl, jwksUrl: p.jwksUrl })
 
 const AvisoDeSalvo = {
-  ligado: ['Moodle salvo e ativo.', 'Para testar, abra a atividade One no Moodle com uma conta de aluno.'],
+  ligado: ['Moodle salvo e ativo.', 'Para testar, abra a atividade Esclari no Moodle com uma conta de aluno.'],
   desligado: ['Moodle salvo, mas a entrada pelo Moodle está desligada.', ''],
 } as const
 
@@ -130,9 +130,9 @@ export function FormularioMoodle({ dados }: { dados: Plataforma }) {
       }}
     >
       <Enderecos dados={dados} />
-      <section aria-labelledby="moodle-no-one" className="flex flex-col gap-4">
-        <h2 id="moodle-no-one" className="text-base font-semibold">
-          2. No One
+      <section aria-labelledby="moodle-no-esclari" className="flex flex-col gap-4">
+        <h2 id="moodle-no-esclari" className="text-base font-semibold">
+          2. No Esclari
         </h2>
         {Campos.map(([chave, rotulo, dica]) => (
           <div key={chave} className="flex flex-col gap-2">

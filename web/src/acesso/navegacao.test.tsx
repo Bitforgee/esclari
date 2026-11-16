@@ -67,7 +67,7 @@ describe('Conta', () => {
   })
 
   describe('linhas da Conta agem', () => {
-    it('Tema abre a escolha e Escuro grava one-tema', async () => {
+    it('Tema abre a escolha e Escuro grava esclari-tema', async () => {
       celular()
       api(aluno)
       abrir('/univag/conta')
@@ -75,7 +75,7 @@ describe('Conta', () => {
       const popover = document.querySelector('[data-slot=popover-content]') as HTMLElement
       expect(within(popover).getAllByRole('button').map((b) => b.textContent)).toEqual(['Claro', 'Escuro', 'Preto', 'Sistema'])
       await userEvent.click(within(popover).getByRole('button', { name: 'Escuro' }))
-      expect(localStorage.getItem('one-tema')).toBe('dark')
+      expect(localStorage.getItem('esclari-tema')).toBe('dark')
     })
 
     it('Avisos no celular inscreve o aparelho', async () => {

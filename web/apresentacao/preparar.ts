@@ -35,7 +35,7 @@ async function api(caminho: string, corpo?: unknown, cpf?: string): Promise<any>
       await esperar(20)
       continue
     }
-    const cookie = r.headers.getSetCookie().find((c) => c.startsWith('one.auth='))
+    const cookie = r.headers.getSetCookie().find((c) => c.startsWith('esclari.auth='))
     if (cookie && cpf) cookies.set(cpf, cookie.split(';')[0])
     const texto = await r.text()
     if (!r.ok) throw new Error(`${caminho}: ${r.status} ${texto}`)

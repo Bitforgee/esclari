@@ -109,7 +109,7 @@ describe('ux', () => {
     ['black', MoonStar],
     ['system', Monitor],
   ])('botão de tema mostra e marca o tema atual (%s)', async (tema, Icone) => {
-    localStorage.setItem('one-tema', tema)
+    localStorage.setItem('esclari-tema', tema)
     api({ 'GET /api/auth/me': () => [200, me()] })
     abrirComLocal('/univag/trocar-senha')
     const botao = await screen.findByRole('button', { name: 'Tema' })

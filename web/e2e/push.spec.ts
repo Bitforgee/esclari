@@ -86,7 +86,7 @@ test('avisos no cabeçalho', async ({ page }) => {
   for (const [largura, estado] of [[360, 'aberta'], [1280, 'aberta'], [1280, 'recolhida']] as const) {
     await page.setViewportSize({ width: largura, height: 740 })
     await page.goto('/univag')
-    await page.evaluate((v) => localStorage.setItem('one-barra', v), estado)
+    await page.evaluate((v) => localStorage.setItem('esclari-barra', v), estado)
     await page.goto('/univag/assistente')
     const cabecalho = page.locator('main > header')
     const avisos = cabecalho.getByRole('button', { name: Ativar })

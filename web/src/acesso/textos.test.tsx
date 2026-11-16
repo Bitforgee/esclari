@@ -5,7 +5,7 @@ import { estados } from '../test/textos'
 import { abrir, api, me } from '../test/util'
 
 const Papeis = ['Administrador', 'Atendente', 'Aluno']
-const Cabecalho = ['One', 'Assistente', 'Minhas solicitações', 'Fila', 'Artigos', 'Documentos', 'Indicadores', 'Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações', 'Sair', 'Tema', 'Claro', 'Escuro', 'Preto', 'Sistema', 'Atendimento', 'Conhecimento', 'Administração', ...Papeis]
+const Cabecalho = ['Esclari', 'Assistente', 'Minhas solicitações', 'Fila', 'Artigos', 'Documentos', 'Indicadores', 'Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações', 'Sair', 'Tema', 'Claro', 'Escuro', 'Preto', 'Sistema', 'Atendimento', 'Conhecimento', 'Administração', ...Papeis]
 const Instituicao = 'Univag'
 const Nome = me().nome
 
@@ -51,7 +51,7 @@ const Instituicoes = { 'GET /api/instituicoes/univag': () => [200, { nome: 'Univ
 
 describe('textos das telas de acesso', () => {
   it('textos raiz', () => {
-    const t = estados(['One', 'Dúvidas, solicitações e respostas da sua instituição em um só lugar.', 'Abra o endereço da sua instituição, por exemplo /univag.'])
+    const t = estados(['Esclari', 'Dúvidas, solicitações e respostas da sua instituição em um só lugar.', 'Abra o endereço da sua instituição, por exemplo /univag.'])
     api({})
     const { container } = abrir('/')
     t.conferir(container)

@@ -213,7 +213,7 @@ function CabecalhoDaBarra({ me, slug, ap }: { me: Me; slug?: string; ap: Institu
           <span translate="no" className="font-semibold group-data-[collapsible=icon]:sr-only" data-testid="instituicao">
             {me.instituicao.nome}
           </span>
-          <span translate="no" className="text-xs text-muted-foreground group-data-[collapsible=icon]:sr-only">One</span>
+          <span translate="no" className="text-xs text-muted-foreground group-data-[collapsible=icon]:sr-only">Esclari</span>
         </div>
       )}
     </div>
@@ -327,11 +327,11 @@ const rotaPermitida = (papeis: string[], caminho: string) => {
 }
 
 function useBarra() {
-  const [aberta, setAberta] = useState(() => localStorage.getItem('one-barra') !== 'recolhida')
+  const [aberta, setAberta] = useState(() => localStorage.getItem('esclari-barra') !== 'recolhida')
   return {
     aberta,
     aoMudar(valor: boolean) {
-      localStorage.setItem('one-barra', valor ? 'aberta' : 'recolhida')
+      localStorage.setItem('esclari-barra', valor ? 'aberta' : 'recolhida')
       setAberta(valor)
     },
   }

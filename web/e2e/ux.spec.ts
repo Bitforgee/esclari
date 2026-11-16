@@ -116,7 +116,7 @@ test.describe('S1 toque, campos e contraste', () => {
       const contexto = await browser.newContext({ hasTouch: true, viewport: { width: 1024, height: 768 }, serviceWorkers: 'block' })
       const page = await contexto.newPage()
       await instalar(page)
-      await page.addInitScript((v) => localStorage.setItem('one-barra', v), recolhida ? 'recolhida' : 'aberta')
+      await page.addInitScript((v) => localStorage.setItem('esclari-barra', v), recolhida ? 'recolhida' : 'aberta')
       await page.goto('/univag')
       expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches), 'ponteiro grosso').toBe(true)
       const todas: Medida[] = []
@@ -187,7 +187,7 @@ const Marcas = [null, '#8a1538'] as const
 
 async function emTema(page: Page, tema: string, cor: string | null, papeis?: string[]) {
   await instalar(page)
-  await page.addInitScript((t) => localStorage.setItem('one-tema', t), tema)
+  await page.addInitScript((t) => localStorage.setItem('esclari-tema', t), tema)
   await simularApi(page, papeis, false, cor ? { ...semAparencia, cor } : semAparencia)
 }
 
@@ -1079,7 +1079,7 @@ test.describe('S5 diálogos e administração', () => {
     await simularApi(page)
     for (const tema of Temas) {
       await page.goto('/univag/matriculas')
-      await page.evaluate((t) => localStorage.setItem('one-tema', t), tema)
+      await page.evaluate((t) => localStorage.setItem('esclari-tema', t), tema)
       await page.reload()
       await expect(page.locator('html'), tema).toHaveClass(tema === 'light' ? /^((?!dark|black).)*$/ : new RegExp(tema))
       await page.getByText('Baixe o modelo').first().waitFor()
@@ -1159,7 +1159,7 @@ test.describe('S5 diálogos e administração', () => {
 
   test('prévia escura com a mesma cor do app', async ({ page }) => {
     await instalar(page)
-    await page.addInitScript(() => localStorage.setItem('one-tema', 'dark'))
+    await page.addInitScript(() => localStorage.setItem('esclari-tema', 'dark'))
     await page.setViewportSize({ width: 1280, height: 900 })
     await simularApi(page, ['ADMINISTRADOR'], false, comAparencia)
     await page.goto('/univag/aparencia')
@@ -1176,7 +1176,7 @@ test.describe('S5 diálogos e administração', () => {
 
   test('prévia clara pinta a cor digitada', async ({ page }) => {
     await instalar(page)
-    await page.addInitScript(() => localStorage.setItem('one-tema', 'light'))
+    await page.addInitScript(() => localStorage.setItem('esclari-tema', 'light'))
     await page.setViewportSize({ width: 1280, height: 900 })
     await simularApi(page, ['ADMINISTRADOR'], false, comAparencia)
     await page.goto('/univag/aparencia')
