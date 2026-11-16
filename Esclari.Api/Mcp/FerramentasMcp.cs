@@ -27,7 +27,7 @@ public sealed class FerramentasMcp(EsclariDb db, IMediator mediator, Embeddings 
     static readonly string[] Estados = [EstadosChamado.Aberto, EstadosChamado.EmAtendimento, EstadosChamado.AguardandoAluno, EstadosChamado.Resolvido, EstadosChamado.Fechado];
 
     [McpServerTool(Name = "listar_chamados", ReadOnly = true)]
-    [Description("Lista chamados do One. escopo 'fila' (padrão): a fila dos setores do usuário; 'meus': os que ele abriu. estado opcional: ABERTO, EM_ATENDIMENTO, AGUARDANDO_ALUNO, RESOLVIDO ou FECHADO. Devolve até 50 itens e o total.")]
+    [Description("Lista chamados do Esclari. escopo 'fila' (padrão): a fila dos setores do usuário; 'meus': os que ele abriu. estado opcional: ABERTO, EM_ATENDIMENTO, AGUARDANDO_ALUNO, RESOLVIDO ou FECHADO. Devolve até 50 itens e o total.")]
     public Task<CallToolResult> Listar(ClaimsPrincipal? principal, string? escopo = null, string? estado = null) =>
         Executar("listar_chamados", principal, async (usuario, _) =>
         {
@@ -48,7 +48,7 @@ public sealed class FerramentasMcp(EsclariDb db, IMediator mediator, Embeddings 
     };
 
     [McpServerTool(Name = "ver_chamado", ReadOnly = true)]
-    [Description("Abre um chamado pelo número (ex.: ONE-12) com as mensagens e os eventos que o usuário pode ver. Não traz anexos nem o número da matrícula.")]
+    [Description("Abre um chamado pelo número (ex.: ESC-000012) com as mensagens e os eventos que o usuário pode ver. Não traz anexos nem o número da matrícula.")]
     public Task<CallToolResult> Ver(ClaimsPrincipal? principal, string numero) =>
         Executar("ver_chamado", principal, async (usuario, _) => Detalhe(Lido<DetalheLido>(await mediator.Send(new VerChamado(numero, usuario)))));
 

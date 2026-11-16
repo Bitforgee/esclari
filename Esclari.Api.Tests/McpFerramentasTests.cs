@@ -50,6 +50,19 @@ public class McpFerramentasTests(EsclariFactory f) : IClassFixture<EsclariFactor
     }
 
     [Fact]
+    public async Task Descricao_cita_exemplo_ESC_000012()
+    {
+        var (b, token) = await Mundo();
+
+        var (_, listagem) = await f.Rpc(b.Instituicao.Slug, $"Bearer {token}", "tools/list");
+
+        var ver = listagem.GetProperty("result").GetProperty("tools").EnumerateArray().Single(t => t.GetProperty("name").GetString() == "ver_chamado");
+        var descricao = ver.GetProperty("description").GetString()!;
+        Assert.Contains("ESC-000012", descricao);
+        Assert.DoesNotContain("ONE-", descricao);
+    }
+
+    [Fact]
     public async Task Listar_chamados_igual_a_rota_e_corta_em_50()
     {
         var (b, token) = await Mundo();
@@ -158,12 +171,12 @@ public class McpFerramentasTests(EsclariFactory f) : IClassFixture<EsclariFactor
         await outro.Chamado();
         await outro.Chamado();
         var deOutra = await outro.Chamado();
-        Assert.Equal("ONE-3", deOutra);
+        Assert.Equal("ESC-000003", deOutra);
         var alheioAoSetor = await b.Chamado();
         await f.Db(b.Instituicao.Id, db => db.Chamados.Where(c => c.Numero == alheioAoSetor).ExecuteUpdateAsync(s => s.SetProperty(c => c.SetorId, b.Outro.Id)));
 
         Assert.False((await f.Chamar(b.Instituicao.Slug, token, "ver_chamado", new { numero = proprio })).Erro);
-        foreach (var numero in new[] { "ONE-99999", deOutra, alheioAoSetor })
+        foreach (var numero in new[] { "ESC-099999", deOutra, alheioAoSetor })
         {
             var r = await f.Chamar(b.Instituicao.Slug, token, "ver_chamado", new { numero });
             Assert.True(r.Erro, numero);
@@ -341,7 +354,7 @@ public class McpFerramentasTests(EsclariFactory f) : IClassFixture<EsclariFactor
 
         var chamadas = new (string nome, object args)[]
         {
-            ("listar_chamados", new { }), ("listar_chamados", new { escopo = "nada" }), ("ver_chamado", new { numero }), ("ver_chamado", new { numero = "ONE-99999" }),
+            ("listar_chamados", new { }), ("listar_chamados", new { escopo = "nada" }), ("ver_chamado", new { numero }), ("ver_chamado", new { numero = "ESC-099999" }),
             ("buscar_conhecimento", new { consulta = "boleto" }), ("buscar_conhecimento", new { consulta = "" }),
             ("ver_indicadores", new { de = "2026-11-01", ate = "2026-11-30" }), ("ver_indicadores", new { de = "2026-11-30", ate = "2026-11-01" }),
         };

@@ -36,7 +36,7 @@ public class McpAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var j = await r.Json();
         Assert.Equal(["id", "nome", "token", "final", "criadoEm", "expiraEm"], j.EnumerateObject().Select(p => p.Name));
         var token = j.GetProperty("token").GetString()!;
-        Assert.Matches(new Regex($@"^onemcp_{i.Slug}\.[A-Za-z0-9_-]{{43}}$"), token);
+        Assert.Matches(new Regex($@"^esclarimcp_{i.Slug}\.[A-Za-z0-9_-]{{43}}$"), token);
         Assert.Equal(token[^4..], j.GetProperty("final").GetString());
         Assert.Equal("Cursor", j.GetProperty("nome").GetString());
         var (criado, expira) = (j.GetProperty("criadoEm").GetDateTime(), j.GetProperty("expiraEm").GetDateTime());

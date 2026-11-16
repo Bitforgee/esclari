@@ -30,8 +30,8 @@ public class McpAcessoTests(EsclariFactory f, EsclariFactoryMcpComLimite limitad
     [Theory]
     [InlineData("")]
     [InlineData("Bearer lixo")]
-    [InlineData("Bearer onemcp_{slug}.")]
-    [InlineData("Bearer onemcp_{slug}.ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq")]
+    [InlineData("Bearer esclarimcp_{slug}.")]
+    [InlineData("Bearer esclarimcp_{slug}.ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq")]
     [InlineData("Basic dXNlcjpwYXNz")]
     public async Task Recusa_token_ausente_malformado_ou_desconhecido(string valor)
     {
@@ -39,6 +39,18 @@ public class McpAcessoTests(EsclariFactory f, EsclariFactoryMcpComLimite limitad
         var r = await f.RpcStatus(i.Slug, valor.Length > 0 ? valor.Replace("{slug}", i.Slug) : null);
         Assert.Equal(HttpStatusCode.Unauthorized, r.StatusCode);
         Assert.Contains("Bearer", r.Headers.WwwAuthenticate.ToString());
+    }
+
+    [Fact]
+    public async Task Recusa_token_com_prefixo_antigo_onemcp()
+    {
+        var i = await f.Instituicao();
+        var admin = await f.Usuario(i, [Papeis.Administrador, Papeis.Atendente]);
+        var token = await f.NovoTokenMcp(i, admin);
+        var antigo = "onemcp_" + token["esclarimcp_".Length..];
+
+        Assert.Equal(HttpStatusCode.OK, (await f.RpcStatus(i.Slug, $"Bearer {token}")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await f.RpcStatus(i.Slug, $"Bearer {antigo}")).StatusCode);
     }
 
     [Fact]

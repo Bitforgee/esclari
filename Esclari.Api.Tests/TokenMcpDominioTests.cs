@@ -54,11 +54,21 @@ public class TokenMcpDominioTests
     }
 
     [Fact]
+    public void Token_novo_usa_prefixo_esclarimcp()
+    {
+        var token = TokenMcp.NovoMcp("univag");
+
+        Assert.StartsWith("esclarimcp_univag.", token);
+        Assert.Matches(@"^esclarimcp_univag\.[A-Za-z0-9_-]{43}$", token);
+        Assert.Null(TokenMcp.SlugDoMcp("onemcp_univag." + new string('a', 43)));
+    }
+
+    [Fact]
     public void NovoMcp_e_SlugDoMcp_se_reconhecem_e_recusam_o_resto()
     {
         var token = TokenMcp.NovoMcp("univag");
 
-        Assert.Matches(@"^onemcp_univag\.[A-Za-z0-9_-]{43}$", token);
+        Assert.Matches(@"^esclarimcp_univag\.[A-Za-z0-9_-]{43}$", token);
         Assert.Equal("univag", TokenMcp.SlugDoMcp(token));
         Assert.Null(TokenMcp.SlugDoMcp("univag.abc"));
         Assert.Null(TokenMcp.SlugDoMcp(null));
