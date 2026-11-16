@@ -15,7 +15,7 @@ public partial class NomeDoProdutoTests
     [
         ".specs/lessons.json", ".specs/LESSONS.md", ".specs/relatorio-nome.md",
         "Esclari.Api.Tests/NomeDoProdutoTests.cs",
-        "Esclari.Api.Tests/McpFerramentasTests.cs", "Esclari.Api.Tests/McpAcessoTests.cs", "Esclari.Api.Tests/TokenMcpDominioTests.cs",
+        "Esclari.Api.Tests/McpFerramentasTests.cs", "Esclari.Api.Tests/McpAcessoTests.cs", "Esclari.Api.Tests/TokenMcpDominioTests.cs", "Esclari.Api.Tests/MarcaTests.cs",
         "web/package-lock.json",
         "web/src/acesso/marca.test.tsx", "web/src/administracao/marca.test.tsx", "web/src/test/marca.test.ts",
     ];
