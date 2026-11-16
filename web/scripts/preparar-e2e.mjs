@@ -2,8 +2,8 @@ import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 const INSTITUICOES = [
-  { slug: 'demo', nome: 'Demo', cpf: '52998224725', adminNome: 'Admin Demo', email: 'admin@demo.esclari' },
-  { slug: 'e2e', nome: 'E2E', cpf: '11144477735', adminNome: 'Admin E2E', email: 'admin@e2e.esclari' },
+  { slug: 'demo', nome: 'Demo', cpf: '12345678909', adminNome: 'Admin Demo', email: 'admin@demo.esclari' },
+  { slug: 'e2e', nome: 'E2E', cpf: '12345678909', adminNome: 'Admin E2E', email: 'admin@e2e.esclari' },
 ]
 
 const execReal = (comando, args) => execFileSync(comando, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })

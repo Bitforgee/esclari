@@ -179,6 +179,7 @@ test('aluno anexa foto na conversa e a equipe baixa no chamado', async ({ browse
   const equipe = await browser.newContext({ baseURL, storageState: await admin.storageState() })
   const painel = await equipe.newPage()
   await painel.goto(`/${slug}/chamados/${numero}`)
+  await painel.getByRole('button', { name: /^Conversa com o assistente/ }).click()
   const doChamado = painel.getByRole('link', { name: 'boleto.png' })
   await expect(doChamado).toBeVisible()
   expect(await doChamado.getAttribute('href')).toBe(href)

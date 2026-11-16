@@ -39,7 +39,7 @@ async function entrarPelaTela(page: Page, cpf: string, senha: string, destino: R
     await folga(2)
     await page.goto(`/${slug}`)
     await page.getByLabel('CPF').fill(cpf)
-    await page.getByLabel('Senha').fill(senha)
+    await page.getByLabel('Senha', { exact: true }).fill(senha)
     await page.getByRole('button', { name: 'Entrar' }).click()
     try {
       await page.waitForURL(destino, { timeout: 8_000 })
@@ -115,12 +115,13 @@ test('aluno navega pelas abas e sai pela Conta', async ({ browser, playwright, b
   await expect(page.getByText(`Aluno E2E ${rodada}`)).toBeVisible()
   await expect(page.getByText(/^\*\*\*\.\d{3}\.\d{3}-\*\*$/)).toBeVisible()
   const linhas = page.locator('main li > :is(button, a)')
-  await expect(linhas).toHaveCount(3)
+  await expect(linhas).toHaveCount(4)
   await expect(linhas.nth(0)).toContainText('Tema')
-  await expect(linhas.nth(1)).toContainText('Trocar senha')
-  await expect(linhas.nth(2)).toContainText('Sair')
+  await expect(linhas.nth(1)).toContainText('Avisos no celular')
+  await expect(linhas.nth(2)).toContainText('Trocar senha')
+  await expect(linhas.nth(3)).toContainText('Sair')
 
-  await linhas.nth(2).click()
+  await linhas.nth(3).click()
   await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible()
   expect((await page.request.get('/api/auth/me')).status()).toBe(401)
 
