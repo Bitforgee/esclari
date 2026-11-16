@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><title>Direções da marca Esclari</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:24px;background:#fafbfd;color:#101113}
+h2{font-size:15px;margin:0 0 8px}
+.linha{display:flex;gap:24px;align-items:flex-end;padding:16px;border:1px solid #d8dbe2;border-radius:8px;margin-bottom:16px;background:#fff}
+.escuro{background:#101113;color:#fff}
+.escuro svg{color:#fff}
+.app{width:96px;height:96px;border-radius:22px;background:#224fa7;display:flex;align-items:center;justify-content:center;color:#fff}
+.nome{font-family:'Public Sans',system-ui,sans-serif;font-weight:700;font-size:34px;letter-spacing:-.02em}
+</style>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <!-- A: balão de texto cujo corte à direita desenha um E -->
+    <symbol id="a" viewBox="0 0 64 64">
+      <mask id="ma"><rect width="64" height="64" fill="#fff"/><rect x="26" y="17" width="40" height="8" rx="4" fill="#000"/><rect x="26" y="33" width="40" height="8" rx="4" fill="#000"/></mask>
+      <path mask="url(#ma)" fill="currentColor" d="M18 6h28a12 12 0 0 1 12 12v22a12 12 0 0 1-12 12H30L16 62V52h2A12 12 0 0 1 6 40V18A12 12 0 0 1 18 6Z"/>
+    </symbol>
+    <!-- B: balão com três linhas; a do meio é o trecho citado da fonte -->
+    <symbol id="b" viewBox="0 0 64 64">
+      <path fill="currentColor" d="M18 6h28a12 12 0 0 1 12 12v22a12 12 0 0 1-12 12H30L16 62V52h2A12 12 0 0 1 6 40V18A12 12 0 0 1 18 6Z"/>
+      <g stroke="#fff" stroke-width="5" stroke-linecap="round"><path d="M18 19h28"/><path d="M18 29h18" stroke="#ffd166"/><path d="M18 39h24"/></g>
+    </symbol>
+    <!-- C: E em traços de linhas de texto, sem balão (só o E, legível a 16 px) -->
+    <symbol id="c" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><path d="M44 12H22v40h22M22 32h16"/></g>
+    </symbol>
+  </defs>
+</svg>
+
+<h2>A · Balão cortado em E (uma cor, vira E e vira conversa)</h2>
+<div class="linha">
+  <svg width="192" height="192" style="color:#224fa7"><use href="#a"/></svg>
+  <svg width="48" height="48" style="color:#224fa7"><use href="#a"/></svg>
+  <svg width="32" height="32" style="color:#224fa7"><use href="#a"/></svg>
+  <svg width="16" height="16" style="color:#224fa7"><use href="#a"/></svg>
+  <div class="app"><svg width="64" height="64"><use href="#a"/></svg></div>
+  <span class="nome" style="display:flex;align-items:center;gap:10px;color:#224fa7"><svg width="40" height="40"><use href="#a"/></svg>Esclari</span>
+</div>
+<div class="linha escuro">
+  <svg width="48" height="48"><use href="#a"/></svg><svg width="16" height="16"><use href="#a"/></svg>
+  <span class="nome" style="display:flex;align-items:center;gap:10px"><svg width="40" height="40"><use href="#a"/></svg>Esclari</span>
+</div>
+
+<h2>B · Balão com linhas e uma destacada (a resposta que cita a fonte)</h2>
+<div class="linha">
+  <svg width="192" height="192" style="color:#224fa7"><use href="#b"/></svg>
+  <svg width="48" height="48" style="color:#224fa7"><use href="#b"/></svg>
+  <svg width="32" height="32" style="color:#224fa7"><use href="#b"/></svg>
+  <svg width="16" height="16" style="color:#224fa7"><use href="#b"/></svg>
+  <div class="app"><svg width="64" height="64" style="color:#224fa7"><use href="#b"/></svg></div>
+  <span class="nome" style="display:flex;align-items:center;gap:10px;color:#224fa7"><svg width="40" height="40"><use href="#b"/></svg>Esclari</span>
+</div>
+
+<h2>C · E de traço (ícone atual refinado, sem balão)</h2>
+<div class="linha">
+  <svg width="192" height="192" style="color:#224fa7"><use href="#c"/></svg>
+  <svg width="48" height="48" style="color:#224fa7"><use href="#c"/></svg>
+  <svg width="32" height="32" style="color:#224fa7"><use href="#c"/></svg>
+  <svg width="16" height="16" style="color:#224fa7"><use href="#c"/></svg>
+  <div class="app"><svg width="64" height="64" style="color:#fff"><use href="#c"/></svg></div>
+  <span class="nome" style="display:flex;align-items:center;gap:10px;color:#224fa7"><svg width="40" height="40"><use href="#c"/></svg>Esclari</span>
+</div>
+</body></html>
