@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { abrir, api, me } from '../test/util'
+import { abrir, api, detalheVazio, me } from '../test/util'
 
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
 
@@ -56,7 +56,11 @@ describe('indicadores', () => {
     expect(within(consultar).queryByRole('status', { hidden: true })).not.toBeInTheDocument()
   })
 
-  it('cartões formatam taxa, horas e número, e o ranking vazio mostra traço', async () => {
+  const Detalhe = 'GET /api/indicadores/detalhe?de=2026-11-01&ate=2026-11-15'
+  const detalheComTempo = { ...detalheVazio, tempos: { primeiraRespostaMedianaHoras: 1.5, primeiraRespostaP90Horas: 4, resolucaoMedianaHoras: null, resolucaoP90Horas: null } }
+  const valorDe = async (rotulo: string) => (await screen.findByText(rotulo, { selector: 'dt' })).nextElementSibling!.textContent
+
+  it('as medidas formatam taxa, horas e número, e o ranking vazio mostra traço', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 10, 15, 10, 0))
     const dados = {
@@ -64,32 +68,21 @@ describe('indicadores', () => {
       chamadosAbertos: 4, chamadosResolvidos: 0, tempoPrimeiraRespostaHoras: 1.5, tempoResolucaoHoras: null, roteamentoCorreto: 0.5, taxaReabertura: null,
       principaisCategorias: { porConversas: [{ categoria: 'Boleto', total: 3 }], porChamados: [] }, indicadorPrincipal: 0.123,
     }
-    const chamadas = api({ 'GET /api/auth/me': () => [200, admin], 'GET /api/indicadores?de=2026-11-01&ate=2026-11-15': () => [200, dados] })
+    const chamadas = api({ 'GET /api/auth/me': () => [200, admin], 'GET /api/indicadores?de=2026-11-01&ate=2026-11-15': () => [200, dados], [Detalhe]: () => [200, detalheComTempo] })
     abrir('/univag/indicadores')
 
-    const cartao = async (rotulo: string) => {
-      const termo = await screen.findByText(rotulo)
-      return termo.textContent! + termo.nextElementSibling!.textContent!
-    }
-    expect(await cartao('Indicador principal')).toBe('Indicador principal12,3\u00a0%')
-    expect(await cartao('Alunos ativos')).toBe('Alunos ativos12')
-    expect(await cartao('Conversas')).toBe('Conversas—')
-    expect(await cartao('Autoatendimento')).toBe('Autoatendimento45,6\u00a0%')
-    expect(await cartao('Escalonamento')).toBe('Escalonamento—')
-    expect(await cartao('Abandono')).toBe('Abandono0\u00a0%')
-    expect(await cartao('Perguntas sem artigo')).toBe('Perguntas sem artigo100\u00a0%')
-    expect(await cartao('Chamados abertos agora')).toBe('Chamados abertos agora4')
-    expect(await cartao('Chamados resolvidos')).toBe('Chamados resolvidos0')
-    expect(await cartao('Tempo até a 1ª resposta')).toBe('Tempo até a 1ª resposta1,5\u00a0h')
-    expect(await cartao('Tempo de resolução')).toBe('Tempo de resolução—')
-    expect(await cartao('Roteamento correto')).toBe('Roteamento correto50\u00a0%')
-    expect(await cartao('Reabertura')).toBe('Reabertura—')
+    const esperado: [string, string][] = [
+      ['Indicador principal', '12,3\u00a0%'], ['Alunos ativos', '12'], ['Conversas', '—'], ['Autoatendimento', '45,6\u00a0%'], ['Escalonamento', '—'], ['Abandono', '0\u00a0%'],
+      ['Perguntas sem artigo', '100\u00a0%'], ['Chamados resolvidos', '0'], ['Tempo até a 1ª resposta', 'mediana 1,5\u00a0h'], ['Tempo de resolução', '—'],
+      ['Roteamento correto', '50\u00a0%'], ['Reabertura', '—'],
+    ]
+    for (const [rotulo, valor] of esperado) expect(await valorDe(rotulo), rotulo).toBe(valor)
     const conversas = screen.getByText('Categorias por conversas').closest('section') as HTMLElement
     expect(Array.from(conversas.querySelectorAll('tbody tr')).map((li) => li.textContent)).toEqual(['Boleto3'])
     const porChamados = screen.getByText('Categorias por chamados').closest('section') as HTMLElement
     expect(Array.from(porChamados.querySelectorAll('tbody tr')).map((li) => li.textContent)).toEqual(['—'])
     expect(screen.queryByText('Sem atendimentos neste período.')).not.toBeInTheDocument()
-    expect(chamadas.filter((c) => c.url.startsWith('/api/indicadores'))).toHaveLength(2)
+    expect(chamadas.filter((c) => c.url.startsWith('/api/indicadores')).map((c) => c.url.split('?')[0]).sort()).toEqual(['/api/indicadores', '/api/indicadores', '/api/indicadores/detalhe'])
     expect(conversas.parentElement).toHaveClass('grid-cols-1', '@4xl/main:grid-cols-2')
   })
 
@@ -98,42 +91,26 @@ describe('indicadores', () => {
     chamadosAbertos: 4, chamadosResolvidos: 2, tempoPrimeiraRespostaHoras: 1.5, tempoResolucaoHoras: 3, roteamentoCorreto: 0.5, taxaReabertura: 0.1,
     principaisCategorias: { porConversas: null, porChamados: null }, indicadorPrincipal: 0.123,
   }
-  const folhas = (c: Element) => [...c.querySelectorAll('dt, dd, div')].filter((e) => e.querySelector('dt, dd, div') === null).map((e) => e.textContent)
-  const cartoesDe = (grade: Element) => Array.from(grade.children).map(folhas)
 
-  async function painel() {
+  it('as seções vêm na ordem das perguntas do gestor e cada medida na sua seção', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 10, 15, 10, 0))
     api({ 'GET /api/auth/me': () => [200, admin], 'GET /api/indicadores?de=2026-11-01&ate=2026-11-15': () => [200, dadosCheios] })
     abrir('/univag/indicadores')
-    return (await screen.findByText('Indicador principal')).closest('section') as HTMLElement
-  }
+    await screen.findByText('Indicador principal')
 
-  it('destaques de Indicadores', async () => {
-    const principal = await painel()
-    expect(folhas(principal)).toEqual(['Indicador principal', '12,3\u00a0%', 'Resolvidas sem reabertura, sobre as conversas com desfecho.'])
-    const destaques = principal.nextElementSibling!
-    expect(cartoesDe(destaques)).toEqual([
-      ['Chamados abertos agora', '4', 'Chamados não fechados neste momento.'],
-      ['Autoatendimento', '45,6\u00a0%', 'Resolvidas pelo assistente, sobre as conversas com desfecho.'],
-      ['Tempo até a 1ª resposta', '1,5\u00a0h', 'Da abertura à primeira resposta pública.'],
+    const secoes = screen.getAllByRole('region').filter((r) => r.querySelector(':scope > h2'))
+    const termos = secoes.map((s) => [s.querySelector(':scope > h2')!.textContent, [...s.querySelectorAll('dt')].map((d) => d.textContent)])
+    expect(termos).toEqual([
+      ['Resumo', ['Indicador principal']],
+      ['O assistente está resolvendo?', ['Autoatendimento', 'Escalonamento', 'Abandono', 'Perguntas sem artigo']],
+      ['Quanto chega e como evolui?', ['Alunos ativos', 'Conversas', 'Chamados resolvidos']],
+      ['A equipe responde a tempo?', ['Tempo até a 1ª resposta', 'Tempo de resolução']],
+      ['Qualidade do atendimento', ['Roteamento correto', 'Reabertura']],
+      ['O que mais pesa', []],
     ])
-    expect(principal.parentElement!.previousElementSibling?.tagName).toBe('FORM')
-  })
-
-  it('indicadores compactos na ordem', async () => {
-    const compactos = (await painel()).nextElementSibling!.nextElementSibling!
-    expect(Array.from(compactos.children).map((li) => [...li.children].map((c) => c.textContent))).toEqual([
-      ['Alunos ativos', '12'],
-      ['Conversas', '5'],
-      ['Escalonamento', '20\u00a0%'],
-      ['Abandono', '10\u00a0%'],
-      ['Perguntas sem artigo', '10\u00a0%'],
-      ['Chamados resolvidos', '2'],
-      ['Tempo de resolução', '3\u00a0h'],
-      ['Roteamento correto', '50\u00a0%'],
-      ['Reabertura', '10\u00a0%'],
-    ])
+    expect(secoes[0].closest('form')).toBeNull()
+    expect(screen.getByLabelText('De').closest('form')!.compareDocumentPosition(secoes[0]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('ranking que a API não manda não aparece', async () => {
@@ -204,7 +181,7 @@ describe('indicadores', () => {
         await userEvent.clear(screen.getByLabelText(rotulo))
         await userEvent.type(screen.getByLabelText(rotulo), valor)
       }
-      const consultas = () => chamadas.filter((c) => c.url.startsWith('/api/indicadores')).map((c) => c.url)
+      const consultas = () => chamadas.filter((c) => c.url.startsWith('/api/indicadores?')).map((c) => c.url)
       expect(consultas()).toEqual(['/api/indicadores?de=2026-11-01&ate=2026-11-10', '/api/indicadores?de=2026-10-22&ate=2026-10-31'])
       await userEvent.click(screen.getByRole('button', { name: 'Consultar' }))
       await waitFor(() =>

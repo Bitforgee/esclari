@@ -99,6 +99,15 @@ export async function simularApi(page: Page, papeis = ['ALUNO', 'ATENDENTE', 'AD
         versao: { id: 1, numero: 12, titulo: 'Como emitir a segunda via do boleto do semestre com o valor corrigido', perguntas: ['boleto?'], resposta: 'x', links: [] } }
       return json(200, mais([artigo], { ...artigo, id: 2, versao: { ...artigo.versao, id: 2, titulo: TituloLongo } }))
     }
+    if (caminho === '/api/indicadores/detalhe')
+      return json(200, {
+        granularidade: 'dia',
+        pontos: Array.from({ length: 30 }, (_, i) => ({ inicio: `2026-11-${String(i + 1).padStart(2, '0')}`, conversas: 20 + ((i * 7) % 23), chamadosAbertos: 5 + ((i * 3) % 9), chamadosResolvidos: 4 + ((i * 5) % 9) })),
+        desfechos: { resolvidas: 3700, transferidas: 1200, abandonadas: 400, encerradas: 300, semDesfecho: 78 },
+        chamadosPorEstado: { ABERTO: 41, EM_ATENDIMENTO: 180, AGUARDANDO_ALUNO: 70, RESOLVIDO: 30 },
+        maisAntigoDias: 17,
+        tempos: { primeiraRespostaMedianaHoras: 3.5, primeiraRespostaP90Horas: 28.25, resolucaoMedianaHoras: 40.5, resolucaoP90Horas: 190.75 },
+      })
     if (caminho === '/api/indicadores')
       return json(200, {
         semDados: false, alunosAtivos: 1234, conversas: 5678, taxaAutoatendimento: 0.6543, taxaEscalonamento: 0.2, taxaAbandono: 0.1457, taxaPerguntasSemArtigo: 0.12,

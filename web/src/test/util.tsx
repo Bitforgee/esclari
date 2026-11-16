@@ -9,7 +9,20 @@ import type { Chamado } from '../chamado'
 export type Rota = (corpo: any) => [number, unknown] | Promise<[number, unknown]>
 export type Chamada = { metodo: string; url: string; corpo: any }
 
-const previaPadrao = (metodo: string, url: string): Rota | undefined => (metodo === 'GET' && /^\/api\/conversas\/\d+\/destino/.test(url) ? () => [200, { lideranca: false }] : undefined)
+export const detalheVazio = {
+  granularidade: 'dia',
+  pontos: [{ inicio: '2026-11-01', conversas: 0, chamadosAbertos: 0, chamadosResolvidos: 0 }],
+  desfechos: { resolvidas: 0, transferidas: 0, abandonadas: 0, encerradas: 0, semDesfecho: 0 },
+  chamadosPorEstado: { ABERTO: 0, EM_ATENDIMENTO: 0, AGUARDANDO_ALUNO: 0, RESOLVIDO: 0 },
+  maisAntigoDias: null,
+  tempos: { primeiraRespostaMedianaHoras: null, primeiraRespostaP90Horas: null, resolucaoMedianaHoras: null, resolucaoP90Horas: null },
+}
+
+const previaPadrao = (metodo: string, url: string): Rota | undefined => {
+  if (metodo !== 'GET') return undefined
+  if (/^\/api\/conversas\/\d+\/destino/.test(url)) return () => [200, { lideranca: false }]
+  return url.startsWith('/api/indicadores/detalhe?') ? () => [200, detalheVazio] : undefined
+}
 
 export function api(rotas: Record<string, Rota>) {
   const chamadas: Chamada[] = []

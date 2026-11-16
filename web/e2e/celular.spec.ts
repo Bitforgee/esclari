@@ -83,6 +83,28 @@ test.describe('S1 celular', () => {
     expect((await rotulo.textContent())!.replace(/\s/g, '')).toBe('Financeiro>Boletosemensalidades2026')
   })
 
+  for (const [largura, altura] of [[360, 780], [844, 390]]) {
+    test(`Indicadores claros em ${largura}×${altura}: sem rolagem horizontal, sem texto cortado e gráficos de 160 px`, async ({ page }) => {
+      await page.setViewportSize({ width: largura, height: altura })
+      await simularApi(page, undefined, true)
+      await abrirTela(page, 'Indicadores')
+      await page.getByRole('img', { name: /Gráfico de colunas/ }).waitFor()
+      const medidas = await page.evaluate(() => ({
+        rolagem: document.documentElement.scrollWidth - window.innerWidth,
+        graficos: [...document.querySelectorAll('figure svg[preserveAspectRatio]')].map((s) => Math.round(s.getBoundingClientRect().height)),
+        barras: [...document.querySelectorAll('[data-segmento]')].length,
+        cortados: [...document.querySelectorAll('[class*="container/main"] *')]
+          .filter((e) => !(e instanceof SVGElement) && getComputedStyle(e).textOverflow === 'ellipsis')
+          .map((e) => e.outerHTML.slice(0, 80)),
+      }))
+      expect(medidas.rolagem).toBeLessThanOrEqual(0)
+      expect(medidas.graficos.length).toBeGreaterThanOrEqual(2)
+      for (const h of medidas.graficos) expect(h).toBeGreaterThanOrEqual(160)
+      expect(medidas.barras).toBeGreaterThan(0)
+      expect(medidas.cortados).toEqual([])
+      await expect(page.getByRole('region', { name: 'A equipe responde a tempo?' }).getByText('O mais antigo espera há 17 dias')).toBeVisible()
+    })
+  }
   test('Cadastros: seletor no topo e o botão de criar logo abaixo, na primeira tela', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await simularApi(page)

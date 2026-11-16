@@ -1,20 +1,21 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { abrir, api, me, type Rota } from '../test/util'
 import { periodoAnterior } from './Indicadores'
 
 const base = {
-  semDados: false, alunosAtivos: 12, conversas: 5, taxaAutoatendimento: 0.5, taxaEscalonamento: 0.2, taxaAbandono: 0.1, taxaPerguntasSemArtigo: 0.1,
-  chamadosAbertos: 4, chamadosResolvidos: 2, tempoPrimeiraRespostaHoras: 1.5, tempoResolucaoHoras: 3, roteamentoCorreto: 0.5, taxaReabertura: 0.1,
+  semDados: false, alunosAtivos: 12, conversas: 50, taxaAutoatendimento: 0.5, taxaEscalonamento: 0.2, taxaAbandono: 0.1, taxaPerguntasSemArtigo: 0.1,
+  chamadosAbertos: 4, chamadosResolvidos: 20, tempoPrimeiraRespostaHoras: 1.5, tempoResolucaoHoras: 3, roteamentoCorreto: 0.5, taxaReabertura: 0.1,
   principaisCategorias: { porConversas: null, porChamados: null }, indicadorPrincipal: 0.712,
 }
 const com = (principal: number | null, extra: object = {}) => ({ ...base, indicadorPrincipal: principal, ...extra })
 const Atual = 'GET /api/indicadores?de=2026-11-01&ate=2026-11-05'
 const Anterior = 'GET /api/indicadores?de=2026-10-27&ate=2026-10-31'
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
+const resumo = () => within(screen.getByRole('region', { name: 'Resumo' }))
 const pausa = () => new Promise((r) => setTimeout(r, 30))
-const leituras = (chamadas: { url: string }[]) => chamadas.filter((c) => c.url.startsWith('/api/indicadores')).map((c) => c.url)
+const leituras = (chamadas: { url: string }[]) => chamadas.filter((c) => c.url.startsWith('/api/indicadores?')).map((c) => c.url)
 
 describe('indicadores com período anterior', () => {
   beforeEach(() => {
@@ -54,13 +55,14 @@ describe('indicadores com período anterior', () => {
   })
 
   it('variação contra o período anterior', async () => {
-    const casos: [number, string][] = [[0.67, '▲ 4,2 pts'], [0.722, '▼ 1,0 pt'], [0.712, '= sem variação']]
+    const casos: [number, string][] = [[0.67, '▲ 4,2 pts · melhor'], [0.722, '▼ 1,0 pt · pior'], [0.712, 'sem variação']]
     for (const [anterior, texto] of casos) {
       abrirCom(com(0.712), () => [200, com(anterior)])
       const { unmount } = abrir('/univag/indicadores')
       expect(await screen.findByText('71,2 %')).toBeInTheDocument()
-      expect(await screen.findByText(texto), texto).toBeInTheDocument()
-      expect(screen.getByText('vs. período anterior')).toBeInTheDocument()
+      await screen.findByText('71,2 %')
+      expect(await resumo().findByText(texto), texto).toBeInTheDocument()
+      expect(resumo().getByText('vs. período anterior')).toBeInTheDocument()
       unmount()
     }
   })
@@ -77,21 +79,22 @@ describe('indicadores com período anterior', () => {
       expect(await screen.findByText('71,2 %')).toBeInTheDocument()
       await waitFor(() => expect(leituras(chamadas)).toHaveLength(2))
       await pausa()
-      for (const texto of [/▲/, /▼/, '= sem variação', 'vs. período anterior']) expect(screen.queryByText(texto), `${rotulo} ${texto}`).not.toBeInTheDocument()
+      for (const texto of [/▲/, /▼/, 'sem variação', 'vs. período anterior']) expect(resumo().queryByText(texto), `${rotulo} ${texto}`).not.toBeInTheDocument()
       expect(screen.queryByRole('alert'), rotulo).not.toBeInTheDocument()
       unmount()
     }
     abrirCom(com(0.712), () => [200, com(0.67)])
     abrir('/univag/indicadores')
-    expect(await screen.findByText('▲ 4,2 pts')).toBeInTheDocument()
+    expect(await screen.findByText('▲ 4,2 pts · melhor')).toBeInTheDocument()
   })
 
   it('arredondamento e plural da variação', async () => {
-    const casos: [number, string][] = [[0.7121, '= sem variação'], [0.6933, '▲ 1,9 pt'], [0.6923, '▲ 2,0 pts']]
+    const casos: [number, string][] = [[0.7121, 'sem variação'], [0.6933, '▲ 1,9 pt · melhor'], [0.6923, '▲ 2,0 pts · melhor']]
     for (const [anterior, texto] of casos) {
       abrirCom(com(0.7123), () => [200, com(anterior)])
       const { unmount } = abrir('/univag/indicadores')
-      expect(await screen.findByText(texto), texto).toBeInTheDocument()
+      await screen.findByText('71,2 %')
+      expect(await resumo().findByText(texto), texto).toBeInTheDocument()
       unmount()
     }
   })
@@ -103,7 +106,7 @@ describe('indicadores com período anterior', () => {
       return { solta, rota: (corpo: object): Rota => async () => (await espera, [200, corpo]) }
     }
     const semVariacao = (rotulo: string) => {
-      for (const texto of [/▲/, /▼/, '= sem variação', 'vs. período anterior']) expect(screen.queryByText(texto), `${rotulo} ${texto}`).not.toBeInTheDocument()
+      for (const texto of [/▲/, /▼/, 'sem variação', 'vs. período anterior']) expect(screen.queryByText(texto), `${rotulo} ${texto}`).not.toBeInTheDocument()
     }
     const NovoAtual = 'GET /api/indicadores?de=2026-11-03&ate=2026-11-05'
     const NovoAnterior = 'GET /api/indicadores?de=2026-10-31&ate=2026-11-02'
@@ -115,14 +118,14 @@ describe('indicadores com período anterior', () => {
         [NovoAnterior]: atualAtrasado ? () => [200, com(0.4)] : b.rota(com(0.4)),
       })
       const { unmount } = abrir('/univag/indicadores')
-      expect(await screen.findByText('▲ 4,2 pts'), `${rotulo}: controle`).toBeInTheDocument()
+      expect(await screen.findByText('▲ 4,2 pts · melhor'), `${rotulo}: controle`).toBeInTheDocument()
       await userEvent.clear(screen.getByLabelText('De'))
       await userEvent.type(screen.getByLabelText('De'), '2026-11-03')
       await userEvent.click(screen.getByRole('button', { name: 'Consultar' }))
       await pausa()
       semVariacao(rotulo)
       ;(atualAtrasado ? a : b).solta()
-      expect(await screen.findByText('▲ 10,0 pts'), rotulo).toBeInTheDocument()
+      expect(await screen.findByText('▲ 10,0 pts · melhor'), rotulo).toBeInTheDocument()
       unmount()
     }
   })
@@ -132,12 +135,12 @@ describe('indicadores com período anterior', () => {
     const { unmount } = abrir('/univag/indicadores')
     expect(await screen.findByText('71,2 %')).toBeInTheDocument()
     await pausa()
-    for (const texto of [/▲/, /▼/, '= sem variação', 'vs. período anterior']) expect(screen.queryByText(texto), String(texto)).not.toBeInTheDocument()
+    for (const texto of [/▲/, /▼/, 'sem variação', 'vs. período anterior']) expect(screen.queryByText(texto), String(texto)).not.toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     unmount()
     abrirCom(com(0.712), () => [200, com(0.67, { semDados: false })])
     abrir('/univag/indicadores')
-    expect(await screen.findByText('▲ 4,2 pts')).toBeInTheDocument()
+    expect(await screen.findByText('▲ 4,2 pts · melhor')).toBeInTheDocument()
   })
 
   it('data vazia não consulta o período anterior', async () => {
@@ -145,7 +148,7 @@ describe('indicadores com período anterior', () => {
     expect(periodoAnterior('2026-11-01', '')).toBeNull()
     const chamadas = abrirCom(com(0.712), () => [200, com(0.67)])
     abrir('/univag/indicadores')
-    await screen.findByText('▲ 4,2 pts')
+    await screen.findByText('▲ 4,2 pts · melhor')
     await userEvent.clear(screen.getByLabelText('De'))
     await userEvent.click(screen.getByRole('button', { name: 'Consultar' }))
     await pausa()

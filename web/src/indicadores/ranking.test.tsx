@@ -24,6 +24,22 @@ describe('ranking', () => {
     expect(barras.map((b) => (b[0] as HTMLElement).style.width)).toEqual(['100%', '50%', '10%', '0%'])
   })
 
+  it('barras com valor escrito', () => {
+    render(<Ranking titulo="Categorias por chamados" linhas={[{ categoria: 'Boleto', total: 8 }, { categoria: 'Matrícula', total: 2 }]} />)
+
+    const linhas = within(screen.getByRole('table')).getAllByRole('row').slice(1)
+    expect(linhas.map((l) => within(l).getAllByRole('cell').map((c) => c.textContent))).toEqual([['Boleto', '8'], ['Matrícula', '2']])
+    expect(linhas.map((l) => (l.querySelector('[data-barra]') as HTMLElement).style.width)).toEqual(['100%', '25%'])
+    expect(linhas[0].querySelector('[data-barra]')).toHaveClass('bg-grafico-1')
+    expect(screen.getByRole('heading', { level: 3, name: 'Categorias por chamados' })).toBeInTheDocument()
+  })
+
+  it('ranking vazio mostra traço e nenhuma barra', () => {
+    render(<Ranking titulo="Categorias por conversas" linhas={[]} />)
+
+    expect(screen.getByText('—')).toBeInTheDocument()
+    expect(document.querySelectorAll('[data-barra]')).toHaveLength(0)
+  })
   const vazios = {
     semDados: false, alunosAtivos: null, conversas: null, taxaAutoatendimento: null, taxaEscalonamento: null, taxaAbandono: null, taxaPerguntasSemArtigo: null,
     chamadosAbertos: 0, chamadosResolvidos: 0, tempoPrimeiraRespostaHoras: null, tempoResolucaoHoras: null, roteamentoCorreto: null, taxaReabertura: null,

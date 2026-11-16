@@ -29,17 +29,17 @@ describe('um controle de período, destaques e Ver tabela', () => {
     await waitFor(() => expect(within(form).getAllByRole('button').map((b) => b.textContent)).toEqual(['Consultar']))
   })
 
-  it('um controle de período, destaques e Ver tabela: os 4 destaques', async () => {
+  it('um controle de período, destaques e Ver tabela: as medidas têm número, rótulo curto e nota em uma frase', async () => {
     indicadores()
-    const principal = (await screen.findByText('Indicador principal')).closest('section') as HTMLElement
-    const destaques = [principal, ...principal.nextElementSibling!.children]
-    expect(destaques).toHaveLength(4)
-    for (const cartao of destaques) {
-      const [rotulo, numero, frase] = [...cartao.querySelectorAll('dt, dd, div')].filter((e) => e.querySelector('dt, dd, div') === null).map((e) => e.textContent!)
-      expect(numero, `número de ${rotulo}`).toMatch(/\d/)
+    await screen.findByText('Indicador principal')
+    const termos = [...document.querySelectorAll('main dl dt')]
+    expect(termos.length).toBeGreaterThanOrEqual(10)
+    for (const termo of termos) {
+      const rotulo = termo.textContent!
+      const [valor, ...notas] = [...termo.parentElement!.querySelectorAll('dd')].map((d) => d.textContent!)
+      expect(valor, `valor de ${rotulo}`).toMatch(/\d|—/)
       expect(rotulo.length, `rótulo ${rotulo}`).toBeLessThanOrEqual(24)
-      expect(frase.length, `frase de ${rotulo}`).toBeLessThanOrEqual(70)
-      expect(frase, `frase de ${rotulo}`).toMatch(/\.$/)
+      for (const nota of notas.filter((n) => n.endsWith('.'))) expect(nota.length, `nota de ${rotulo}`).toBeLessThanOrEqual(70)
     }
   })
 

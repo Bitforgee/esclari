@@ -6,7 +6,7 @@ import { CampoImagem } from './administracao/aparencia/CampoImagem'
 import { AjudaDosAnexos } from './assistente/Anexos'
 import { plural } from './formatos'
 import { LinkDeAnexo } from './LinkDeAnexo'
-import { abrir, api, chamado as chamadoPronto, escolher, instituicao, me, type Rota } from './test/util'
+import { abrir, api, chamado as chamadoPronto, detalheVazio, escolher, instituicao, me, type Rota } from './test/util'
 
 const NB = '\u00a0'
 const fontes = import.meta.glob('/src/**/*.{ts,tsx}', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
@@ -64,10 +64,10 @@ describe('tamanho, unidade e plural', () => {
       chamadosAbertos: 4, chamadosResolvidos: 2, tempoPrimeiraRespostaHoras: 1, tempoResolucaoHoras: 12, roteamentoCorreto: 0.5, taxaReabertura: 0.1,
       principaisCategorias: { porConversas: null, porChamados: null }, indicadorPrincipal: 0.7,
     }
-    api({ 'GET /api/auth/me': () => [200, admin], 'GET /api/indicadores?de=2026-11-01&ate=2026-11-05': () => [200, dados] })
+    api({ 'GET /api/auth/me': () => [200, admin], 'GET /api/indicadores?de=2026-11-01&ate=2026-11-05': () => [200, dados], 'GET /api/indicadores/detalhe?de=2026-11-01&ate=2026-11-05': () => [200, { ...detalheVazio, tempos: { ...detalheVazio.tempos, resolucaoMedianaHoras: 12 } }] })
     abrir('/univag/indicadores')
     const termo = await screen.findByText('Tempo de resolução', { selector: 'dt' })
-    expect(termo.nextElementSibling!.textContent).toBe(`12${NB}h`)
+    expect(termo.nextElementSibling!.textContent).toBe(`mediana 12${NB}h`)
     vi.useRealTimers()
   })
 

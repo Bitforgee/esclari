@@ -1,60 +1,26 @@
 import { ChartColumn } from 'lucide-react'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table'
-import { useState } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router'
 import { BotaoAcao } from '../acao'
 import { api } from '../api'
 import { ErroDe } from '../ErroDe'
-import { comUnidade, decimalFixo, numero, porcentagem } from '../formatos'
+import { numero, plural, porcentagem } from '../formatos'
 import { dia } from '../Periodo'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { BlocoVazio } from '../Tabela'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
-
-type Linha = { categoria: string; total: number }
-type Ranking = Linha[] | null
-type Indicadores = {
-  semDados: boolean
-  alunosAtivos: number | null
-  conversas: number | null
-  taxaAutoatendimento: number | null
-  taxaEscalonamento: number | null
-  taxaAbandono: number | null
-  taxaPerguntasSemArtigo: number | null
-  chamadosAbertos: number
-  chamadosResolvidos: number
-  tempoPrimeiraRespostaHoras: number | null
-  tempoResolucaoHoras: number | null
-  roteamentoCorreto: number | null
-  taxaReabertura: number | null
-  principaisCategorias: { porConversas: Ranking; porChamados: Ranking }
-  indicadorPrincipal: number | null
-}
+import { comDesfecho, DesfechosDoAssistente } from './Desfechos'
+import { FilaPorEstado, TemposDeAtendimento } from './Fila'
+import { ChamadosPorPeriodo, ConversasPorPeriodo } from './Series'
+import type { Detalhe, Indicadores, Linha } from './tipos'
+import { DeAnterior, Medida, Taxas, variacaoDaTaxa } from './Variacao'
 
 const ou = (v: number | null, formatar: (v: number) => string) => (v === null ? '—' : formatar(v))
 const pct = (v: number | null) => ou(v, porcentagem)
-const horas = (v: number | null) => ou(v, (h) => comUnidade(h, 'h'))
 const num = (v: number | null) => ou(v, numero)
-
-function cartoes(dados: Indicadores): [string, string][] {
-  return [
-    ['Indicador principal', pct(dados.indicadorPrincipal)],
-    ['Alunos ativos', num(dados.alunosAtivos)],
-    ['Conversas', num(dados.conversas)],
-    ['Autoatendimento', pct(dados.taxaAutoatendimento)],
-    ['Escalonamento', pct(dados.taxaEscalonamento)],
-    ['Abandono', pct(dados.taxaAbandono)],
-    ['Perguntas sem artigo', pct(dados.taxaPerguntasSemArtigo)],
-    ['Chamados abertos agora', num(dados.chamadosAbertos)],
-    ['Chamados resolvidos', num(dados.chamadosResolvidos)],
-    ['Tempo até a 1ª resposta', horas(dados.tempoPrimeiraRespostaHoras)],
-    ['Tempo de resolução', horas(dados.tempoResolucaoHoras)],
-    ['Roteamento correto', pct(dados.roteamentoCorreto)],
-    ['Reabertura', pct(dados.taxaReabertura)],
-  ]
-}
 
 const Colunas: ColumnDef<Linha>[] = [
   { accessorKey: 'categoria', header: 'Categoria' },
@@ -89,7 +55,7 @@ function TabelaRanking({ linhas }: { linhas: Linha[] }) {
               <TableCell key={celula.id} className="first:w-full first:whitespace-normal first:[overflow-wrap:anywhere] last:text-end last:tabular-nums">
                 {flexRender(celula.column.columnDef.cell, celula.getContext())}
                 {celula.column.id === 'categoria' && (
-                  <div data-barra aria-hidden="true" className="mt-1 h-1.5 rounded-xs bg-chart-1" style={{ width: maior > 0 ? `${(linha.original.total / maior) * 100}%` : '0%' }} />
+                  <div data-barra aria-hidden="true" className="mt-1 h-1.5 rounded-xs bg-grafico-1" style={{ width: maior > 0 ? `${(linha.original.total / maior) * 100}%` : '0%' }} />
                 )}
               </TableCell>
             ))}
@@ -103,83 +69,125 @@ function TabelaRanking({ linhas }: { linhas: Linha[] }) {
 export function Ranking({ titulo, linhas }: { titulo: string; linhas: Linha[] }) {
   return (
     <section className="flex min-w-0 flex-col gap-2">
-      <h2 className="m-0 text-base font-semibold">{titulo}</h2>
+      <h3 className="m-0 text-sm font-medium">{titulo}</h3>
       <TabelaRanking linhas={linhas} />
     </section>
   )
 }
 
-const Rodapes: Record<string, string> = {
-  'Indicador principal': 'Resolvidas sem reabertura, sobre as conversas com desfecho.',
-  'Chamados abertos agora': 'Chamados não fechados neste momento.',
-  'Autoatendimento': 'Resolvidas pelo assistente, sobre as conversas com desfecho.',
-  'Tempo até a 1ª resposta': 'Da abertura à primeira resposta pública.',
-}
-const Faixa = ['Chamados abertos agora', 'Autoatendimento', 'Tempo até a 1ª resposta']
-
-export function variacao(atual: number, anterior: number) {
-  const pontos = Math.round((atual - anterior) * 1000) / 10
-  if (pontos === 0) return '= sem variação'
-  return `${pontos > 0 ? '▲' : '▼'} ${decimalFixo(Math.abs(pontos))} ${Math.abs(pontos) < 2 ? 'pt' : 'pts'}`
-}
-
-function Principal({ valor, variacaoDe }: { valor: string; variacaoDe?: string }) {
+function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
+  const id = useId()
   return (
-    <section className="flex flex-col gap-1">
-      <dl className="m-0 flex flex-col gap-1">
-        <dt className="text-sm text-muted-foreground">Indicador principal</dt>
-        <dd className="m-0 flex flex-wrap items-baseline gap-x-4">
-          <div className="font-heading text-[40px] leading-tight font-semibold tabular-nums">{valor}</div>
-          {variacaoDe && (
-            <span className="text-base font-medium tabular-nums">
-              {variacaoDe} <span className="font-normal text-muted-foreground">vs. período anterior</span>
-            </span>
-          )}
-        </dd>
-      </dl>
-      <div className="text-sm text-muted-foreground">{Rodapes['Indicador principal']}</div>
+    <section aria-labelledby={id} className="flex min-w-0 flex-col gap-4">
+      <h2 id={id} className="m-0 text-base font-semibold">
+        {titulo}
+      </h2>
+      {children}
     </section>
   )
 }
 
-function Painel({ dados, variacaoDe }: { dados: Indicadores; variacaoDe?: string }) {
+function DoDetalhe({ consulta, children }: { consulta: UseQueryResult<Detalhe>; children: (d: Detalhe) => ReactNode }) {
+  if (consulta.error) return <ErroDe erro={consulta.error} oque="os gráficos" tentar={() => void consulta.refetch()} />
+  if (!consulta.data) return <div className="min-h-40 text-sm text-muted-foreground">Carregando…</div>
+  return children(consulta.data)
+}
+
+type Contexto = { dados: Indicadores; anterior?: Indicadores; detalhe: UseQueryResult<Detalhe> }
+
+const Notas: Record<string, string> = {
+  Autoatendimento: 'Resolvidas pelo assistente, sobre as conversas com desfecho.',
+  Escalonamento: 'Transferidas a um atendente, sobre as conversas com desfecho.',
+  Abandono: 'Conversas abandonadas, sobre as conversas com desfecho.',
+  'Perguntas sem artigo': 'Conversas em que o assistente não achou fonte publicada.',
+  'Roteamento correto': 'Resolvidos sem encaminhamento entre setores.',
+  Reabertura: 'Resolvidos que o aluno reabriu.',
+}
+
+function Taxa({ rotulo, c }: { rotulo: string; c: Contexto }) {
+  const taxa = Taxas.find((t) => t.rotulo === rotulo)!
+  return <Medida rotulo={rotulo} valor={pct(c.dados[taxa.chave] as number | null)} variacao={variacaoDaTaxa(taxa, c.dados, c.anterior)} nota={Notas[rotulo]} />
+}
+
+function Resumo({ c }: { c: Contexto }) {
+  const desfechos = c.detalhe.data?.desfechos
+  const variacao = variacaoDaTaxa(Taxas[0], c.dados, c.anterior)
+  return (
+    <Secao titulo="Resumo">
+      <dl className="m-0 flex flex-col gap-1">
+        <dt className="text-sm text-muted-foreground">Indicador principal</dt>
+        <dd className="m-0 flex flex-wrap items-baseline gap-x-4">
+          <div className="font-heading text-[40px] leading-tight font-semibold tabular-nums">{pct(c.dados.indicadorPrincipal)}</div>
+          {variacao && <DeAnterior texto={variacao} />}
+        </dd>
+        <dd className="m-0 text-sm text-muted-foreground">Resolvidas sem reabertura, sobre as conversas com desfecho.</dd>
+        {desfechos && <dd className="m-0 text-sm text-muted-foreground">{`de ${plural(comDesfecho(desfechos), 'conversa', 'conversas')} com desfecho`}</dd>}
+      </dl>
+    </Secao>
+  )
+}
+
+function Painel({ c }: { c: Contexto }) {
+  const { dados } = c
   const rankings = [
     ['Categorias por conversas', dados.principaisCategorias.porConversas],
     ['Categorias por chamados', dados.principaisCategorias.porChamados],
   ] as const
-  const todos = cartoes(dados)
-  const valores = new Map(todos)
-  const resto = todos.filter(([rotulo]) => rotulo !== 'Indicador principal' && !Faixa.includes(rotulo))
   return (
-    <div className="flex flex-col gap-8">
-      <Principal valor={valores.get('Indicador principal')!} variacaoDe={variacaoDe} />
-      <dl className="m-0 grid grid-cols-1 divide-y @3xl/main:grid-cols-3 @3xl/main:divide-x @3xl/main:divide-y-0">
-        {Faixa.map((rotulo) => (
-          <div key={rotulo} className="flex flex-col gap-1 py-3 @3xl/main:px-6 @3xl/main:py-0 @3xl/main:first:ps-0">
-            <dt className="text-sm text-muted-foreground">{rotulo}</dt>
-            <dd className="m-0 text-2xl font-semibold tracking-tight tabular-nums">{valores.get(rotulo)}</dd>
-            <dd className="m-0 text-sm text-muted-foreground">{Rodapes[rotulo]}</dd>
-          </div>
-        ))}
-      </dl>
-      <dl className="m-0 grid grid-cols-1 @3xl/main:grid-cols-2 @3xl/main:gap-x-10">
-        {resto.map(([rotulo, valor]) => (
-          <div key={rotulo} className="flex items-baseline justify-between gap-4 border-b py-3">
-            <dt className="text-sm text-muted-foreground">{rotulo}</dt>
-            <dd className="m-0 font-semibold tabular-nums">{valor}</dd>
-          </div>
-        ))}
-      </dl>
-      <div className="grid grid-cols-1 gap-8 @4xl/main:grid-cols-2">
-        {rankings
-          .filter(([, r]) => r !== null)
-          .map(([titulo, r]) => (
-            <Ranking key={titulo} titulo={titulo} linhas={r!} />
+    <div className="flex flex-col gap-10">
+      <Resumo c={c} />
+      <Secao titulo="O assistente está resolvendo?">
+        <DoDetalhe consulta={c.detalhe}>{(d) => <DesfechosDoAssistente desfechos={d.desfechos} />}</DoDetalhe>
+        <dl className="m-0 grid grid-cols-1 @3xl/main:grid-cols-2 @3xl/main:gap-x-10">
+          {['Autoatendimento', 'Escalonamento', 'Abandono', 'Perguntas sem artigo'].map((r) => (
+            <Taxa key={r} rotulo={r} c={c} />
           ))}
-      </div>
+        </dl>
+      </Secao>
+      <Secao titulo="Quanto chega e como evolui?">
+        <dl className="m-0 grid grid-cols-1 @3xl/main:grid-cols-3 @3xl/main:gap-x-10">
+          <Medida rotulo="Alunos ativos" valor={num(dados.alunosAtivos)} />
+          <Medida rotulo="Conversas" valor={num(dados.conversas)} />
+          <Medida rotulo="Chamados resolvidos" valor={num(dados.chamadosResolvidos)} />
+        </dl>
+        <DoDetalhe consulta={c.detalhe}>
+          {(d) => (
+            <div className="grid grid-cols-1 gap-8 @4xl/main:grid-cols-2">
+              <ConversasPorPeriodo pontos={d.pontos} granularidade={d.granularidade} />
+              <ChamadosPorPeriodo pontos={d.pontos} granularidade={d.granularidade} />
+            </div>
+          )}
+        </DoDetalhe>
+      </Secao>
+      <Secao titulo="A equipe responde a tempo?">
+        <DoDetalhe consulta={c.detalhe}>
+          {(d) => (
+            <>
+              <TemposDeAtendimento tempos={d.tempos} />
+              <FilaPorEstado detalhe={d} />
+            </>
+          )}
+        </DoDetalhe>
+      </Secao>
+      <Secao titulo="Qualidade do atendimento">
+        <dl className="m-0 grid grid-cols-1 @3xl/main:grid-cols-2 @3xl/main:gap-x-10">
+          <Taxa rotulo="Roteamento correto" c={c} />
+          <Taxa rotulo="Reabertura" c={c} />
+        </dl>
+      </Secao>
+      <Secao titulo="O que mais pesa">
+        <div className="grid grid-cols-1 gap-8 @4xl/main:grid-cols-2">
+          {rankings
+            .filter(([, r]) => r !== null)
+            .map(([titulo, r]) => (
+              <Ranking key={titulo} titulo={titulo} linhas={r!} />
+            ))}
+        </div>
+      </Secao>
     </div>
   )
 }
+
 export function periodoAnterior(de: string, ate: string) {
   if (!de || !ate) return null
   const [d, a] = [de, ate].map((v) => v.split('-').map(Number))
@@ -188,15 +196,14 @@ export function periodoAnterior(de: string, ate: string) {
   return dias < 1 ? null : { de: antes(dias), ate: antes(1) }
 }
 
-function useVariacao(consulta: { de: string; ate: string }, atual: Indicadores | undefined, provisorio: boolean) {
+function useAnterior(consulta: { de: string; ate: string }, provisorio: boolean) {
   const antes = periodoAnterior(consulta.de, consulta.ate)
-  const { data: anterior } = useQuery({
+  const { data } = useQuery({
     queryKey: ['indicadores-anterior', consulta],
     queryFn: () => api<Indicadores>(`/api/indicadores?de=${antes!.de}&ate=${antes!.ate}`),
     enabled: !!antes,
   })
-  const [a, b] = [atual?.indicadorPrincipal, anterior?.semDados ? null : anterior?.indicadorPrincipal]
-  return !provisorio && a != null && b != null ? variacao(a, b) : undefined
+  return provisorio ? undefined : data
 }
 
 const dataValida = (v: string | null): v is string => !!v && /^\d{4}-\d{2}-\d{2}$/.test(v) && dia(new Date(`${v}T00:00:00`)) === v
@@ -218,7 +225,12 @@ export function Indicadores() {
     queryFn: () => api<Indicadores>(`/api/indicadores?de=${consulta.de}&ate=${consulta.ate}`),
     placeholderData: keepPreviousData,
   })
-  const variacaoDe = useVariacao(consulta, dados, isPlaceholderData)
+  const detalhe = useQuery({
+    queryKey: ['indicadores-detalhe', consulta],
+    queryFn: () => api<Detalhe>(`/api/indicadores/detalhe?de=${consulta.de}&ate=${consulta.ate}`),
+    placeholderData: keepPreviousData,
+  })
+  const anterior = useAnterior(consulta, isPlaceholderData)
 
   return (
     <div className="flex flex-col gap-6">
@@ -243,10 +255,8 @@ export function Indicadores() {
         </BotaoAcao>
       </form>
       <ErroDe erro={error} oque="os indicadores" tentar={() => void refetch()} />
-      {dados?.semDados && (
-        <BlocoVazio Icone={ChartColumn} frase="Sem atendimentos neste período." />
-      )}
-      {dados && !dados.semDados && <Painel dados={dados} variacaoDe={variacaoDe} />}
+      {dados?.semDados && <BlocoVazio Icone={ChartColumn} frase="Sem atendimentos neste período." />}
+      {dados && !dados.semDados && <Painel c={{ dados, anterior: anterior?.semDados ? undefined : anterior, detalhe }} />}
     </div>
   )
 }

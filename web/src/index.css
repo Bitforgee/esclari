@@ -36,6 +36,10 @@
   --ring: var(--marca, oklch(0.5 0 0));
   --chart-1: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 45%, oklch(0.6 0 none));
   --chart-2: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 45%, oklch(0.6 0 none));
+  --grafico-1: oklch(0.42 0.15 262);
+  --grafico-2: oklch(0.64 0.12 75);
+  --grafico-3: oklch(0.53 0.17 20);
+  --grafico-4: oklch(0.31 0 0);
   /* a cor da instituição (aparencia-instituicao door 8): sem --marca estas ficam inválidas e cada token cai no valor de base */
   --marca-sutil: color-mix(in oklch, var(--marca) 8%, white);
   --marca-clara: color-mix(in oklch, var(--marca) 55%, white);
@@ -76,6 +80,10 @@
   --ring: var(--marca-clara, oklch(0.556 0 0));
   --chart-1: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 45%, oklch(0.8 0 none));
   --chart-2: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 45%, oklch(0.8 0 none));
+  --grafico-1: oklch(0.64 0.14 262);
+  --grafico-2: oklch(0.88 0.12 85);
+  --grafico-3: oklch(0.76 0.14 20);
+  --grafico-4: oklch(0.52 0 0);
 }
 
 /* Preto: fundo #000 para OLED; texto em 0.92 e não branco puro, para não borrar */
@@ -151,6 +159,10 @@
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
+  --color-grafico-1: var(--grafico-1);
+  --color-grafico-2: var(--grafico-2);
+  --color-grafico-3: var(--grafico-3);
+  --color-grafico-4: var(--grafico-4);
 }
 
 @layer base {
