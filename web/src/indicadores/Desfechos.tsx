@@ -15,10 +15,10 @@ export function DesfechosDoAssistente({ desfechos }: { desfechos: Desfechos | nu
     { nome: 'Abandonada', valor: desfechos.abandonadas, tom: 3 as const },
     { nome: 'Encerrada pelo aluno', valor: desfechos.encerradas, tom: 4 as const },
   ]
-  const resumo = `Barra empilhada de desfechos das conversas. ${segmentos.map((s) => `${s.nome}: ${s.valor}`).join('. ')}.`
+  const resumo = `Barra empilhada de desfechos das conversas. ${segmentos.map((s) => `${s.nome}: ${s.valor}`).join('. ')}. Total ${base}.`
   return (
     <div className="flex flex-col gap-3">
-      <BarraEmpilhada resumo={resumo} segmentos={segmentos} base={base} />
+      <BarraEmpilhada titulo="Desfechos das conversas" resumo={resumo} segmentos={segmentos} base={base} />
       <p className="m-0 text-sm text-muted-foreground">
         {`de ${plural(base, 'conversa', 'conversas')} com desfecho`}
         {desfechos.semDesfecho > 0 && ` · ${desfechos.semDesfecho} ainda sem desfecho`}

@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { abrir } from '../test/util'
@@ -91,6 +91,16 @@ describe('séries', () => {
     expect(screen.getByText('12/11: 5 conversas')).toHaveClass('text-sm')
   })
 
+  it('toque no gráfico escolhe o ponto pela posição', async () => {
+    const s = await evolucao()
+    const grupo = s.getByRole('group', { name: /Conversas por dia/ })
+    grupo.getBoundingClientRect = () => ({ left: 100, width: 300, top: 0, right: 400, bottom: 100, height: 100, x: 100, y: 0, toJSON: () => ({}) })
+
+    fireEvent.pointerDown(grupo, { clientX: 130 })
+    expect(await screen.findByText('10/11: 2 conversas')).toBeInTheDocument()
+    fireEvent.pointerDown(grupo, { clientX: 390 })
+    expect(await screen.findByText('12/11: 5 conversas')).toBeInTheDocument()
+  })
   it('valor do ponto nas duas linhas', async () => {
     const s = await evolucao({ granularidade: 'semana' })
 

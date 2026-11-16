@@ -9,8 +9,9 @@ export type Segmento = { nome: string; valor: number; tom: 1 | 2 | 3 | 4 }
 
 const tom = (n: number) => `var(--grafico-${n})`
 
-export function BarraEmpilhada({ resumo, segmentos, base }: { resumo: string; segmentos: Segmento[]; base: number }) {
+export function BarraEmpilhada({ titulo, resumo, segmentos, base }: { titulo: string; resumo: string; segmentos: Segmento[]; base: number }) {
   const parte = (v: number) => (base > 0 ? v / base : 0)
+  const tabela = { colunas: ['Item', 'Quantidade', 'Percentual'], linhas: segmentos.map((s) => [s.nome, numero(s.valor), porcentagem(parte(s.valor))]) }
   return (
     <div className="flex flex-col gap-3">
       <div role="img" aria-label={resumo} className="flex h-6 gap-0.5 overflow-hidden rounded-xs bg-background">
@@ -28,6 +29,7 @@ export function BarraEmpilhada({ resumo, segmentos, base }: { resumo: string; se
           </li>
         ))}
       </ul>
+      <VerTabela tabela={tabela} titulo={titulo} />
     </div>
   )
 }
@@ -55,7 +57,7 @@ export function useAtivo(quantos: number, inicial: number) {
 
 export type TabelaDoGrafico = { colunas: string[]; linhas: string[][] }
 
-function VerTabela({ tabela, titulo }: { tabela: TabelaDoGrafico; titulo: string }) {
+export function VerTabela({ tabela, titulo }: { tabela: TabelaDoGrafico; titulo: string }) {
   const [aberta, setAberta] = useState(false)
   return (
     <div className="flex flex-col gap-2">

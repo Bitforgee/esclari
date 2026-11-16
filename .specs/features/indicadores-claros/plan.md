@@ -202,3 +202,13 @@ Cada número diz se melhorou, se piorou e com quantos casos foi medido.
 - Supportman, [Seven metrics every customer support dashboard should show](https://supportman.io/field-notes/customer-support-dashboard-metrics/): primeira tela como painel de exceções, mediana e 90º percentil, denominador e definição em cada cartão, número mínimo de casos
 - Stephen Few, [Bullet Graph Design Specification](https://www.perceptualedge.com/articles/misc/Bullet_Graph_Design_Spec.pdf), e [Tableau, bullet graphs vs gauges](https://www.tableau.com/blog/bullet-graphs-beat-gauge-charts): medidor ocupa espaço sem mostrar histórico; sem meta não há gráfico de bala, por isso fica fora de escopo
 - [Accessible charts (WCAG 2.2)](https://accessibility.build/guides/accessible-charts): 1.1.1, 1.4.1 e 1.4.11 viram os AC 14, 28 e 35
+
+## Emendas de construção
+
+Aditivas, registradas depois da aprovação e antes do Verificador:
+
+- Landing, porta 1: `desfechos` ganha a chave `encerradas` (a conversa tem o desfecho `ENCERRADA`, que entra no denominador das taxas atuais). AC 1 passa a somar cinco chaves e AC 3 a desenhar um quarto segmento neutro "Encerrada pelo aluno".
+- AC 27: o texto é "de N conversas com desfecho", o denominador real do indicador principal; "e chamados" seria falso.
+- AC 14: as duas barras empilhadas (desfechos e fila) também têm "Ver como tabela" e `aria-label` com o total; os rankings já são tabelas e ficam sem botão.
+- Observable, celular deitado: o par de gráficos de "Quanto chega" passa a duas colunas a partir de um `main` de 768 px (`@3xl/main`); os rankings seguem em `@4xl/main`.
+- Sem corrigir: `crapper` sai 1 por `useModo` e `Usuarios`, fora desta feature. Fica para decisão do dono.

@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { abrir } from '../test/util'
 import { prepararIndicadores, secaoDe } from '../test/indicadores'
@@ -53,6 +54,20 @@ describe('desfechos do assistente', () => {
     expect(s.queryByText('Amostra pequena: menos de 10 conversas')).not.toBeInTheDocument()
   })
 
+  it('ver como tabela', async () => {
+    const s = await secao(desfechos())
+
+    await userEvent.click(s.getByRole('button', { name: /Ver como tabela/ }))
+
+    const linhas = s.getAllByRole('row').slice(1).map((l) => within(l).getAllByRole('cell').map((c) => c.textContent))
+    expect(linhas).toEqual([
+      ['Resolvida pelo assistente', '80', '69,6\u00a0%'],
+      ['Transferida a um atendente', '25', '21,7\u00a0%'],
+      ['Abandonada', '10', '8,7\u00a0%'],
+      ['Encerrada pelo aluno', '0', '0\u00a0%'],
+    ])
+    expect(s.getByRole('img').getAttribute('aria-label')).toContain('Total 115.')
+  })
   it('sem filtro de setor', async () => {
     const s = await secao(null)
 

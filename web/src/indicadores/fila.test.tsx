@@ -1,4 +1,6 @@
 import { screen } from '@testing-library/react'
+import { within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { abrir } from '../test/util'
 import { prepararIndicadores, secaoDe } from '../test/indicadores'
@@ -43,7 +45,9 @@ describe('fila e tempos', () => {
     ])
     expect(s.getByText('Chamados abertos agora: 15')).toBeInTheDocument()
     expect(s.getByText('O mais antigo espera há 9 dias')).toBeInTheDocument()
-    expect(s.getByRole('img').getAttribute('aria-label')).toContain('Em atendimento: 6')
+    expect(s.getByRole('img').getAttribute('aria-label')).toContain('Em atendimento: 6. Aguardando aluno: 2. Resolvido: 4. Total 15.')
+    await userEvent.click(s.getByRole('button', { name: /Ver como tabela/ }))
+    expect(s.getAllByRole('row').slice(1).map((l) => within(l).getAllByRole('cell')[1].textContent)).toEqual(['3', '6', '2', '4'])
   })
 
   it('o mais antigo no singular e sem ele', async () => {

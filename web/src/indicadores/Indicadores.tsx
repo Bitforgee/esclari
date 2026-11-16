@@ -152,7 +152,7 @@ function Painel({ c }: { c: Contexto }) {
         </dl>
         <DoDetalhe consulta={c.detalhe}>
           {(d) => (
-            <div className="grid grid-cols-1 gap-8 @4xl/main:grid-cols-2">
+            <div className="grid grid-cols-1 gap-8 @3xl/main:grid-cols-2">
               <ConversasPorPeriodo pontos={d.pontos} granularidade={d.granularidade} />
               <ChamadosPorPeriodo pontos={d.pontos} granularidade={d.granularidade} />
             </div>

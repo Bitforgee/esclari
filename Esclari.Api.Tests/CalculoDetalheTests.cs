@@ -93,6 +93,17 @@ public class CalculoDetalheTests
     }
 
     [Fact]
+    public void P90_usa_o_posto_mais_proximo_com_dez_valores()
+    {
+        var chamados = Enumerable.Range(1, 10).Select(i => Chamado(i, Meio)).ToList();
+        var respostas = Enumerable.Range(1, 10).Select(i => new RespostaLida(i, 900, Meio.AddHours(i))).ToList();
+
+        var d = Calcular(Massa(chamados, respostas: respostas), new(2026, 11, 10), new(2026, 11, 10));
+
+        Assert.Equal(5.5, d.Tempos.PrimeiraRespostaMedianaHoras);
+        Assert.Equal(9, d.Tempos.PrimeiraRespostaP90Horas);
+    }
+    [Fact]
     public void Resolucao_desconta_aguardando_aluno()
     {
         var eventos = Transicoes(1, Meio, (1, Aberto, EmAtendimento), (3, EmAtendimento, AguardandoAluno), (7, AguardandoAluno, EmAtendimento), (10, EmAtendimento, Resolvido)).ToList();

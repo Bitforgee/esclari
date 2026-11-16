@@ -28,11 +28,11 @@ export function FilaPorEstado({ detalhe }: { detalhe: Detalhe }) {
   const segmentos = (Object.keys(Tons) as (keyof typeof Tons)[]).map((e) => ({ nome: Estados[e], valor: detalhe.chamadosPorEstado[e] ?? 0, tom: Tons[e] }))
   const total = segmentos.reduce((soma, s) => soma + s.valor, 0)
   if (total === 0) return <p className="m-0 text-sm text-muted-foreground">Nenhum chamado aberto agora.</p>
-  const resumo = `Barra empilhada dos chamados abertos agora, por estado. ${segmentos.map((s) => `${s.nome}: ${s.valor}`).join('. ')}.`
+  const resumo = `Barra empilhada dos chamados abertos agora, por estado. ${segmentos.map((s) => `${s.nome}: ${s.valor}`).join('. ')}. Total ${total}.`
   return (
     <div className="flex flex-col gap-3">
       <p className="m-0 text-sm text-muted-foreground">{`Chamados abertos agora: ${numero(total)}`}</p>
-      <BarraEmpilhada resumo={resumo} segmentos={segmentos} base={total} />
+      <BarraEmpilhada titulo="Chamados abertos por estado" resumo={resumo} segmentos={segmentos} base={total} />
       {detalhe.maisAntigoDias !== null && <p className="m-0 text-sm font-medium">{`O mais antigo espera há ${plural(detalhe.maisAntigoDias, 'dia', 'dias')}`}</p>}
     </div>
   )
