@@ -276,6 +276,7 @@ public class PushAgendadorTests(EsclariFactory f) : IClassFixture<EsclariFactory
         Assert.False(ciclo.IsCompleted);
         f.Relogio.Advance(TimeSpan.FromSeconds(30));
         await ciclo;
+        f.Push.Comportamento = null;
 
         Assert.Equal((1, (DateTime?)null), ((await Linha(d)).Tentativas, (await Linha(d)).EnviadoEm));
         Assert.NotNull((await Linha(e2)).EnviadoEm);
