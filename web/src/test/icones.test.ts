@@ -11,7 +11,8 @@ const caminho = (nome: string) => resolve(raiz, 'public/icons', nome)
 const lerBytes = (nome: string) => readFileSync(caminho(nome))
 const vite = readFileSync(resolve(raiz, 'vite.config.ts'), 'utf8')
 const themeColor = vite.match(/theme_color:\s*'#([0-9a-fA-F]{6})'/)![1]
-const corDaMarca = [0, 2, 4].map((i) => parseInt(themeColor.slice(i, i + 2), 16))
+const corDoManifesto = [0, 2, 4].map((i) => parseInt(themeColor.slice(i, i + 2), 16))
+const corDaMarca = [0x22, 0x4f, 0xa7]
 
 type Imagem = { largura: number; altura: number; pixel: (x: number, y: number) => number[] }
 
@@ -58,7 +59,8 @@ function decodificar(bytes: Buffer): Imagem {
 }
 
 const ehBranco = ([r, g, b]: number[]) => r >= 240 && g >= 240 && b >= 240
-const ehCorDaMarca = (p: number[]) => p.every((v, i) => Math.abs(v - corDaMarca[i]) <= 3)
+const parecida = (p: number[], cor: number[]) => p.every((v, i) => Math.abs(v - cor[i]) <= 3)
+const ehCorDaMarca = (p: number[]) => parecida(p, corDaMarca)
 
 describe('icones do PWA', () => {
   it('dimensoes dos tres icones', () => {
@@ -87,7 +89,8 @@ describe('icones do PWA', () => {
 
   it('icone any branco sobre a cor do manifesto', () => {
     const imagem = decodificar(lerBytes('icon-192.png'))
-    expect(ehCorDaMarca(imagem.pixel(0, 0))).toBe(true)
+    expect(parecida(imagem.pixel(0, 0), corDoManifesto)).toBe(true)
+    expect(ehCorDaMarca(imagem.pixel(96, 20))).toBe(true)
     let brancos = 0
     let simetrico = true
     for (let y = 0; y < 192; y++)
