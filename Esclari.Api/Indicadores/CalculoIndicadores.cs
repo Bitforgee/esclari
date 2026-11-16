@@ -5,7 +5,7 @@ namespace Esclari.Api.Indicadores;
 
 public record ChamadoLido(long Id, DateTime CriadoEm, string Estado, string? MotivoFechamento, int Reaberturas, int Encaminhamentos, long CategoriaOriginalId, long SetorId, long SolicitanteId);
 public record RespostaLida(long ChamadoId, long? AutorId, DateTime CriadaEm);
-public record ConversaLida(long AlunoId, string? Desfecho, bool SemBase);
+public record ConversaLida(long AlunoId, string? Desfecho, bool SemBase, DateTime CriadaEm = default);
 
 public record Massa(List<ChamadoLido> Chamados, List<EventoChamado> Eventos, List<RespostaLida> Respostas,
     List<ConversaLida>? Conversas, List<long>? CategoriasDasConversas, Dictionary<long, string> Categorias);
@@ -66,10 +66,10 @@ public static class CalculoIndicadores
     static bool ConfirmadoSemReabertura(ChamadoLido c) =>
         c.Estado == Fechado && c.MotivoFechamento is MotivosFechamento.Confirmado or MotivosFechamento.FechadoAutomaticamente && c.Reaberturas == 0;
 
-    static IEnumerable<EventoChamado> Resolucoes(IEnumerable<EventoChamado> eventos) =>
+    internal static IEnumerable<EventoChamado> Resolucoes(IEnumerable<EventoChamado> eventos) =>
         eventos.Where(e => e.Tipo == TiposEvento.Transicao && e.Para == Resolvido);
 
-    static TimeSpan Resolucao(ChamadoLido c, IEnumerable<EventoChamado> eventos)
+    internal static TimeSpan Resolucao(ChamadoLido c, IEnumerable<EventoChamado> eventos)
     {
         var fimResolucao = Resolucoes(eventos).Last().CriadoEm;
         var aguardando = TimeSpan.Zero;
@@ -82,12 +82,14 @@ public static class CalculoIndicadores
         return fimResolucao - c.CriadoEm - aguardando;
     }
 
-    static double? PrimeiraResposta(Massa m, List<ChamadoLido> criados)
+    static double? PrimeiraResposta(Massa m, List<ChamadoLido> criados) => Media(TemposDePrimeiraResposta(m, criados));
+
+    internal static List<TimeSpan> TemposDePrimeiraResposta(Massa m, List<ChamadoLido> criados)
     {
         var solicitante = m.Chamados.ToDictionary(c => c.Id, c => c.SolicitanteId);
         var primeira = m.Respostas.Where(r => solicitante.TryGetValue(r.ChamadoId, out var s) && r.AutorId != s)
             .GroupBy(r => r.ChamadoId).ToDictionary(g => g.Key, g => g.Min(r => r.CriadaEm));
-        return Media(criados.Where(c => primeira.ContainsKey(c.Id)).Select(c => primeira[c.Id] - c.CriadoEm));
+        return criados.Where(c => primeira.ContainsKey(c.Id)).Select(c => primeira[c.Id] - c.CriadoEm).ToList();
     }
 
     static List<Ranking> Ordenar(IEnumerable<long> categoriaIds, Dictionary<long, string> categorias) =>
