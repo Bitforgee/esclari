@@ -12,7 +12,8 @@ const lerBytes = (nome: string) => readFileSync(caminho(nome))
 const vite = readFileSync(resolve(raiz, 'vite.config.ts'), 'utf8')
 const themeColor = vite.match(/theme_color:\s*'#([0-9a-fA-F]{6})'/)![1]
 const corDoManifesto = [0, 2, 4].map((i) => parseInt(themeColor.slice(i, i + 2), 16))
-const corDaMarca = [0x22, 0x4f, 0xa7]
+const corDaMarca = [0x24, 0x38, 0xd6]
+const marcaTexto = [0xff, 0xd4, 0x3b]
 
 type Imagem = { largura: number; altura: number; pixel: (x: number, y: number) => number[]; alfa: (x: number, y: number) => number }
 
@@ -80,15 +81,18 @@ describe('icones do PWA', () => {
     const imagem = decodificar(lerBytes('icon-maskable-512.png'))
     const raio = 410 / 2
     let brancos = 0
+    let amarelos = 0
     for (let y = 0; y < 512; y++)
       for (let x = 0; x < 512; x++) {
         const p = imagem.pixel(x, y)
+        if (parecida(p, marcaTexto)) amarelos++
         if (ehBranco(p)) {
           brancos++
           expect(Math.hypot(x + 0.5 - 256, y + 0.5 - 256), `${x},${y}`).toBeLessThanOrEqual(raio)
         } else if (Math.hypot(x + 0.5 - 256, y + 0.5 - 256) > raio) expect(ehCorDaMarca(p), `${x},${y}`).toBe(true)
       }
     expect(brancos).toBeGreaterThan(0)
+    expect(amarelos).toBeGreaterThan(0)
     for (const [x, y] of [[0, 0], [511, 0], [0, 511], [511, 511]]) expect(ehCorDaMarca(imagem.pixel(x, y))).toBe(true)
   })
 

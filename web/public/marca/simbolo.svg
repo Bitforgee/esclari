@@ -1,1 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Esclari"><path fill="currentColor" fill-rule="evenodd" d="M18 4H46A12 12 0 0 1 57.96 15H30A4 4 0 0 0 30 23H58V31H30A4 4 0 0 0 30 39H57.96A12 12 0 0 1 46 50H30L16 60V50H18A12 12 0 0 1 6 38V16A12 12 0 0 1 18 4Z"/></svg>
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path fill='currentColor' d='M55 6H15A6 6 0 0 0 9 12V52A6 6 0 0 0 15 58H55V46H21V18H55Z'/><rect x='21' y='26' width='26' height='12' rx='6' fill='#ffd43b'/></svg>

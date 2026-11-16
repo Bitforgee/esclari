@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 const arquivos: [string, string][] = [
   ['/marca/simbolo.svg', 'image/svg+xml'],
   ['/marca/logo-horizontal.svg', 'image/svg+xml'],
+  ['/marca/logo-horizontal-escuro.svg', 'image/svg+xml'],
   ['/marca/favicon.svg', 'image/svg+xml'],
   ['/icons/apple-touch-icon.png', 'image/png'],
 ]

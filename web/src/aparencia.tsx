@@ -123,12 +123,16 @@ export function useAparencia(slug?: string, nome = '') {
   return useInstituicao(slug).data ?? normalizar({ nome })
 }
 
+export function useTema() {
+  const { theme } = useTheme()
+  const sistemaEscuro = useConsulta('(prefers-color-scheme: dark)')
+  return theme === 'system' ? (sistemaEscuro ? 'dark' : 'light') : theme
+}
+
 export function AplicaAparencia() {
   const slug = useMatch('/:slug/*')?.params.slug
   const { data } = useInstituicao(slug)
-  const { theme } = useTheme()
-  const sistemaEscuro = useConsulta('(prefers-color-scheme: dark)')
-  const tema = theme === 'system' ? (sistemaEscuro ? 'dark' : 'light') : theme
+  const tema = useTema()
   useEffect(() => aplicar(slug, data, tema), [slug, data, tema])
   return null
 }

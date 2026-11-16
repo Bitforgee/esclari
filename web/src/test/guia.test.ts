@@ -15,7 +15,7 @@ describe('guia de marca', () => {
     expect(secao('Área de respeito')).toContain('metade da altura do símbolo')
     expect(secao('Tamanho mínimo')).toMatch(/símbolo[^.]*16 px/)
     expect(secao('Tamanho mínimo')).toMatch(/logo horizontal[^.]*96 px de largura/)
-    expect(secao('Cor')).toContain('#' + '224fa7')
+    expect(secao('Cor')).toContain('#' + '2438d6')
   })
 
   it('usos proibidos sao 5 com razao', () => {

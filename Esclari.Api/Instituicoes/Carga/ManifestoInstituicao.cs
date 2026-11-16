@@ -7,7 +7,7 @@ namespace Esclari.Api.Instituicoes.Carga;
 
 public sealed record ManifestoInstituicao(string Slug) : IRequest<IResult>
 {
-    public const string CorPadrao = "#224fa7";
+    public const string CorPadrao = "#2438d6";
     public const string FundoDoApp = "#fafbfd";
     public const string IconeMaskable = "/icons/icon-maskable-512.png";
 

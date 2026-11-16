@@ -46,7 +46,7 @@ public class ManifestoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(HttpStatusCode.OK, r.StatusCode);
         var m = await r.Json();
         Assert.Equal("CV", m.GetProperty("short_name").GetString());
-        Assert.Equal("#224fa7", m.GetProperty("theme_color").GetString());
+        Assert.Equal("#2438d6", m.GetProperty("theme_color").GetString());
         Assert.Equal($"/{i.Slug}/", m.GetProperty("start_url").GetString());
         var icones = m.GetProperty("icons").EnumerateArray().ToList();
         Assert.Equal(["/icons/icon-192.png", "/icons/icon-512.png", "/icons/icon-maskable-512.png"], icones.Select(x => x.GetProperty("src").GetString()));

@@ -2,7 +2,7 @@ namespace Esclari.Api;
 
 public static class LayoutEmail
 {
-    const string CorPadrao = "#224fa7";
+    const string CorPadrao = "#2438d6";
 
     static string Escapar(string s) => s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
 

@@ -5,7 +5,7 @@ import { chromium } from '@playwright/test'
 
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const destino = join(raiz, 'public', 'icons')
-const MARCA = '#224fa7'
+const MARCA = '#2438d6'
 const fundo = readFileSync(join(raiz, 'vite.config.ts'), 'utf8').match(/theme_color:\s*'(#[0-9a-fA-F]{6})'/)?.[1]
 if (!fundo) {
   console.error('icones: não achei theme_color em web/vite.config.ts.')
@@ -17,8 +17,8 @@ if (!existsSync(arquivoDoSimbolo)) {
   console.error('icones: não achei web/public/marca/simbolo.svg. Os ícones atuais não foram alterados.')
   process.exit(1)
 }
-const contorno = readFileSync(arquivoDoSimbolo, 'utf8').match(/\sd="([^"]+)"/)?.[1]
-if (!contorno) {
+const desenho = readFileSync(arquivoDoSimbolo, 'utf8').match(/<svg[^>]*>([\s\S]*)<\/svg>/)?.[1]
+if (!desenho?.includes('<path')) {
   console.error('icones: web/public/marca/simbolo.svg não tem um <path d="...">. Os ícones atuais não foram alterados.')
   process.exit(1)
 }
@@ -33,7 +33,7 @@ const ESCALA = { any: 0.72, apple: 0.72, maskable: 0.68 }
 
 function svg(tamanho, modo) {
   const u = tamanho / 64
-  const simbolo = `<path fill="#ffffff" fill-rule="evenodd" transform="translate(${32 * u} ${32 * u}) scale(${u * ESCALA[modo]}) translate(-32 -32)" d="${contorno}"/>`
+  const simbolo = `<g transform="translate(${32 * u} ${32 * u}) scale(${u * ESCALA[modo]}) translate(-32 -32)">${desenho.replaceAll('currentColor', '#ffffff')}</g>`
   const margem = tamanho * 0.06
   const placa =
     modo === 'any'

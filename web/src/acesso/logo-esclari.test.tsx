@@ -36,10 +36,15 @@ describe('marca do Esclari', () => {
     expect(logo).toHaveAttribute('alt', 'Esclari')
   })
 
-  it('raiz vira branca no tema escuro', async () => {
-    abrir('/')
-    const logo = (await screen.findByRole('heading', { level: 1, name: 'Esclari' })).querySelector('img')!
-    expect(logo).toHaveClass('dark:brightness-0', 'dark:invert')
+  it('raiz troca o logo no tema escuro', async () => {
+    for (const [tema, arquivo] of [['light', 'logo-horizontal.svg'], ['dark', 'logo-horizontal-escuro.svg'], ['black', 'logo-horizontal-escuro.svg']]) {
+      localStorage.setItem('esclari-tema', tema)
+      const { unmount } = abrir('/')
+      const titulo = await screen.findByRole('heading', { level: 1, name: 'Esclari' })
+      expect(titulo.querySelector('img'), tema).toHaveAttribute('src', '/marca/' + arquivo)
+      unmount()
+    }
+    localStorage.clear()
   })
 
   it('marca do Esclari so aparece na raiz', async () => {

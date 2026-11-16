@@ -10,7 +10,7 @@ import { api, ErroApi } from '../api'
 import { Carregando } from '../Carregando'
 import { ErroDe } from '../ErroDe'
 import { descricaoDoCampo } from '../Campo'
-import { Sigla, urlDaImagem, useInstituicao, type InstituicaoPublica } from '../aparencia'
+import { Sigla, urlDaImagem, useInstituicao, useTema, type InstituicaoPublica } from '../aparencia'
 import { telaInicial, useSessao } from '../sessao'
 import { Alert } from '../ui/alert'
 import { Button } from '../ui/button'
@@ -49,10 +49,11 @@ export function NaoEncontrada() {
 }
 
 export function Raiz() {
+  const tema = useTema()
   return (
     <Centro>
       <div className="flex flex-col items-center gap-3 text-center">
-        <H1 translate="no"><img src="/marca/logo-horizontal.svg" alt="Esclari" width={141} height={40} className="h-10 w-auto dark:brightness-0 dark:invert" /></H1>
+        <H1 translate="no"><img src={tema === 'light' ? '/marca/logo-horizontal.svg' : '/marca/logo-horizontal-escuro.svg'} alt="Esclari" width={174} height={40} className="h-10 w-auto" /></H1>
         <p className="m-0 text-muted-foreground">{Frase}</p>
         <p className="m-0 text-muted-foreground">Abra o endereço da sua instituição, por exemplo /univag.</p>
       </div>
