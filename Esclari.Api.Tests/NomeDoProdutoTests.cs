@@ -24,9 +24,7 @@ public partial class NomeDoProdutoTests
 
     static readonly string[] TrechosPermitidos =
     [
-        "github.com/Bitforgee/One",
         @"D:\One\One",
-        @"D:\one-system",
         "mvp-one",
         "mcp-one",
         "prompt-evolucao-one.md",
