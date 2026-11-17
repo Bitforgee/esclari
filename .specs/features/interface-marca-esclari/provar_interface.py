@@ -21,6 +21,8 @@ TESTES_PERMITIDOS = {
     "web/e2e/ux.spec.ts",
     "web/e2e/aparencia.spec.ts",
     "Esclari.Api.Tests/ManifestoTests.cs",
+    "web/src/administracao/aparencia/aparenciaAbas.test.tsx",
+    "web/e2e/seletor-de-cor.spec.ts",
 }
 
 

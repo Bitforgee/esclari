@@ -109,6 +109,9 @@ Aprovadas pelo dono em 17/11/2026 ("siga as recomendações"), depois da rodada 
 - **E1 (C19):** a lista fechada ganha `web/e2e/ux.spec.ts` (C22) e `web/e2e/aparencia.spec.ts` (C23). Prova inalterada.
 - **E2 (C20):** as suítes E2E de arranjo, celular e diretrizes passam, exceto 4 testes de `arranjo.spec.ts` que falham do mesmo jeito na base `49cba64` (`arranjo Indicadores`, `raiz com a marca e o texto centralizados`, `quebras medidas dos dois lados`, `valores de tipo e bordas`). Prova: `npm --prefix web run e2e -- e2e/arranjo.spec.ts e2e/celular.spec.ts e2e/casca-celular.spec.ts e2e/guidelines.spec.ts --grep-invert "arranjo Indicadores|raiz com a marca e o texto centralizados|quebras medidas dos dois lados|valores de tipo e bordas"`
 - **E3 (C21, `dryer`):** o `dryer` roda sobre as 6 fatias e os arquivos da raiz de `web/src`, o escopo das features anteriores, e a prova lê a saída ("No duplicate candidates found."), não o código de saída. Prova: `python .specs/features/interface-marca-esclari/provar_interface.py -k test_C21_dryer`
+- **E4 (C24, AD-065):** o item de navegação ativo (`aria-current=page`) fica fora da regra de sublinhado; C24 continua valendo para todo `<a>` literal com `text-primary`. Prova inalterada.
+- **E5 (C19):** a lista fechada não conta os testes da feature `seletor-de-cor` (`web/src/administracao/aparencia/aparenciaAbas.test.tsx`, `web/e2e/seletor-de-cor.spec.ts`), que entram em `49cba64..HEAD` mas têm o próprio `checks.md` e o próprio Verify. `guidelinesCores.test.tsx` já estava na lista. Prova inalterada (`provar_interface.py` ganha os dois arquivos com essa marca).
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
