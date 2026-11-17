@@ -1,41 +1,41 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
-/* Tokens de ## Visual (redesign-institucional/plan.md): neutros, um azul de destaque; .black sobrepõe o .dark (door 2).
-   revisao-ux door 2: background, muted, accent, border e input levam um traço da matiz de --marca (ou do azul de base) */
+/* Tokens de ## Visual (redesign-institucional/plan.md): neutros quentes e Tinta como ação (interface-marca-esclari door 1); .black sobrepõe o .dark (door 2).
+   revisao-ux door 2: background, muted, accent, border e input levam um traço da matiz de --marca; sem ela, o fallback é a própria base (interface-marca-esclari door 2) */
 :root {
   color-scheme: light;
-  --background: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 2%, oklch(1 0 none));
-  --foreground: oklch(0.145 0 0);
+  --background: color-mix(in oklch, var(--marca, oklch(0.970 0.010 94)) 2%, oklch(0.970 0.010 94));
+  --foreground: oklch(0.216 0.073 281);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.216 0.073 281);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --sidebar: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 4%, oklch(0.975 0 none));
+  --popover-foreground: oklch(0.216 0.073 281);
+  --sidebar: color-mix(in oklch, var(--marca, oklch(0.955 0.012 94)) 4%, oklch(0.955 0.012 94));
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: var(--marca, oklch(0.45 0.15 262));
+  --sidebar-primary: var(--marca, oklch(0.216 0.073 281));
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 5%, oklch(0.94 0 none));
+  --sidebar-accent: color-mix(in oklch, var(--marca, oklch(0.92 0.014 94)) 5%, oklch(0.92 0.014 94));
   --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 6%, oklch(0.9 0 none));
+  --sidebar-border: color-mix(in oklch, var(--marca, oklch(0.88 0.014 94)) 6%, oklch(0.88 0.014 94));
   --sidebar-ring: var(--ring);
-  --primary: var(--marca, oklch(0.45 0.15 262));
+  --primary: var(--marca, oklch(0.216 0.073 281));
   --primary-foreground: oklch(0.985 0 0);
-  --primary-subtle: var(--marca-sutil, oklch(0.96 0.02 262));
+  --primary-subtle: var(--marca-sutil, oklch(0.94 0.02 281));
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 4%, oklch(0.985 0 none));
-  --muted-foreground: oklch(0.50 0 0);
-  --accent: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 5%, oklch(0.975 0 none));
+  --muted: color-mix(in oklch, var(--marca, oklch(0.945 0.012 94)) 4%, oklch(0.945 0.012 94));
+  --muted-foreground: oklch(0.48 0.012 281);
+  --accent: color-mix(in oklch, var(--marca, oklch(0.935 0.013 94)) 5%, oklch(0.935 0.013 94));
   --accent-foreground: oklch(0.205 0 0);
   --warning-subtle: oklch(0.97 0.04 90);
   --success: oklch(0.52 0.13 155);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 6%, oklch(0.93 0 none));
-  --input: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 6%, oklch(0.66 0 none));
+  --destructive: oklch(0.55 0.22 27.3);
+  --border: color-mix(in oklch, var(--marca, oklch(0.89 0.012 94)) 6%, oklch(0.89 0.012 94));
+  --input: color-mix(in oklch, var(--marca, oklch(0.62 0.012 94)) 6%, oklch(0.62 0.012 94));
   --ring: var(--marca, oklch(0.5 0 0));
-  --chart-1: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 45%, oklch(0.6 0 none));
-  --chart-2: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 45%, oklch(0.6 0 none));
+  --chart-1: color-mix(in oklch, var(--marca, oklch(0.6 0 none)) 45%, oklch(0.6 0 none));
+  --chart-2: color-mix(in oklch, var(--marca, oklch(0.6 0 none)) 45%, oklch(0.6 0 none));
   --grafico-1: oklch(0.42 0.15 262);
   --grafico-2: oklch(0.64 0.12 75);
   --grafico-3: oklch(0.53 0.17 20);
@@ -49,37 +49,37 @@
 
 .dark {
   color-scheme: dark;
-  --background: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 3%, oklch(0.17 0 none));
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.205 0 0);
+  --background: color-mix(in oklch, var(--marca, oklch(0.17 0.02 281)) 3%, oklch(0.17 0.02 281));
+  --foreground: oklch(0.95 0.008 94);
+  --card: oklch(0.205 0.02 281);
   --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.205 0 0);
+  --popover: oklch(0.205 0.02 281);
   --popover-foreground: oklch(0.95 0 0);
-  --sidebar: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 3%, oklch(0.15 0 none));
+  --sidebar: color-mix(in oklch, var(--marca, oklch(0.15 0.02 281)) 3%, oklch(0.15 0.02 281));
   --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: var(--marca-clara, oklch(0.72 0.12 262));
+  --sidebar-primary: var(--marca-clara, oklch(0.970 0.010 94));
   --sidebar-primary-foreground: oklch(0.17 0 0);
-  --sidebar-accent: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 6%, oklch(0.269 0 none));
+  --sidebar-accent: color-mix(in oklch, var(--marca, oklch(0.27 0.025 281)) 6%, oklch(0.27 0.025 281));
   --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 5%, oklch(0.27 0 none));
+  --sidebar-border: color-mix(in oklch, var(--marca, oklch(0.27 0.02 281)) 5%, oklch(0.27 0.02 281));
   --sidebar-ring: var(--ring);
-  --primary: var(--marca-clara, oklch(0.72 0.12 262));
-  --primary-foreground: oklch(0.17 0 0);
-  --primary-subtle: var(--marca-sutil-escuro, oklch(0.27 0.05 262));
+  --primary: var(--marca-clara, oklch(0.970 0.010 94));
+  --primary-foreground: oklch(0.216 0.073 281);
+  --primary-subtle: var(--marca-sutil-escuro, oklch(0.27 0.04 281));
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 5%, oklch(0.22 0 none));
-  --muted-foreground: oklch(0.71 0 0);
-  --accent: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 6%, oklch(0.25 0 none));
+  --muted: color-mix(in oklch, var(--marca, oklch(0.22 0.02 281)) 5%, oklch(0.22 0.02 281));
+  --muted-foreground: oklch(0.71 0.01 281);
+  --accent: color-mix(in oklch, var(--marca, oklch(0.25 0.022 281)) 6%, oklch(0.25 0.022 281));
   --accent-foreground: oklch(0.985 0 0);
   --warning-subtle: oklch(0.30 0.05 85);
   --success: oklch(0.72 0.14 155);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 5%, oklch(0.27 0 none));
-  --input: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 5%, oklch(0.58 0 none));
+  --border: color-mix(in oklch, var(--marca, oklch(0.27 0.02 281)) 5%, oklch(0.27 0.02 281));
+  --input: color-mix(in oklch, var(--marca, oklch(0.58 0.015 281)) 5%, oklch(0.58 0.015 281));
   --ring: var(--marca-clara, oklch(0.556 0 0));
-  --chart-1: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 45%, oklch(0.8 0 none));
-  --chart-2: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 45%, oklch(0.8 0 none));
+  --chart-1: color-mix(in oklch, var(--marca, oklch(0.8 0 none)) 45%, oklch(0.8 0 none));
+  --chart-2: color-mix(in oklch, var(--marca, oklch(0.8 0 none)) 45%, oklch(0.8 0 none));
   --grafico-1: oklch(0.64 0.14 262);
   --grafico-2: oklch(0.88 0.12 85);
   --grafico-3: oklch(0.76 0.14 20);
@@ -97,20 +97,20 @@
   --popover-foreground: oklch(0.92 0 0);
   --sidebar: oklch(0 0 0);
   --sidebar-foreground: oklch(0.92 0 0);
-  --sidebar-accent: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 6%, oklch(0.22 0 none));
-  --sidebar-border: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 5%, oklch(0.26 0 none));
-  --primary-subtle: var(--marca-sutil-preto, oklch(0.24 0.05 262));
-  --muted: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 4%, oklch(0.19 0 none));
-  --accent: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 6%, oklch(0.24 0 none));
+  --sidebar-accent: color-mix(in oklch, var(--marca, oklch(0.22 0 none)) 6%, oklch(0.22 0 none));
+  --sidebar-border: color-mix(in oklch, var(--marca, oklch(0.26 0 none)) 5%, oklch(0.26 0 none));
+  --primary-subtle: var(--marca-sutil-preto, oklch(0.24 0.04 281));
+  --muted: color-mix(in oklch, var(--marca, oklch(0.19 0 none)) 4%, oklch(0.19 0 none));
+  --accent: color-mix(in oklch, var(--marca, oklch(0.24 0 none)) 6%, oklch(0.24 0 none));
   --muted-foreground: oklch(0.70 0 0);
   --warning-subtle: oklch(0.27 0.05 85);
-  --border: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 5%, oklch(0.26 0 none));
-  --input: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 5%, oklch(0.58 0 none));
+  --border: color-mix(in oklch, var(--marca, oklch(0.26 0 none)) 5%, oklch(0.26 0 none));
+  --input: color-mix(in oklch, var(--marca, oklch(0.58 0 none)) 5%, oklch(0.58 0 none));
 }
 
 /* C54: no claro, a borda dos campos do form tingido (bg-muted) precisa de 3:1; o token global fica como está, só este escopo o escurece */
 .form-resposta:not(.dark *) {
-  --input: color-mix(in oklch, var(--marca, oklch(0.45 0.15 262)) 6%, oklch(0.63 0 none));
+  --input: color-mix(in oklch, var(--marca, oklch(0.59 0.012 94)) 6%, oklch(0.59 0.012 94));
 }
 
 /* A prévia da Aparência (AC 38): a cor do formulário vira --primary como o app a faz, clareada no escuro */

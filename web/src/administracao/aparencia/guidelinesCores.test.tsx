@@ -52,7 +52,8 @@ describe('CoresProntas por teclado', () => {
     await userEvent.click(g.getByRole('radio', { name: 'Azul' }))
     expect(screen.getByLabelText('Cor principal')).toHaveValue(Azul)
     const css = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
-    expect(css).toContain('--primary: var(--marca, ' + 'ok' + 'lch(0.45 0.15 262))')
+    expect(css).toContain('--primary: var(--marca, ' + 'ok' + 'lch(0.216 0.073 281))')
+    expect(css).not.toContain('ok' + 'lch(0.45 0.15 262)')
     expect(readFileSync(resolve(process.cwd(), 'src/administracao/aparencia/CoresProntas.tsx'), 'utf8')).toContain("['Azul', '224fa7']")
   })
 

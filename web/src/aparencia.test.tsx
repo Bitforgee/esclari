@@ -100,7 +100,7 @@ describe('marca da instituição', () => {
       }
     expect(declaracao(css, '--marca-clara')).toBe('color-mix(in oklch, var(--marca) 55%, white)')
     expect(declaracao(bloco('.dark'), '--primary')).toMatch(/^var\(--marca-clara, /)
-    expect(declaracao(bloco('.dark'), '--primary-foreground')).toBe('ok' + 'lch(0.17 0 0)')
+    expect(declaracao(bloco('.dark'), '--primary-foreground')).toBe('ok' + 'lch(0.216 0.073 281)')
   })
 
   it('identidade da instituicao prevalece - logo no login e na barra', async () => {
