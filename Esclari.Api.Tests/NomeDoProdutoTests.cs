@@ -27,6 +27,7 @@ public partial class NomeDoProdutoTests
         @"D:\One\One",
         "mvp-one",
         "mcp-one",
+        "prototipo-v1-one",
         "prompt-evolucao-one.md",
         "One or more validation errors",
         "=== 'one'",
