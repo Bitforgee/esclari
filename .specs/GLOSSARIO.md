@@ -56,6 +56,9 @@ uma vez no código, num grupo de constantes de `Esclari.Api/Dados/Entidades.cs`;
 | prazo de rejeição | `Prazos:ConfirmacaoDias` | 7 dias | o aluno pode rejeitar a resolução até esse tempo depois dela; é o mesmo valor do prazo de confirmação, para o aluno poder rejeitar enquanto o chamado não fecha |
 | prazo de lembrete | `Prazos:LembreteAguardandoDias` | 3 dias | chamado em `AGUARDANDO_ALUNO` há esse tempo gera um lembrete por e-mail, uma vez |
 | prazo de resolver aguardando | `Prazos:ResolverAguardandoDias` | 7 dias | chamado em `AGUARDANDO_ALUNO` há esse tempo é resolvido pelo Sistema por falta de resposta |
+| meta de primeira resposta | `Prazos:PrimeiraRespostaHoras` | 24 h | horas corridas, desde a abertura, para a primeira mensagem pública da equipe; de 1 a 8760 (AD-068) |
+| meta de resolução | `Prazos:ResolucaoHoras` | 120 h | horas corridas, desde a abertura e sem contar o tempo em `AGUARDANDO_ALUNO`, para resolver o chamado; de 1 a 8760 e nunca menor que a meta de primeira resposta (AD-068) |
+| `atraso` | calculado, nunca gravado | - | estado lido de um chamado `ABERTO` ou `EM_ATENDIMENTO` que passou de uma meta: `PRIMEIRA_RESPOSTA` (prevalece) ou `RESOLUCAO`; regra em `Dados/Chamados/AtrasoDoChamado.cs`. Não é o `PrazoHoras` da etapa, que só faz o chamado subir |
 
 ## Arquivos (`Armazenamento`, chaves `Armazenamento:*`)
 
