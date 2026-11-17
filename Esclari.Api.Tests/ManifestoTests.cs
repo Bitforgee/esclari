@@ -23,7 +23,7 @@ public class ManifestoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(HttpStatusCode.OK, r.StatusCode);
         Assert.Equal("application/manifest+json", r.Content.Headers.ContentType!.MediaType);
         var m = await r.Json();
-        Assert.Equal(("Centro Universitário Vale", "Univag", "/univag/", "/univag/", "standalone", "#8a1538", "#fafbfd"),
+        Assert.Equal(("Centro Universitário Vale", "Univag", "/univag/", "/univag/", "standalone", "#8a1538", "#F7F5EE"),
             (m.GetProperty("name").GetString(), m.GetProperty("short_name").GetString(), m.GetProperty("start_url").GetString(), m.GetProperty("scope").GetString(),
              m.GetProperty("display").GetString(), m.GetProperty("theme_color").GetString(), m.GetProperty("background_color").GetString()));
         var icones = m.GetProperty("icons").EnumerateArray().ToList();
@@ -126,5 +126,5 @@ public class ManifestoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     {
         var (_, m) = await ManifestoDe(false);
 
-        Assert.Equal("#fafbfd", m.GetProperty("background_color").GetString());
+        Assert.Equal("#F7F5EE", m.GetProperty("background_color").GetString());
     }}

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import { inflateSync } from 'node:zlib'
 import { describe, expect, it, vi } from 'vitest'
 import html from '../index.html?raw'
+import CorDaBarra from './corDaBarra.json'
 import { abrir, api, instituicao, me } from './test/util'
 
 const css = readFileSync('src/index.css', 'utf8')
@@ -196,6 +197,8 @@ describe('base global do css', () => {
     const por = (media: string) => metas.find((m) => m.getAttribute('media') === media)?.getAttribute('content')
     expect(por('(prefers-color-scheme: light)')).toBe(claro)
     expect(por('(prefers-color-scheme: dark)')).toBe(escuro)
+    expect([por('(prefers-color-scheme: light)'), por('(prefers-color-scheme: dark)')]).toEqual(['#' + 'f7f5ee', '#' + '0e0e18'])
+    expect(CorDaBarra).toEqual({ light: '#' + 'f7f5ee', dark: '#' + '0e0e18', black: '#' + '000000' })
   })
 
   it('C7 trocar o tema atualiza o theme-color sem media', async () => {
@@ -203,6 +206,7 @@ describe('base global do css', () => {
     api({ 'GET /api/auth/me': () => [200, me()] })
     abrir('/univag/trocar-senha')
     const cor = () => document.head.querySelector('meta[name="theme-color"]:not([media])')?.getAttribute('content')
+    expect([escuro, claro, preto]).toEqual(['#' + '0e0e18', '#' + 'f7f5ee', '#' + '000000'])
     for (const [rotulo, esperado] of [['Escuro', escuro], ['Claro', claro], ['Preto', preto], ['Claro', claro]] as const) {
       await userEvent.click(await screen.findByRole('button', { name: 'Tema' }))
       await userEvent.click(await screen.findByRole('button', { name: rotulo }))
@@ -257,6 +261,7 @@ describe('base global do css', () => {
     expect(manifest.icons.some((i) => i.purpose === 'maskable')).toBe(true)
     expect(manifest.background_color).toBe(claro)
     expect(manifest.theme_color).toBe(claro)
+    expect([manifest.theme_color, manifest.background_color]).toEqual(['#' + 'f7f5ee', '#' + 'f7f5ee'])
   })
 
   it('C17 o manifest estático lista o maskable de 512 x 512 e deixa icon-512.png só como any', () => {

@@ -168,6 +168,15 @@ describe('icones do PWA', () => {
       rmSync(copia, { recursive: true, force: true })
     }
   })
+  it('margem dos icones any em Papel', () => {
+    const r = spawnSync(process.execPath, ['scripts/gerar-icones.mjs'], { cwd: raiz, encoding: 'utf8' })
+    expect(r.status, r.stderr).toBe(0)
+    const Papel = [0xf7, 0xf5, 0xee]
+    for (const [nome, lado] of [['icon-192.png', 192], ['icon-512.png', 512]] as const) {
+      const imagem = decodificar(lerBytes(nome))
+      for (const [x, y] of [[0, 0], [lado - 1, 0], [0, lado - 1], [lado - 1, lado - 1]]) expect(parecida(imagem.pixel(x, y), Papel), `${nome} ${x},${y}`).toBe(true)
+    }
+  }, 120_000)
   it('manifesto lista os tres icones', () => {
     const icones = [...vite.matchAll(/\{\s*src:\s*'([^']+)',\s*sizes:\s*'([^']+)',\s*type:\s*'image\/png'(?:,\s*purpose:\s*'([^']+)')?\s*\}/g)].map(([, src, , purpose]) => [src, purpose])
     expect(icones).toEqual([
