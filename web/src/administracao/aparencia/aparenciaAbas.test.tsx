@@ -380,6 +380,33 @@ describe('Cores prontas', () => {
     expect(grupo.getAllByRole('radio').map((r) => r.getAttribute('aria-checked'))).toEqual(Array(8).fill('false'))
   })
 
+  it('seletor de cor ao lado do campo Cor principal', async () => {
+    rotas()
+    abrir('/univag/aparencia')
+    const campo = await screen.findByLabelText('Cor principal')
+    const seletor = screen.getByLabelText('Escolher cor')
+    expect(seletor).toHaveAttribute('type', 'color')
+    const rotulo = seletor.closest('label')!
+    expect(rotulo.parentElement).toBe(campo.parentElement)
+    expect(screen.getByRole('radiogroup', { name: 'Cores prontas' }).parentElement!.contains(seletor)).toBe(false)
+    expect(rotulo).toHaveTextContent('Escolher cor')
+    expect(rotulo.querySelector('.sr-only')).toBeNull()
+  })
+
+  it('amostra do seletor mostra a cor ou fica neutra', async () => {
+    rotas()
+    abrir('/univag/aparencia')
+    const amostra = () => screen.getByLabelText('Escolher cor').closest('label')!.querySelector<HTMLElement>('[data-amostra]')!
+    await digitar('Cor principal', Cor)
+    expect(amostra().style.backgroundColor).toBe('rg' + 'b(138, 21, 56)')
+    expect(amostra()).not.toHaveClass('border-dashed')
+    for (const valor of ['', hex('12')]) {
+      fireEvent.change(screen.getByLabelText('Cor principal'), { target: { value: valor } })
+      expect(amostra().style.backgroundColor, valor).toBe('')
+      expect(amostra(), valor).toHaveClass('border-dashed')
+    }
+  })
+
   it('cor sem contraste bloqueia o Salvar', async () => {
     rotas()
     abrir('/univag/aparencia')

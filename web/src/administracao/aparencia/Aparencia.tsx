@@ -22,7 +22,7 @@ import { useConsulta } from '../../ui/use-mobile'
 import { Abas, abaPedida, abasComErro, Campos, EhLista, Rotulos, type Campo, type IdAba, type Tipo } from './abasDaAparencia'
 import { useAvisoAoFechar } from '../avisoAoFechar'
 import { CampoImagem } from './CampoImagem'
-import { CoresProntas } from './CoresProntas'
+import { CoresProntas, SeletorDeCor } from './CoresProntas'
 import { PreviaAparencia } from './PreviaAparencia'
 
 type Valores = Record<string, string>
@@ -127,6 +127,17 @@ function RodapeDoCampo({ campo, id, tamanho }: { campo: Campo; id: string; taman
   )
 }
 
+function LinhaDaEntrada({ campo, props, mudar }: { campo: Campo; props: PropsDaEntrada['props']; mudar: (v: string) => void }) {
+  const entrada = <Entrada area={campo.area} tipo={campo.tipo} props={props} mudar={mudar} />
+  if (campo.chave !== 'cor') return entrada
+  return (
+    <div className="flex min-w-0 items-center gap-2 [&>input]:min-w-0 [&>input]:flex-1">
+      {entrada}
+      <SeletorDeCor cor={props.value} escolher={mudar} />
+    </div>
+  )
+}
+
 function CampoDeTexto({ campo, valor, mudar, erro }: { campo: Campo; valor: string; mudar: (v: string) => void; erro?: string }) {
   const id = `ap-${campo.chave}`
   const descricao = descricaoDe(campo, id, erro)
@@ -135,7 +146,7 @@ function CampoDeTexto({ campo, valor, mudar, erro }: { campo: Campo; valor: stri
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <Label htmlFor={id}>{campo.rotulo}</Label>
-      <Entrada area={campo.area} tipo={campo.tipo} props={props} mudar={mudar} />
+      <LinhaDaEntrada campo={campo} props={props} mudar={mudar} />
       {campo.chave === 'cor' && <Amostra cor={valor} />}
       <RodapeDoCampo campo={campo} id={id} tamanho={tamanho} />
       <ErroDoCampo id={id} erro={erro} />

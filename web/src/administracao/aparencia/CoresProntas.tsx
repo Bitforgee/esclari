@@ -50,13 +50,28 @@ export function CoresProntas({ cor, escolher }: { cor: string; escolher: (cor: s
           )
         })}
       </div>
+    </div>
+  )
+}
+
+export function SeletorDeCor({ cor, escolher }: { cor: string; escolher: (cor: string) => void }) {
+  const valida = CorValida.test(cor)
+  return (
+    <label className="relative inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-xs border bg-background px-3 text-sm font-medium has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring max-md:h-11 pointer-coarse:h-11">
+      <span
+        data-amostra
+        aria-hidden="true"
+        className={`size-5 shrink-0 rounded-xs border ${valida ? '' : 'border-dashed bg-muted'}`}
+        style={valida ? { backgroundColor: cor } : undefined}
+      />
+      Escolher cor
       <input
         type="color"
         aria-label="Escolher cor"
-        value={CorValida.test(cor) ? cor.toLowerCase() : comHash('000000')}
+        value={valida ? cor.toLowerCase() : comHash('000000')}
         onChange={(e) => escolher(e.target.value)}
-        className="size-11 shrink-0 cursor-pointer rounded-sm border bg-transparent p-0.5 md:size-8"
+        className="absolute inset-0 size-full cursor-pointer opacity-0"
       />
-    </div>
+    </label>
   )
 }

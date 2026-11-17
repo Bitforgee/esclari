@@ -64,6 +64,8 @@ describe('CoresProntas por teclado', () => {
     await userEvent.tab()
     expect(g.getByRole('radio', { name: 'Roxo' })).toHaveFocus()
     await userEvent.tab()
+    expect(screen.getByLabelText('Cor principal')).toHaveFocus()
+    await userEvent.tab()
     expect(screen.getByLabelText('Escolher cor')).toHaveFocus()
   })
 })
