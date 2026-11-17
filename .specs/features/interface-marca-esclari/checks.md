@@ -91,6 +91,24 @@ Proof: `npm --prefix web run coverage`
 Proof: `Push-Location web; crapper --source-root src --use-existing-coverage --threshold 10; $c = $LASTEXITCODE; Pop-Location; exit $c`
 Proof: `Push-Location web; dryer --threshold 0.8; $c = $LASTEXITCODE; Pop-Location; exit $c`
 
+### S4 - Ação reconhecível sem cor própria (emenda de 17/11) · 4 arquivos · ~110 KB · ~28k
+
+**C22** - Na varredura das telas com cor da instituição, a cor de ação só aparece em botão principal, item ativo, link e foco; numa tela em que `--primary` é igual a `--foreground` (Raiz, sem instituição), a regra de cor de texto não se aplica e as regras de fundo e borda continuam (AD-064)
+Proof: `npm --prefix web run e2e -- e2e/ux.spec.ts -g "cor de ação só em botão principal, item ativo, link e foco"`
+
+**C23** - Na tela de login, o fundo do botão Entrar é `#8a1538` no Claro e `color-mix(in oklch, #8a1538 55%, white)` no Escuro e no Preto com cor da instituição, e `oklch(0.216 0.073 281)` no Claro e `oklch(0.970 0.010 94)` no Escuro sem cor (AC 2, AC 3)
+Proof: `npm --prefix web run e2e -- e2e/aparencia.spec.ts -g "cor da instituição nos três temas"`
+
+**C24** - Todo `<a>` de `web/src` fora de testes com a classe `text-primary` também tem `underline` (pelo menos 4: telefone e e-mail do contato, fontes da conversa e anexo) (AD-064)
+Proof: `npm --prefix web test -- src/test/interface.test.ts -t "links text-primary sublinhados"`
+
+## Emendas
+
+Aprovadas pelo dono em 17/11/2026 ("siga as recomendações"), depois da rodada 1 do Verificador (`verification.md`). O texto original de C19, C20 e C21 fica acima; estas linhas o substituem.
+
+- **E1 (C19):** a lista fechada ganha `web/e2e/ux.spec.ts` (C22) e `web/e2e/aparencia.spec.ts` (C23). Prova inalterada.
+- **E2 (C20):** as suítes E2E de arranjo, celular e diretrizes passam, exceto 4 testes de `arranjo.spec.ts` que falham do mesmo jeito na base `49cba64` (`arranjo Indicadores`, `raiz com a marca e o texto centralizados`, `quebras medidas dos dois lados`, `valores de tipo e bordas`). Prova: `npm --prefix web run e2e -- e2e/arranjo.spec.ts e2e/celular.spec.ts e2e/casca-celular.spec.ts e2e/guidelines.spec.ts --grep-invert "arranjo Indicadores|raiz com a marca e o texto centralizados|quebras medidas dos dois lados|valores de tipo e bordas"`
+- **E3 (C21, `dryer`):** o `dryer` roda sobre as 6 fatias e os arquivos da raiz de `web/src`, o escopo das features anteriores, e a prova lê a saída ("No duplicate candidates found."), não o código de saída. Prova: `python .specs/features/interface-marca-esclari/provar_interface.py -k test_C21_dryer`
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -103,6 +121,7 @@ Proof: `Push-Location web; dryer --threshold 0.8; $c = $LASTEXITCODE; Pop-Locati
 | cores prontas (8) | Azul · Verde · Vinho · Roxo · Laranja · Grafite · Petróleo · Marrom: C8, table-driven sobre 8 × 11 × 3 = 264 | - |
 | lugares do fundo do app (8) | `index.html` claro C13 · `index.html` escuro C13 · `corDaBarra.json` C13 · troca de tema C14 · `vite.config.ts` theme_color C15 · `vite.config.ts` background_color C15 · `ManifestoInstituicao.FundoDoApp` C16 · margem dos ícones `any` C17 | - |
 | ícones do PWA (4) | `icon-192` C17 · `icon-512` C17 · `icon-maskable-512` C17 · `apple-touch-icon` C17 | - |
+| ação reconhecível sem cor própria (3) | regra de cor de ação C22 · botão Entrar por tema C23 · links sublinhados C24 |
 | invariantes (4) | tipografia C10 · raios C10 · gráficos C10 · preset Azul C12 | - |
 | telas capturadas (28) | C18, table-driven sobre os 28 arquivos | - |
 | gates do AC 13 (6) | build web C21 · build .NET C21 · testes .NET tocados C16 · Vitest C21 · crapper C21 · dryer C21 | - |

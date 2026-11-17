@@ -30,7 +30,7 @@ Use SVG sempre que o destino aceitar vetor. Os PNGs do kit existem para sistemas
 | Tinta | `#15133A` | RGB 21, 19, 58 | CMYK 64, 67, 0, 77 | palavra-marca e fundo escuro |
 | Papel | `#F7F5EE` | RGB 247, 245, 238 | CMYK 0, 1, 4, 3 | palavra sobre Tinta e fundo de apresentação |
 
-O azul `#224fa7` continua sendo a cor de ação padrão da interface. Ele não faz parte da paleta do logo e evita usar o vermelho de marca como sinal de ação ou sucesso.
+Na interface, sem cor da instituição, a cor de ação é Tinta no tema claro e Papel nos temas escuros (AD-063). Origem fica fora de botões, foco, item ativo e estados, porque tem quase a mesma matiz do vermelho de erro. O azul `#224fa7` continua só como a cor pronta "Azul" da Aparência.
 
 ## Contraste
 

@@ -18,6 +18,8 @@ TESTES_PERMITIDOS = {
     "web/src/aparencia.test.tsx",
     "web/src/administracao/aparencia/guidelinesCores.test.tsx",
     "web/e2e/interface-marca.spec.ts",
+    "web/e2e/ux.spec.ts",
+    "web/e2e/aparencia.spec.ts",
     "Esclari.Api.Tests/ManifestoTests.cs",
 }
 
@@ -49,6 +51,15 @@ class InterfaceMarcaTests(unittest.TestCase):
         self.assertTrue(tocados, "nenhum teste tocado: a prova não viu o diff")
         self.assertEqual(sorted(tocados - TESTES_PERMITIDOS), [])
 
+    def test_C21_dryer(self):
+        web = RAIZ / "web"
+        fatias = ["acesso", "assistente", "chamados", "conhecimento", "indicadores", "administracao"]
+        raiz = sorted(f"src/{p.name}" for p in (web / "src").iterdir() if p.is_file() and p.suffix in (".ts", ".tsx") and ".test." not in p.name)
+        argumentos = [a for f in fatias for a in ("-s", f"src/{f}")] + ["--threshold", "0.8", *raiz]
+        r = subprocess.run(["dryer.cmd", *argumentos], cwd=web, capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("No duplicate candidates found.", r.stdout)
+        self.assertNotIn("DUPLICATE", r.stdout)
 
 if __name__ == "__main__":
     unittest.main(argv=[sys.argv[0], *sys.argv[1:]])
