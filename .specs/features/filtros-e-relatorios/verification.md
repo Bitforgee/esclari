@@ -1,39 +1,48 @@
 # Filtros na lista de chamados e relatório em CSV - verificação
 
-**Verdict**: FAIL
+**Verdict**: PASS
 **Profile**: ui
-**Diff range**: 7005230..3ff7c50 (correção da rodada 1: `3f7a342..3ff7c50`)
-**Round**: 2 - scoped
-**Verifier**: independent sub-agent (author != verifier); não escreveu o código, os checks nem a correção
+**Diff range**: 7005230..9d931da (correção da rodada 2: `5ffb768..9d931da`)
+**Round**: 3 - scoped
+**Verifier**: independent sub-agent (author != verifier); não escreveu o código, os checks nem as correções
 
-O que a correção `3ff7c50` mudou: só testes (`BuscaDeChamadosTests`, `ExportarChamadosTests`, `LeituraDoAdministradorTests`, `filtros.test.tsx`, `chamadosAdmin.test.tsx`, `e2e/filtros.spec.ts`), mais `checks.md` (E4, C63-C72) e `plan.md` (uma linha em Out of scope e uma em Assumptions). `git diff --stat bb4bcb6..3ff7c50` sem os testes, os e2e e o `.specs/` sai vazio, então o código de produto é o mesmo da rodada 1.
+O que mudou depois da rodada 2 (`5ffb768`):
+- `67a7a67` acrescenta `[InlineData("de=2026-11-12&ate=2026-11-11", "de")]` ao `BuscaDeChamadosTests.Parametro_invalido_400_na_exportacao` (`BuscaDeChamadosTests.cs:299`). No `checks.md`, o texto do C64 passa a nomear `de` > `ate` (AC 10), a linha de Coverage "parâmetros recusados na exportação" vai a 6 e as duas linhas grudadas da tabela foram separadas. No `plan.md`, a linha de Assumptions "a ordem conta como filtro?" voltou para dentro da tabela.
+- `cbb47cf` e `9d931da` só mexem em docs: `STATE.md` (`## Handoff` e AD-067), `checks.md` (E3 "confirmada pelo dono em 17/11") e `plan.md` (Assumptions com `y`, Out of scope e Open questions com o "ok" do dono).
 
-Os 72 checks passam com prova localizada no `HEAD` (`3ff7c50`), e os 32 mutantes da rodada 2 morreram, um ou mais para cada asserção nova. A correção fechou 7 dos 9 gaps ranqueados da rodada 1. O veredito continua FAIL por dois motivos:
+`git diff --stat 3ff7c50..9d931da -- web Esclari.Api` sai vazio. O código de produto é o mesmo das rodadas 1 e 2, e o único teste alterado é `BuscaDeChamadosTests.cs`.
 
-1. **A contagem contradiz a Tela 1.** O C67 e o C68 afirmam "1 chamado · Mais antigos primeiro" (regex com `^…$`), e a Tela 1 do plano desenha a contagem "N chamados". A linha nova de Assumptions que aceita o sufixo está com `Confirmed? n`, ou seja, nenhum humano decidiu. Ela também ficou depois de uma linha em branco, fora da tabela (`plan.md:208`).
-2. **O C64 deixa um membro sem prova.** A Surface diz que `exportar` recebe "os mesmos de `busca`, sem `pagina`", e o AC 10 manda responder `400` quando `de` > `ate`. O C64 cobre só 5 das 6 causas de 400 por parâmetro. `de` > `ate` em `exportar` continua sem prova, e o gap 9 da rodada 1 nomeava exatamente esse caso.
+Os 72 checks passam com prova localizada no `HEAD` (`9d931da`). Os dois gaps ranqueados da rodada 2 estão fechados:
 
-**Emenda E3 ainda sem confirmação do dono.** O C62 foi julgado contra o texto do E3, que o `checks.md` marca como "pede o 'ok' do dono". Esse "ok" continua fora do `checks.md` e do AD-066 do `STATE.md` (o `## Handoff` repete "E3 pede o 'ok' do dono"). Se o dono recusar o E3, o C62 volta ao texto original e é FAIL, porque 15 testes falham no `HEAD`.
+1. **Contagem contra a Tela 1.** O AD-067 (`.specs/STATE.md:73`) registra o "ok" do dono em 17/11 para o texto "N chamados · Mais antigos primeiro"/"Mais recentes primeiro", e para a ordem fora das etiquetas e de "Filtros (N)". A linha de Assumptions agora diz `y` e está dentro da tabela (`plan.md:207`). A Tela 1 (`plan.md:70`) continua escrevendo só "N chamados", mas a decisão ativa e confirmada que refina essa tela é o AD-067, e ela vale sobre o texto antigo. Os rótulos do C67 e do C68 seguem essa decisão, então não há mais contradição.
+2. **`de` > `ate` em `exportar`.** O caso novo roda e passa (TRX: `Parametro_invalido_400_na_exportacao(consulta: "de=2026-11-12&ate=2026-11-11", campo: "de") Passed`). Duas faltas na superfície nova morreram, cada uma numa asserção diferente: `:307` (status) e `:308` (campo).
+
+As notas da rodada 2 que pediam o dono também estão fechadas pelo AD-067. O E3 está confirmado (`checks.md:14`, "confirmada pelo dono em 17/11: 'ok'"), e a linha de Out of scope sobre o tempo real na tela Chamados registra o "ok" (`plan.md:192`). O AD-067 aceita também o E1, o E2 e o E4.
 
 ## Binding sources
 
-Verified at `3ff7c50` para as linhas que os checks novos tocam (C67-C71). As capturas são carried from `3f7a342`, porque o código de produto não mudou: `D:\esclari-verif\fila-1280.png`, `fila-1280-painel.png`, `fila-360*.png`, `chamados-1280*.png`, `chamados-360*.png`. A caixa do painel foi medida de novo pelo e2e novo a 1280×800: borda direita em 1280, `x` > 640, `y` 0, altura 800 (`filtros.spec.ts:40-43`, verde).
+A linha da Tela 1 foi verificada em `9d931da`, porque a correção mexeu na decisão que a rege (`plan.md:207`, AD-067). As outras linhas são carried from `3ff7c50`: nem o código de produto nem os testes dessas telas mudaram (`git diff --stat 3ff7c50..9d931da -- web` vazio). As capturas são carried from `3f7a342`: `D:\esclari-verif\fila-1280.png`, `fila-1280-painel.png`, `fila-360*.png`, `chamados-1280*.png`, `chamados-360*.png`. O e2e `filtros.spec.ts` rodou de novo no `HEAD` contra a imagem do compose e deu `5 passed`.
 
-Fonte aberta: `plan.md` `## Surface` > Telas (`plan.md:68-72`) e os critérios AC 18-29, 41, 46-52 (`plan.md:119-178`).
+Fontes abertas: `plan.md` `## Surface` > Telas (`plan.md:68-72`), `## Assumptions` (`plan.md:195-209`), `## Out of scope` (`plan.md:192`), os critérios AC 18-29, 41, 46-52 e o `.specs/STATE.md` AD-066 e AD-067 (`:72-73`).
 
 | Source | Opened | Contradiction | Uncovered |
 | --- | --- | --- | --- |
-| Telas 1 `/:slug/fila`: barra (busca, "Filtros", "Exportar CSV"), etiquetas com "Limpar filtros", contagem "N chamados", tabela | sim - `plan.md:70`; captura `fila-1280.png` (carried) | C67 (`filtros.test.tsx:72`, `toHaveTextContent(/^1 chamado · Mais antigos primeiro$/)`) e C68 (`:78`, `/^2 chamados · Mais recentes primeiro$/`) afirmam uma contagem que o desenho não tem ("a contagem 'N chamados'"). A decisão que aceita o sufixo é a linha de Assumptions "a ordem conta como filtro?", com `Confirmed? n`, escrita no build depois da rodada 1 (`plan.md:208`). Sem o "ok" do dono, o check soletra um rótulo diferente do da fonte | - (arranjo agora coberto: ordem barra → etiquetas → contagem → tabela C67 `filtros.test.tsx:67`; conteúdo da barra `:68-70`; "Limpar filtros" nas etiquetas `:71`; barra numa linha a 1280 `filtros.spec.ts:36`) |
-| Telas 2 `/:slug/chamados` ("a mesma tela" com escopo `todos`, coluna "Setor", título "Chamados") | sim - `plan.md:71`; captura `chamados-1280.png` (carried) | nenhuma | - (barra C71 `chamadosAdmin.test.tsx:50-51` e o clique em "Filtros"; painel com Setor "Todos, Financeiro, Secretaria" `:54` e 5 caixas de Estado `:55`; título, colunas e vazio C52). A ordem das regiões em `/chamados` só está provada pelo componente comum `ListaBuscada` (`Chamados.tsx:164-224`; `Fila` `:212` e `TodosOsChamados` `:215-223` renderizam o mesmo). Ver nota 6 |
-| Telas 3 painel "Filtros" (à direita a partir de 768 px, de baixo abaixo; Estado, Setor, Categoria, Responsável, Período de abertura, Ordem; rodapé "Limpar"/"Aplicar") | sim - `plan.md:72`; medido pelo e2e novo a 1280 | nenhuma | - (lado direito C70 `filtros.spec.ts:40-43`; de baixo C55 `:65`; ordem dos 6 campos C69 `filtros.test.tsx:87`; rodapé C55, C56, C58). O limite exato de 768 px não é medido (nota 5) |
-| Critérios AC 18-29, 41, 46-52 | sim - `plan.md` Criteria | nenhuma | - |
+| Telas 1 `/:slug/fila`: barra (busca, "Filtros", "Exportar CSV"), etiquetas com "Limpar filtros", contagem, tabela; o texto da contagem decidido pelo AD-067 | sim - `plan.md:70`, `plan.md:207`, `STATE.md:73` (verified at 9d931da); captura `fila-1280.png` (carried from 3f7a342) | nenhuma - o C67 (`filtros.test.tsx:72`, `/^1 chamado · Mais antigos primeiro$/`) e o C68 (`:78`, `/^2 chamados · Mais recentes primeiro$/`) soletram o texto que o AD-067 e a linha de Assumptions `y` fixam ("N chamados · Mais antigos primeiro"/"Mais recentes primeiro") | - |
+| Telas 2 `/:slug/chamados` ("a mesma tela" com escopo `todos`, coluna "Setor", título "Chamados") | sim - `plan.md:71` (carried from 3ff7c50); captura `chamados-1280.png` | nenhuma | - |
+| Telas 3 painel "Filtros" (à direita a partir de 768 px, de baixo abaixo; Estado, Setor, Categoria, Responsável, Período de abertura, Ordem; rodapé "Limpar"/"Aplicar") | sim - `plan.md:72` (carried from 3ff7c50); medido pelo e2e a 1280 e a 360 | nenhuma | - |
+| Critérios AC 18-29, 41, 46-52 | sim - `plan.md` Criteria (carried from 3ff7c50) | nenhuma | - |
+| Out of scope: tempo real na tela Chamados do administrador | sim - `plan.md:192`, `STATE.md:73` (verified at 9d931da) | nenhuma - o "ok" do dono está registrado; o AC 27 segue coberto pela Fila (C32) | - |
+
+Arranjo enumerado (carried from `3ff7c50`). Tela 1: ordem barra → etiquetas → contagem → tabela (C67 `filtros.test.tsx:67`), conteúdo da barra (`:68-70`), "Limpar filtros" nas etiquetas (`:71`), barra numa linha a 1280 (`filtros.spec.ts:36`) e em coluna a 360 (C54). Tela 2: barra e painel (C71 `chamadosAdmin.test.tsx:50-55`); título, colunas e vazio (C52). Tela 3: lado direito (C70 `filtros.spec.ts:40-43`), de baixo (C55 `:65`), ordem dos 6 campos (C69 `filtros.test.tsx:87`), rodapé (C55, C56, C58).
 
 ## Checks
 
-Verified at `3ff7c50`. As provas rodaram em uma invocação por alvo:
-- API: `dotnet test Esclari.Api.Tests --logger "trx;LogFileName=D:\esclari-verif\r2-api-full.trx"` deu `Aprovado! – Com falha: 0, Aprovado: 1077, Ignorado: 0, Total: 1077`, com 8 testes a mais que na rodada 1 (`Barra_invertida` 1, `Parametro_invalido_400_na_exportacao` 5 casos, `Rotulos_de_estado_e_motivo` 1, `Baixa_o_anexo_em_leitura` 1). Cada nome citado abaixo foi lido no TRX com `outcome=Passed` (47 nomes; `Parametro_invalido_400` x6, `Parametro_invalido_400_na_exportacao` x5, `Aspas_quando_precisa` x6, `Prefixo_contra_formula` x7).
-- Vitest: `cd web && npx vitest run --reporter=json` deu `total=1099 passed=1099 failed=0`. Os 23 títulos citados nos checks aparecem cada um com `passed`, inclusive os 4 novos ("ordem da tela", "contagem diz a ordem", "ordem dos campos do painel", "tela chamados com a barra e o painel da fila").
-- Playwright: `npx playwright test e2e/filtros.spec.ts` deu `5 passed`, inclusive `filtros.spec.ts:31` "desktop painel à direita e barra numa linha". Os 5 specs do C62 deram `15 failed, 176 passed`.
+Verified at `9d931da`. As provas rodaram com uma invocação por alvo:
+- API: `dotnet test Esclari.Api.Tests --logger "trx;LogFileName=D:\esclari-verif\r3-api-full.trx"` deu `Aprovado! – Com falha: 0, Aprovado: 1078, Ignorado: 0, Total: 1078`, exit 0. São 1077 da rodada 2 mais o caso novo do C64. Cada nome citado abaixo foi lido no TRX com `outcome=Passed`: 47 nomes, com `Parametro_invalido_400` x6, `Parametro_invalido_400_na_exportacao` x6, `Aspas_quando_precisa` x6, `Prefixo_contra_formula` x7, `ArquiteturaTests` 82/82, `McpFerramentasTests` 14 e `VisibilidadeTests` 4.
+- Vitest: `cd web && npx vitest run --reporter=json` deu `total=1099 passed=1099 failed=0`. Os 23 títulos citados nos checks aparecem cada um uma vez, com `passed`, no arquivo esperado.
+- Playwright: `npx playwright test e2e/ux.spec.ts e2e/casca.spec.ts e2e/identidade.spec.ts e2e/filtros.spec.ts e2e/arranjo.spec.ts` deu `15 failed, 176 passed`. Os 5 testes de `filtros.spec.ts` (`:31`, `:48`, `:61`, `:82`, `:94`) estão entre os que passaram, e as 15 falhas são as do E3.
+
+As citações de `BuscaDeChamadosTests.cs` a partir da linha 299 foram atualizadas: a linha nova empurra tudo uma linha para baixo. As citações dos outros arquivos não mudam, porque esses arquivos não mudaram desde `3ff7c50`.
 
 | Check | Claim | Proof run | Evidence | Result |
 | --- | --- | --- | --- | --- |
@@ -52,13 +61,13 @@ Verified at `3ff7c50`. As provas rodaram em uma invocação por alvo:
 | C13 | `recentes` invertido; `antigos` = ausente | TRX `Ordem_recentes_e_antigos` Passed | `BuscaDeChamadosTests.cs:230` `Assert.Equal([novo, medio, velho], ..."&ordem=recentes")`; `:231`, `:232` `[velho, medio, novo]` com `antigos` e sem `ordem` | PASS |
 | C14 | 51 chamados: 50/1/0, total 51, porPagina 50 | TRX `Pagina_de_50_com_total` Passed | `BuscaDeChamadosTests.cs:245` `Assert.Equal((1, 50), ...)`; `:247` `(3, 0)`; `:249` `Assert.Equal((51, 50), (total, porPagina))` | PASS |
 | C15 | chaves exatas do envelope e do item, valores do chamado | TRX `Forma_da_resposta` Passed | `BuscaDeChamadosTests.cs:263` `Assert.Equal(["itens", "total", "pagina", "porPagina"], ...)`; `:265` `Assert.Equal(["numero", "titulo", "estado", "setor", "categoria", "responsavel", "criadoEm", "dias"], ...)`; `:273` `Assert.Equal(2, ...dias)` | PASS |
-| C16 | 6 parâmetros inválidos → 400 com o campo; 100 + espaços → 200 | TRX `Parametro_invalido_400` x6 Passed, `Busca_de_100_caracteres_aparada_200` Passed | `BuscaDeChamadosTests.cs:290` `Assert.Equal(HttpStatusCode.BadRequest, ...)`; `:291` `Assert.True(...errors.TryGetProperty(campo, out _), campo)`; `:316` `Assert.Equal(HttpStatusCode.OK, r.StatusCode)` | PASS |
-| C17 | aluno → 403 nas 3 rotas | TRX `BuscaDeChamadosTests.Aluno_403` Passed | `BuscaDeChamadosTests.cs:325` `Assert.Equal(HttpStatusCode.Forbidden, ...)` sobre `Rotas` (3) | PASS |
-| C18 | atendente com `todos` → 403 nas 3 | TRX `Todos_so_para_administrador` Passed | `BuscaDeChamadosTests.cs:334` `Assert.Equal(HttpStatusCode.Forbidden, ...rota + "?escopo=todos")` | PASS |
-| C19 | sem sessão → 401 nas 3 | TRX `Sem_sessao_401` Passed | `BuscaDeChamadosTests.cs:343` `Assert.Equal(HttpStatusCode.Unauthorized, ...)` | PASS |
-| C20 | outra instituição nunca em busca, exportar, filtros | TRX `Outra_instituicao_nunca_aparece` Passed | `BuscaDeChamadosTests.cs:360` `Assert.Equal([minha], Numeros(busca))`; `:363` uma linha de dados no CSV; `:364` `Assert.DoesNotContain(filtros...setores, ...outra...)` | PASS |
-| C21 | filtros do atendente: setores dele, categorias ativas por nome, `{id, nome}` | TRX `Filtros_do_atendente` Passed | `BuscaDeChamadosTests.cs:380` `Assert.Equal(["Acesso ao portal", "Boleto", "Não classificado"], ...)`; `:381` `Assert.Equal(["id", "nome"], ...)` | PASS |
-| C22 | `unaccent` instalada; modelo sem mudança pendente | TRX `Extensao_unaccent_instalada`, `ArquiteturaTests.Modelo_sem_mudanca_pendente` Passed | `BuscaDeChamadosTests.cs:389` `Assert.Equal(1, instalada)`; `Esclari.Api.Tests/ArquiteturaTests.cs:759` `Assert.False(...HasPendingModelChanges())` | PASS |
+| C16 | 6 parâmetros inválidos → 400 com o campo; 100 + espaços → 200 | TRX `Parametro_invalido_400` x6 Passed, `Busca_de_100_caracteres_aparada_200` Passed | `BuscaDeChamadosTests.cs:290` `Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode)`; `:291` `Assert.True(...errors.TryGetProperty(campo, out _), campo)`; `:317` `Assert.Equal(HttpStatusCode.OK, r.StatusCode)` | PASS |
+| C17 | aluno → 403 nas 3 rotas | TRX `BuscaDeChamadosTests.Aluno_403` Passed | `BuscaDeChamadosTests.cs:326` `Assert.Equal(HttpStatusCode.Forbidden, (await aluno.Cliente.GetAsync(rota + "?escopo=fila")).StatusCode)` sobre `Rotas` (3) | PASS |
+| C18 | atendente com `todos` → 403 nas 3 | TRX `Todos_so_para_administrador` Passed | `BuscaDeChamadosTests.cs:335` `Assert.Equal(HttpStatusCode.Forbidden, ...rota + "?escopo=todos")` | PASS |
+| C19 | sem sessão → 401 nas 3 | TRX `Sem_sessao_401` Passed | `BuscaDeChamadosTests.cs:344` `Assert.Equal(HttpStatusCode.Unauthorized, ...)` | PASS |
+| C20 | outra instituição nunca em busca, exportar, filtros | TRX `Outra_instituicao_nunca_aparece` Passed | `BuscaDeChamadosTests.cs:361` `Assert.Equal([minha], Numeros(busca))`; `:364` `Assert.Equal(1, csv.Split("\r\n", ...).Length - 1)`; `:365` `Assert.DoesNotContain(filtros.GetProperty("setores")..., ...outra...)` | PASS |
+| C21 | filtros do atendente: setores dele, categorias ativas por nome, `{id, nome}` | TRX `Filtros_do_atendente` Passed | `BuscaDeChamadosTests.cs:381` `Assert.Equal(["Acesso ao portal", "Boleto", "Não classificado"], ...)`; `:382` `Assert.Equal(["id", "nome"], ...)` | PASS |
+| C22 | `unaccent` instalada; modelo sem mudança pendente | TRX `Extensao_unaccent_instalada`, `ArquiteturaTests.Modelo_sem_mudanca_pendente` Passed | `BuscaDeChamadosTests.cs:390` `Assert.Equal(1, instalada)`; `Esclari.Api.Tests/ArquiteturaTests.cs:759` `Assert.False(...HasPendingModelChanges())` | PASS |
 | C23 | busca rotulada, "Filtros", "Exportar CSV" antes da tabela | Vitest `barra da fila` passed | `web/src/chamados/filtros.test.tsx:40` `expect(el.compareDocumentPosition(tabela) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()` para os 3 | PASS |
 | C24 | nada aos 299 ms, uma chamada aos 300 ms, `q=boleto` na URL | Vitest `busca 300 ms depois` passed | `filtros.test.tsx:50` `toBe(0)`; `:55` `toBe(1)`; `:56` `expect(params(roteador).get('q')).toBe('boleto')` | PASS |
 | C25 | 5 caixas, Setor, Categoria, Responsável, Período, Ordem; "Fechado" não busca até Aplicar | Vitest `painel aplica em lote` passed | `filtros.test.tsx:94` `toEqual(['Aberto', 'Em atendimento', 'Aguardando aluno', 'Resolvido', 'Fechado'])`; `:97` Responsável `['Qualquer', 'Eu', 'Sem responsável']`; `:98` Ordem; `:99` grupo "Período de abertura"; `:105` `toBe(antes)` | PASS |
@@ -93,18 +102,18 @@ Verified at `3ff7c50`. As provas rodaram em uma invocação por alvo:
 | C54 | 360: campo na largura toda, botões abaixo, sem rolagem horizontal | Playwright `360 busca na largura toda` ✓ | `web/e2e/filtros.spec.ts:54` `expect(campo.width).toBeCloseTo(barra.width, 0)`; `:55`, `:56` botões abaixo e na mesma linha; `:58` `scrollWidth).toBeLessThanOrEqual(360)` | PASS |
 | C55 | 360: painel na borda de baixo, rodapé visível nos dois extremos, Fechado aplica | Playwright `360 painel de baixo com rodape fixo` ✓ | `filtros.spec.ts:65` `expect(p.y + p.height).toBeCloseTo(780, 0)`; `:68`, `:70` `rodapeVisivel` (asserções em `:26-27`); `:77` `getAll('estado')).toEqual(['FECHADO'])` | PASS |
 | C56 | 844×390: painel rola por dentro, Aplicar sempre visível | Playwright `deitado o painel rola` ✓ | `filtros.spec.ts:87` `expect(rola).toBeGreaterThan(visivel)`; `:90` `rodapeVisivel(page, 390)` em 0,5 e 1 | PASS |
-| C57 | `type="search"`, `enterkeyhint="search"`, Enter busca na hora e tira o foco | Vitest `teclado busca na hora` passed | `filtros.test.tsx:236` `toHaveAttribute('type', 'search')`; `:237` `('enterkeyhint', 'search')`; `:238` `userEvent.type(busca, 'boleto{Enter}')`; `:239` `waitFor(() => expect(buscas(...q=boleto)).toBe(1), { timeout: 200 })`, abaixo dos 300 ms; `:240` `activeElement).not.toBe(busca)`. A precisão (a) da rodada 1 fecha: agora é a tecla Enter | PASS |
+| C57 | `type="search"`, `enterkeyhint="search"`, Enter busca na hora e tira o foco | Vitest `teclado busca na hora` passed | `filtros.test.tsx:236` `toHaveAttribute('type', 'search')`; `:237` `('enterkeyhint', 'search')`; `:238` `userEvent.type(busca, 'boleto{Enter}')`; `:239` `waitFor(() => expect(buscas(...q=boleto)).toBe(1), { timeout: 200 })`; `:240` `activeElement).not.toBe(busca)` | PASS |
 | C58 | 44 px nos 5 controles da tela e nos 13 do painel a 360 | Playwright `toque de 44 px` ✓ | `filtros.spec.ts:97` `toBeGreaterThanOrEqual(44)` nos 5; `:108` `expect(doPainel.length).toBe(5 + 4 + 4)`; `:111` `toBeGreaterThanOrEqual(44)` | PASS |
-| C59 | build .NET 0 (CA1502) e `ArquiteturaTests` inteiro | `dotnet build Esclari.slnx --no-incremental` → `0 Erro(s)`, exit 0; TRX `ArquiteturaTests` 82 Passed | `ArquiteturaTests.cs:364` `}, 48);`; `:490` `Assert.Equal(91, mensagens.Count)`; `:1022` subpastas de Chamados (arquivo fora do diff da correção; citações carried from `3f7a342`) | PASS |
-| C60 | suítes API e web inteiras; build web; MCP e `GET /api/chamados` com o JSON da base | `dotnet test Esclari.Api.Tests` 1077/1077; Vitest 1099/1099; `npm --prefix web run build` exit 0 | TRX `McpFerramentasTests` 14 Passed, `VisibilidadeTests` 4 Passed (fora do diff `7005230..3ff7c50`); `BuscaDeChamadosTests.cs:47` compara com `GET /api/chamados?escopo=fila` | PASS |
-| C61 | crapper < 10 em `web/src`; dryer sem candidato a 0.8 (E2) | `npm run coverage` exit 0; `crapper --source-root src --use-existing-coverage --threshold 10` exit 0; `dryer.cmd` com `-s` nas 6 fatias e nos 30 arquivos não-teste da raiz de `web/src`, `--threshold 0.8`, exit 0 | maior nota `Sidebar ui.sidebar 9.8`; código da feature `baixar chamados.Busca 9.6`; dryer imprime `No duplicate candidates found.` | PASS |
-| C62 | (E3, sem "ok" do dono) os 5 specs passam no HEAD, exceto as 15 falhas da base, e nenhuma outra | `npx playwright test e2e/ux.spec.ts e2e/casca.spec.ts e2e/identidade.spec.ts e2e/filtros.spec.ts e2e/arranjo.spec.ts` → `15 failed, 176 passed` | as 15 falhas são as mesmas 15 da rodada 1 e do E3: `arranjo.spec.ts:227`, `:458`, `:938`, `:1188`; `casca.spec.ts:119`, `:589`, `:630`, `:673`, `:890`; `identidade.spec.ts:115`, `:721`, `:744`, `:786`, `:814`, `:1199`. A comparação com a base `7005230` (16 falhas lá, as 15 mais `identidade.spec.ts:288`) é carried from `3f7a342`, porque nem a base nem o código de produto mudaram | PASS |
+| C59 | build .NET 0 (CA1502) e `ArquiteturaTests` inteiro | `dotnet build Esclari.slnx --no-incremental` → `0 Erro(s)`, exit 0; TRX `ArquiteturaTests` 82/82 Passed | `ArquiteturaTests.cs:364` `}, 48);`; `:490` `Assert.Equal(91, mensagens.Count)`; `:1022` subpastas de Chamados (arquivo sem mudança desde `3f7a342`) | PASS |
+| C60 | suítes API e web inteiras; build web; MCP e `GET /api/chamados` com o JSON da base | `dotnet test Esclari.Api.Tests` 1078/1078; Vitest 1099/1099; `npm --prefix web run build` exit 0 | TRX `McpFerramentasTests` 14 Passed, `VisibilidadeTests` 4 Passed (fora do diff `7005230..9d931da`); `BuscaDeChamadosTests.cs:47` compara com `GET /api/chamados?escopo=fila` | PASS |
+| C61 | crapper < 10 em `web/src`; dryer sem candidato a 0.8 (E2, aceita no AD-067) | `npm run coverage` exit 0; `crapper --source-root src --use-existing-coverage --threshold 10` exit 0; `dryer.cmd` com `-s` nas 6 fatias e nos 30 arquivos não-teste da raiz de `web/src`, `--threshold 0.8`, exit 0 | maior nota `Sidebar ui.sidebar 9.8`; código da feature `baixar chamados.Busca 9.6` (`D:\esclari-verif\r3-crap.log`); dryer imprime `No duplicate candidates found.` | PASS |
+| C62 | (E3, confirmado pelo dono em 17/11, AD-067) os 5 specs passam no HEAD, exceto as 15 falhas da base, e nenhuma outra | `npx playwright test e2e/ux.spec.ts e2e/casca.spec.ts e2e/identidade.spec.ts e2e/filtros.spec.ts e2e/arranjo.spec.ts` → `15 failed, 176 passed` | as 15 falhas são as mesmas do E3 e das rodadas 1 e 2: `arranjo.spec.ts:227`, `:458`, `:938`, `:1188`; `casca.spec.ts:119`, `:589`, `:630`, `:673`, `:890`; `identidade.spec.ts:115`, `:721`, `:744`, `:786`, `:814`, `:1199` (`D:\esclari-verif\r3-e2e.log`). A comparação com a base `7005230` é carried from `3f7a342`, porque nem a base nem o código de produto mudaram | PASS |
 | C63 | `q=\` dá total 0 sem `\`; com "Arquivo em C:\temp\notas", `q=C:\temp` e `q=\` dão só esse | TRX `BuscaDeChamadosTests.Barra_invertida_e_texto_comum` Passed | `BuscaDeChamadosTests.cs:135` `Assert.Equal(0, (await Buscar(..., EscapeDataString("\\"))).GetProperty("total").GetInt32())`; `:138` `Assert.Equal([pasta], ...EscapeDataString(@"C:\temp"))`; `:139` `Assert.Equal([pasta], ...EscapeDataString("\\"))` | PASS |
-| C64 | `exportar` 400 com o campo em `errors` para `estado`, `ordem`, `responsavel`, `escopo`, `q` de 101 | TRX `Parametro_invalido_400_na_exportacao` x5 Passed | `BuscaDeChamadosTests.cs:295-299` os 5 `InlineData`; `:304` `GetAsync("/api/chamados/exportar?" + consulta)`; `:306` `Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode)`; `:307` `Assert.True(...errors.TryGetProperty(campo, out _), campo)`. A afirmação está provada como escrita, mas não cobre `de` > `ate` (gap 2) | PASS |
-| C65 | CSV: 5 rótulos de estado e 4 de motivo | TRX `ExportarChamadosTests.Rotulos_de_estado_e_motivo` Passed | `ExportarChamadosTests.cs:123` `Assert.Equal(["Aberto", "Em atendimento", "Aguardando aluno", "Resolvido", "Fechado"], ...[2])`; `:124` `"Confirmado pelo aluno"`; `:125` `"Cancelado pelo aluno"`; `:126` `"Duplicado"`; `:127` `"Fechado automaticamente"` (todos na coluna `[13]`); `:118` pré-condição: o agendador fechou o resolvido antigo | PASS |
+| C64 | `exportar` 400 com o campo em `errors` para `estado`, `ordem`, `responsavel`, `escopo`, `de=2026-11-12&ate=2026-11-11` (campo `de`) e `q` de 101 | TRX `Parametro_invalido_400_na_exportacao` x6 Passed, inclusive `(consulta: "de=2026-11-12&ate=2026-11-11", campo: "de")` | `BuscaDeChamadosTests.cs:295-300` os 6 `InlineData`, com `:299` `[InlineData("de=2026-11-12&ate=2026-11-11", "de")]`; `:305` `GetAsync("/api/chamados/exportar?" + consulta)`; `:307` `Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode)`; `:308` `Assert.True((await r.Json()).GetProperty("errors").TryGetProperty(campo, out _), campo)` | PASS |
+| C65 | CSV: 5 rótulos de estado e 4 de motivo | TRX `ExportarChamadosTests.Rotulos_de_estado_e_motivo` Passed | `ExportarChamadosTests.cs:123` `Assert.Equal(["Aberto", "Em atendimento", "Aguardando aluno", "Resolvido", "Fechado"], ...[2])`; `:124` `"Confirmado pelo aluno"`; `:125` `"Cancelado pelo aluno"`; `:126` `"Duplicado"`; `:127` `"Fechado automaticamente"` | PASS |
 | C66 | administrador em `LEITURA` baixa o anexo com 200 e os mesmos bytes; o de outra instituição 404 | TRX `LeituraDoAdministradorTests.Baixa_o_anexo_em_leitura` Passed | `LeituraDoAdministradorTests.cs:98` `Assert.Equal(HttpStatusCode.OK, r.StatusCode)`; `:99` `Assert.Equal(png, await r.Content.ReadAsByteArrayAsync())`; `:100` `Assert.Equal(HttpStatusCode.NotFound, (await deOutra.GetAsync($"/api/anexos/{id}")).StatusCode)` | PASS |
-| C67 | ordem barra → etiquetas com "Limpar filtros" → contagem → tabela; a 1280 a barra numa linha | Vitest `ordem da tela` passed; Playwright `desktop painel à direita e barra numa linha` ✓ | `filtros.test.tsx:67` `compareDocumentPosition(...) & Node.DOCUMENT_POSITION_FOLLOWING` sobre `[barra, etiquetas, contagem, tabela]`; `:68-70` busca, "Filtros" e "Exportar CSV" dentro de `[data-barra-da-busca]`; `:71` "Limpar filtros" dentro de `[data-etiquetas]`; `:72` `toHaveTextContent(/^1 chamado · Mais antigos primeiro$/)`; `filtros.spec.ts:36` `expect(c.y + c.height / 2).toBeCloseTo(campo.y + campo.height / 2, 0)`. A prova bate com o texto do check; o texto do check contradiz a Tela 1 (gap 1) | PASS |
-| C68 | `ordem=recentes` → "2 chamados · Mais recentes primeiro" | Vitest `contagem diz a ordem` passed | `filtros.test.tsx:78` `toHaveTextContent(/^2 chamados · Mais recentes primeiro$/)` (gap 1) | PASS |
+| C67 | ordem barra → etiquetas com "Limpar filtros" → contagem "1 chamado · Mais antigos primeiro" → tabela; a 1280 a barra numa linha | Vitest `ordem da tela` passed; Playwright `desktop painel à direita e barra numa linha` ✓ | `filtros.test.tsx:67` `compareDocumentPosition(...) & Node.DOCUMENT_POSITION_FOLLOWING` sobre `[barra, etiquetas, contagem, tabela]`; `:68-70` busca, "Filtros" e "Exportar CSV" dentro de `[data-barra-da-busca]`; `:71` "Limpar filtros" dentro de `[data-etiquetas]`; `:72` `toHaveTextContent(/^1 chamado · Mais antigos primeiro$/)`; `filtros.spec.ts:36` `expect(c.y + c.height / 2).toBeCloseTo(campo.y + campo.height / 2, 0)`. O texto agora segue o AD-067 e `plan.md:207` (`y`) | PASS |
+| C68 | `ordem=recentes` → "2 chamados · Mais recentes primeiro" | Vitest `contagem diz a ordem` passed | `filtros.test.tsx:78` `toHaveTextContent(/^2 chamados · Mais recentes primeiro$/)`; o texto segue o AD-067 | PASS |
 | C69 | campos do painel na ordem Estado, Setor, Categoria, Responsável, Período de abertura, Ordem | Vitest `ordem dos campos do painel` passed | `filtros.test.tsx:87` `expect(titulos).toEqual(['Estado', 'Setor', 'Categoria', 'Responsável', 'Período de abertura', 'Ordem'])` | PASS |
 | C70 | a 1280×800 o painel encosta na direita, começa depois de 640, altura 800 do topo | Playwright `desktop painel à direita e barra numa linha` ✓ | `filtros.spec.ts:40` `expect(p.x + p.width).toBeCloseTo(1280, 0)`; `:41` `expect(p.x).toBeGreaterThan(640)`; `:42` `expect(p.y).toBeCloseTo(0, 0)`; `:43` `expect(p.height).toBeCloseTo(800, 0)` | PASS |
 | C71 | tela Chamados com busca, "Filtros", "Exportar CSV"; painel com Setor "Todos", "Financeiro", "Secretaria" e 5 caixas de Estado | Vitest `tela chamados com a barra e o painel da fila` passed | `chamadosAdmin.test.tsx:50` `getByRole('searchbox', { name: 'Buscar por número, título ou aluno' })`; `:51` `getByRole('button', { name: 'Exportar CSV' })`; `:52` clique em `getByRole('button', { name: 'Filtros' })`; `:54` `toEqual(['Todos', 'Financeiro', 'Secretaria'])`; `:55` `toHaveLength(5)` | PASS |
@@ -112,28 +121,28 @@ Verified at `3ff7c50`. As provas rodaram em uma invocação por alvo:
 
 ## Coverage
 
-Recalculado a partir da autoridade de cada conjunto. As linhas cuja autoridade a correção tocou dizem `verified at 3ff7c50`. As outras dizem `carried from 3f7a342` e são as linhas da rodada 1 com as citações atualizadas.
+Recalculado a partir da autoridade de cada conjunto. As linhas cuja autoridade a correção tocou dizem `verified at 9d931da`. As outras dizem de qual rodada vêm, com as citações de `BuscaDeChamadosTests.cs` atualizadas.
 
 | Set (size) | Recomputed from | Member -> proof | Unproven |
 | --- | --- | --- | --- |
-| causas de 400 em `exportar` (7) | verified at 3ff7c50 - Surface `plan.md:64` ("os mesmos de `busca`, sem `pagina`") + AC 10 + AC 13 + AC 37; código `FiltroDeChamados.cs:37-45` (6 recusas) chamado por `Consultar` `:64`, que `ExportarChamados.cs:42` usa | limite C42 · `estado` C64 · `ordem` C64 · `responsavel` C64 · `escopo` C64 · `q` C64 | `de` > `ate` em `exportar`: nenhuma prova. O C12 bate só em `busca` (`BuscaDeChamadosTests.cs:215`), e o C64 tem 5 `InlineData` sem `de=2026-11-12&ate=2026-11-11` (`:295-299`) |
-| caracteres escapados na busca (3) | verified at 3ff7c50 - Landing 3; código `FiltroDeChamados.cs:103` (`\`, `%`, `_`) | `%` C6 · `_` C6 · `\` C63 | - |
-| rótulo de estado no CSV (5) | verified at 3ff7c50 - AC 32 + `RotuloDoEstado` `ExportarChamados.cs:28` | Aberto, Em atendimento, Aguardando aluno, Resolvido, Fechado C65 (`ExportarChamadosTests.cs:123`) | - |
-| rótulo de motivo de fechamento (4) | verified at 3ff7c50 - AC 32 + `RotuloDoMotivo` `ExportarChamados.cs:33-34` | Confirmado pelo aluno `:124` · Cancelado pelo aluno `:125` · Duplicado `:126` · Fechado automaticamente `:127` (C65) | - |
-| quem ramifica no papel `LEITURA` (6) | verified at 3ff7c50 - Impact `plan.md:46` | `DetalheChamado.Montar` C49 · `PermissoesChamado.Acoes` C49 · `Estados` C50 · `AgirNoChamado` C50 · `TempoRealHub.EntrarNoChamado` C72 · `BaixarAnexo` C66 | - |
-| `GET /api/anexos/{id}` com `LEITURA` (2) | verified at 3ff7c50 - `BaixarAnexo.cs` (ramo `Carregar` + filtro de instituição) | 200 com os bytes C66 · 404 de outra instituição C66 | - |
-| arranjo da Tela 1 Fila (4 regiões + barra numa linha) | verified at 3ff7c50 - `plan.md:70` | barra C67 `:67-70` · etiquetas com "Limpar filtros" C67 `:71` · contagem C67 `:72`, C29 · tabela C67 `:67` · uma linha a 1280 C67 `filtros.spec.ts:36` · coluna a 360 C54 | - |
-| texto da contagem (2) | verified at 3ff7c50 - `plan.md:70` + `Chamados.tsx:153-160` | número C29 · sufixo da ordem C67, C68 (contradição, ver Binding sources) | - |
-| Tela 2 Chamados (barra, painel, tabela, título, coluna, vazio) | verified at 3ff7c50 - `plan.md:71`, AC 47 | barra C71 `:50-52` · painel C71 `:54-55` · tabela, título, coluna "Setor", vazio C52 | - |
-| Tela 3 painel: lado por largura (2) | verified at 3ff7c50 - `plan.md:72` + `Busca.tsx:148` | abaixo de 768 de baixo C55 (360) · a partir de 768 à direita C70 (1280) | - |
-| Tela 3 painel: campos e ordem (6) | verified at 3ff7c50 - `plan.md:72` + `Busca.tsx:113-136` | Estado, Setor, Categoria, Responsável, Período de abertura, Ordem C69 (`:87`), presença e opções C25 | - |
+| causas de 400 em `exportar` (7) | verified at 9d931da - Surface `plan.md:64` ("os mesmos de `busca`, sem `pagina`") + AC 10 + AC 13 + AC 37; código `FiltroDeChamados.cs:37-45` (6 recusas), chamado por `Consultar` `:64`, que `Consulta/ExportarChamados.cs:42` usa | limite C42 (`ExportarChamadosTests.cs:192`) · `escopo` C64 · `estado` C64 · `responsavel` C64 · `ordem` C64 · `de` > `ate` C64 (`BuscaDeChamadosTests.cs:299`, `:307-308`) · `q` C64. `FiltroDeChamados.cs:43` (`De > Ate, "de"`) agora tem prova pela rota `exportar` | - |
+| texto da contagem (2) | verified at 9d931da - `plan.md:70` refinado pelo `plan.md:207` (`y`) e pelo AD-067 (`STATE.md:73`); código `Chamados.tsx:153-160` | número C29 (`filtros.test.tsx:178`) · sufixo da ordem C67 (`:72`), C68 (`:78`) | - |
+| `GET /api/chamados/exportar` status (5) | verified at 9d931da - Surface `plan.md:64` | 200 C35 · 400 C42, C64 · 401 C19 (`BuscaDeChamadosTests.cs:344`) · 403 C9, C17 (`:326`), C18 (`:335`), C43 · 429 C44 | - |
+| caracteres escapados na busca (3) | carried from 3ff7c50 - Landing 3; código `FiltroDeChamados.cs:103` | `%` C6 · `_` C6 · `\` C63 | - |
+| rótulo de estado no CSV (5) | carried from 3ff7c50 - AC 32 + `RotuloDoEstado` `ExportarChamados.cs:28` | Aberto, Em atendimento, Aguardando aluno, Resolvido, Fechado C65 (`ExportarChamadosTests.cs:123`) | - |
+| rótulo de motivo de fechamento (4) | carried from 3ff7c50 - AC 32 + `RotuloDoMotivo` `ExportarChamados.cs:33-34` | Confirmado pelo aluno `:124` · Cancelado pelo aluno `:125` · Duplicado `:126` · Fechado automaticamente `:127` (C65) | - |
+| quem ramifica no papel `LEITURA` (6) | carried from 3ff7c50 - Impact `plan.md:46` | `DetalheChamado.Montar` C49 · `PermissoesChamado.Acoes` C49 · `Estados` C50 · `AgirNoChamado` C50 · `TempoRealHub.EntrarNoChamado` C72 · `BaixarAnexo` C66 | - |
+| `GET /api/anexos/{id}` com `LEITURA` (2) | carried from 3ff7c50 - `BaixarAnexo.cs` | 200 com os bytes C66 · 404 de outra instituição C66 | - |
+| arranjo da Tela 1 Fila (4 regiões + barra numa linha) | carried from 3ff7c50 - `plan.md:70` | barra C67 `:67-70` · etiquetas com "Limpar filtros" C67 `:71` · contagem C67 `:72`, C29 · tabela C67 `:67` · uma linha a 1280 C67 `filtros.spec.ts:36` · coluna a 360 C54 | - |
+| Tela 2 Chamados (barra, painel, tabela, título, coluna, vazio) | carried from 3ff7c50 - `plan.md:71`, AC 47 | barra C71 `:50-52` · painel C71 `:54-55` · tabela, título, coluna "Setor", vazio C52 | - |
+| Tela 3 painel: lado por largura (2) | carried from 3ff7c50 - `plan.md:72` + `Busca.tsx:148` | abaixo de 768 de baixo C55 (360) · a partir de 768 à direita C70 (1280) | - |
+| Tela 3 painel: campos e ordem (6) | carried from 3ff7c50 - `plan.md:72` + `Busca.tsx:113-136` | Estado, Setor, Categoria, Responsável, Período de abertura, Ordem C69 (`:87`), presença e opções C25 | - |
 | `GET /api/chamados/busca` status (4) | carried from 3f7a342 - Surface | 200 C1 · 400 C12, C16 · 401 C19 · 403 C9, C17, C18 | - |
-| `GET /api/chamados/exportar` status (5) | carried from 3f7a342 - Surface | 200 C35 · 400 C42, C64 · 401 C19 · 403 C9, C17, C18, C43 · 429 C44 | - |
 | `GET /api/chamados/filtros` status (3) | carried from 3f7a342 - Surface | 200 C21 · 401 C19 · 403 C17, C18 | - |
 | `GET /api/chamados/{numero}` status mudado (1) | carried from 3f7a342 - Surface | 200 para administrador fora do setor C49 | - |
 | filtros da API (9) | carried from 3f7a342 - Surface In | `escopo` C18, C47 · `q` C3 · `estado` C2 · `setorId` C8 · `categoriaId` C7 · `responsavel` C10 · `de`/`ate` C11 · `ordem` C13 · `pagina` C14 | - |
 | campos onde `q` procura (3) | carried from 3f7a342 - AC 3 | título C3 · número C4 · nome do solicitante C5 | - |
-| valores recusados em `busca` (6 + `de`>`ate`) | carried from 3f7a342 - AC 13, AC 10 | `estado`, `ordem`, `responsavel`, `escopo`, `pagina`, `q` C16 (`BuscaDeChamadosTests.cs:291`) · `de` C12 | - |
+| valores recusados em `busca` (6 + `de`>`ate`) | carried from 3f7a342 - AC 13, AC 10 | `estado`, `ordem`, `responsavel`, `escopo`, `pagina`, `q` C16 (`BuscaDeChamadosTests.cs:291`) · `de` C12 (`:216`) | - |
 | porta 1, chaves (12) | carried from 3f7a342 - Landing 1 | C15 nas 12 (`BuscaDeChamadosTests.cs:263`, `:265`) | - |
 | porta 2, colunas (16) | carried from 3f7a342 - Landing 2 | C36 cabeçalho literal; C37 13 valores; C38 "Primeira resposta em"; C41 "Título"; C65 "Estado" e "Motivo de fechamento" | - |
 | porta 2, aspas (4) | carried from 3f7a342 - Landing 2 | `;` `"` CR LF C40 | - |
@@ -143,13 +152,15 @@ Recalculado a partir da autoridade de cada conjunto. As linhas cuja autoridade a
 | porta 3, extensão (1) | carried from 3f7a342 - Landing 3 | `unaccent` C22, C3 | - |
 | campos do painel na URL e na API (7) | carried from 3f7a342 - Telas 3 + AC 20/21 | Estado C25, C26 · Setor C26 · Categoria C26 · Responsável C26, C27 · Período C26 · Ordem C26, C27 · `q` C24, C27 | - |
 | estados da tela (6) | carried from 3f7a342 - Observable | carregando C34 · recarregando C34 · erro C33 · vazio sem filtro C30, C52 · vazio com filtro C30 · com itens C29, C31 | - |
-| linhas do celular (4) | carried from 3f7a342 - Observable | 360×780 C54, C55 · 844×390 C56 · teclado C57 (agora com Enter de verdade) · toque C58 | - |
+| linhas do celular (4) | carried from 3f7a342 - Observable | 360×780 C54, C55 · 844×390 C56 · teclado C57 · toque C58 | - |
 | barra inferior do administrador (4) | carried from 3f7a342 - Impact | Chamados, Indicadores, Gerir, Conta: `web/src/acesso/barra.test.tsx`, na suíte C60 | - |
 | montagem do limite `exportar` (1) | carried from 3f7a342 - `Esclari.Api/Seguranca.cs:20-21`, `ExportarChamados.cs:21`, `Program.cs:48`; nenhum `appsettings*.json` nem o `docker-compose.yml` define `Limites:ExportarPorMinuto` | C44 boota o mesmo `Program` com `LimitesReais => true` | - |
 
+A tabela `## Coverage` do `checks.md` agora tem a linha "parâmetros recusados na exportação (6)" com `de` > `ate`, e as linhas "quem ramifica no papel `LEITURA`" e "configuração de partida" estão separadas. Isso fecha a nota 7 da rodada 2.
+
 ## Test policy rows
 
-Carried from `3f7a342`, re-julgado para os testes novos. O `checks.md` não tem seção `Test policy`, então a regra do `AGENTS.md` decide ("teste de integração bate na rota HTTP"). Os testes novos da API cruzam a rota: C63 e C64 por `HttpClient` em `/api/chamados/busca` e `/api/chamados/exportar`, C65 em `/api/chamados/exportar`, C66 em `/api/anexos/{id}`. O C72 cruza o hub SignalR real (`f.Abrir`, `c.Entrar`). Nenhum gap de nível.
+Re-julgado em `9d931da` para o arquivo tocado (`BuscaDeChamadosTests.cs`); o resto é carried from `3ff7c50`. O `checks.md` não tem seção `Test policy`, então a regra do `AGENTS.md` decide: "teste de integração bate na rota HTTP". O caso novo do C64 cruza a rota por `HttpClient` em `/api/chamados/exportar` (`BuscaDeChamadosTests.cs:305`).
 
 | Row | Files it classifies | Required proof | Expectation met |
 | --- | --- | --- | --- |
@@ -157,52 +168,55 @@ Carried from `3f7a342`, re-julgado para os testes novos. O `checks.md` não tem 
 
 ## Faults injected
 
-Verified at `3ff7c50`. Todas as faltas foram feitas num worktree descartável (`git worktree add --detach D:\esclari-wt2 HEAD`, com `web/node_modules` como junção para o da árvore real), nunca na árvore real.
+Verified at `9d931da` para a superfície nova, que é o caso `de` > `ate` do C64. As faltas foram feitas num worktree descartável (`git worktree add --detach D:\esclari-wt3 HEAD`), nunca na árvore real. Cada uma rodou `dotnet test D:\esclari-wt3\Esclari.Api.Tests --filter ...`, com uma falta por vez, e o arquivo foi revertido com `git checkout` antes da próxima.
 
-- Faltas da API: `dotnet test D:\esclari-wt2\Esclari.Api.Tests --filter ...`, um teste por vez.
-- Faltas do web: `npx vitest run <arquivo> -t "<nome>"` dentro do worktree.
-- Faltas de e2e: o worktree foi construído com `npm run build`, e o `wwwroot` resultante foi copiado para dentro do container `esclari-api-1` em `/app/wwwroot` (a API serve com `UseStaticFiles`, `Program.cs:24`). Depois rodaram os specs do `HEAD`. Antes das faltas, um baseline com o build do worktree sem falta deu `5 passed`.
-
-Porcelain da árvore real antes: `?? .tmp-apresentacao/`, `?? .tmp-capturas/`. Depois de remover a junção e o worktree: o mesmo, e `git diff --stat` vazio. O container da API foi recriado da imagem do compose (`docker compose up -d --force-recreate api`), e `e2e/filtros.spec.ts` voltou a dar `5 passed`.
+Porcelain da árvore real antes: `?? .specs/devolutiva-banca-17-11.md`, `?? .specs/features/prazos-de-atendimento/`, `?? .specs/features/validade-do-conhecimento/`, `?? .tmp-apresentacao/`, `?? .tmp-capturas/`. Os três primeiros apareceram entre o começo desta rodada e o baseline, e não são deste Verify. Depois de `git worktree remove --force D:\esclari-wt3` a porcelain é a mesma e `git diff --stat` sai vazio.
 
 | Mutation | Location | Killed |
 | --- | --- | --- |
-| busca: tirar o escape de `\` do padrão | `Esclari.Api/Chamados/FiltroDeChamados.cs:103` | yes - `Barra_invertida_e_texto_comum` falha em `BuscaDeChamadosTests.cs:138` (`Expected: ["ESC-000002"] Actual: []`) |
-| busca: apagar `\` do termo antes de montar o padrão | `FiltroDeChamados.cs:103` | yes - `Barra_invertida_e_texto_comum` falha em `BuscaDeChamadosTests.cs:135` (`Expected: 0 Actual: 1`) |
-| busca: termo igual a `\` devolve vazio | `FiltroDeChamados.cs:102` | yes - `Barra_invertida_e_texto_comum` falha em `BuscaDeChamadosTests.cs:139` (`Expected: ["ESC-000002"] Actual: []`) |
-| exportar: `Consultar` sem a validação dos parâmetros | `FiltroDeChamados.cs:61-64`, `Consulta/ExportarChamados.cs:42` | yes - `Parametro_invalido_400_na_exportacao` 5 de 5 casos falham em `BuscaDeChamadosTests.cs:306` (`Expected: BadRequest Actual: OK`) |
-| validação: campo `ordem` devolvido como `order` em `errors` | `FiltroDeChamados.cs:42` | yes - `Parametro_invalido_400_na_exportacao(ordem=meio)` falha em `BuscaDeChamadosTests.cs:307` |
+| `exportar` deixa de validar o período (`m.Filtro with { De = null, Ate = null }` antes de `Consultar`; a `busca` continua validando) | `Esclari.Api/Chamados/Consulta/ExportarChamados.cs:42` | yes - `Parametro_invalido_400_na_exportacao(consulta: "de=2026-11-12&ate=2026-11-11", campo: "de")` falha em `BuscaDeChamadosTests.cs:307` (`Expected: BadRequest Actual: OK`). No mesmo run, `De_depois_de_ate_400` (C12) passa. Só o caso novo pega uma `exportar` sem a validação do período, que era o gap 2 da rodada 2 |
+| recusa do período devolvida no campo `ate` em vez de `de` | `Esclari.Api/Chamados/FiltroDeChamados.cs:43` | yes - `Parametro_invalido_400_na_exportacao(... campo: "de")` falha em `BuscaDeChamadosTests.cs:308` (`TryGetProperty(campo, ...)`); os outros 5 casos passam |
+
+Carried from `3ff7c50`: os 34 mutantes da rodada 2, todos mortos, sobre código e testes que a correção não tocou. A citação do `exportar` foi atualizada para as linhas novas de `BuscaDeChamadosTests.cs`.
+
+| Mutation | Location | Killed |
+| --- | --- | --- |
+| busca: tirar o escape de `\` do padrão | `Esclari.Api/Chamados/FiltroDeChamados.cs:103` | yes - `Barra_invertida_e_texto_comum` falha em `BuscaDeChamadosTests.cs:138` |
+| busca: apagar `\` do termo antes de montar o padrão | `FiltroDeChamados.cs:103` | yes - falha em `BuscaDeChamadosTests.cs:135` |
+| busca: termo igual a `\` devolve vazio | `FiltroDeChamados.cs:102` | yes - falha em `BuscaDeChamadosTests.cs:139` |
+| exportar: `Consultar` sem a validação dos parâmetros | `FiltroDeChamados.cs:61-64`, `Consulta/ExportarChamados.cs:42` | yes - `Parametro_invalido_400_na_exportacao` falhou nos 5 casos de então, em `BuscaDeChamadosTests.cs:306` (hoje `:307`) |
+| validação: campo `ordem` devolvido como `order` em `errors` | `FiltroDeChamados.cs:42` | yes - `Parametro_invalido_400_na_exportacao(ordem=meio)` falhou em `:307` (hoje `:308`) |
 | CSV: "Aguardando aluno" → "Aguardando o aluno" | `Consulta/ExportarChamados.cs:28` | yes - `Rotulos_de_estado_e_motivo` falha em `ExportarChamadosTests.cs:123` |
 | CSV: "Confirmado pelo aluno" → "Confirmado" | `ExportarChamados.cs:33` | yes - falha em `ExportarChamadosTests.cs:124` |
 | CSV: "Cancelado pelo aluno" → "Cancelado" | `ExportarChamados.cs:33` | yes - falha em `ExportarChamadosTests.cs:125` |
 | CSV: "Duplicado" → "Duplicada" | `ExportarChamados.cs:34` | yes - falha em `ExportarChamadosTests.cs:126` |
 | CSV: "Fechado automaticamente" → "Fechado pelo sistema" | `ExportarChamados.cs:34` | yes - falha em `ExportarChamadosTests.cs:127` |
-| anexo: papel `LEITURA` recusado | `Consulta/BaixarAnexo.cs` (condição do `Carregar`) | yes - `Baixa_o_anexo_em_leitura` falha em `LeituraDoAdministradorTests.cs:98` (`Expected: OK Actual: NotFound`) |
-| anexo: corpo trocado por 1 byte | `BaixarAnexo.cs` (`Results.Bytes`) | yes - falha em `LeituraDoAdministradorTests.cs:99` (`[137, 80, 78, 71, ...]` vs `[0]`) |
-| anexo: administrador baixa sem filtro de instituição nem `Carregar` | `BaixarAnexo.cs` (`IgnoreQueryFilters` + atalho do administrador) | yes - falha em `LeituraDoAdministradorTests.cs:100` (`Expected: NotFound Actual: OK`) |
-| hub: `LEITURA` recusado em `EntrarNoChamado` | `Chamados/TempoReal/TempoRealHub.cs:14-15` | yes - `EntrarNoChamado_entra_o_administrador_em_leitura` falha (`HubException: Chamado não encontrado.`, `TempoRealEntradaTests.cs:136`/`:140`) |
-| hub: qualquer usuário da instituição entra no grupo | `TempoRealHub.cs:14` (`db.Chamados.FirstOrDefaultAsync` sem `Carregar`) | yes - `EntrarNoChamado_recusa_com_Chamado_nao_encontrado` falha em `TempoRealEntradaTests.cs:176` |
-| tela: contagem antes das etiquetas | `web/src/chamados/Chamados.tsx:182`, `:185` | yes - `ordem da tela` falha em `filtros.test.tsx:67` (`2: expected +0 to be truthy`) |
-| tela: campo de busca fora da barra | `Chamados.tsx:178-179` | yes - `ordem da tela` falha em `filtros.test.tsx:68` |
-| tela: "Filtros" e "Exportar CSV" fora da barra | `Chamados.tsx:180-181` | yes - `ordem da tela` falha em `filtros.test.tsx:69` |
-| tela: "Exportar CSV" só com `escopo=todos` | `web/src/chamados/Busca.tsx:209-212` | yes - `ordem da tela` falha em `filtros.test.tsx:70` |
-| tela: "Limpar filtros" fora de `[data-etiquetas]` | `Busca.tsx:172-182` | yes - `ordem da tela` falha em `filtros.test.tsx:71` |
-| tela: contagem sem a ordem | `Chamados.tsx:157` | yes - `ordem da tela` falha em `filtros.test.tsx:72` |
+| anexo: papel `LEITURA` recusado | `Consulta/BaixarAnexo.cs` | yes - `Baixa_o_anexo_em_leitura` falha em `LeituraDoAdministradorTests.cs:98` |
+| anexo: corpo trocado por 1 byte | `BaixarAnexo.cs` | yes - falha em `LeituraDoAdministradorTests.cs:99` |
+| anexo: administrador baixa sem filtro de instituição nem `Carregar` | `BaixarAnexo.cs` | yes - falha em `LeituraDoAdministradorTests.cs:100` |
+| hub: `LEITURA` recusado em `EntrarNoChamado` | `Chamados/TempoReal/TempoRealHub.cs:14-15` | yes - `EntrarNoChamado_entra_o_administrador_em_leitura` falha (`TempoRealEntradaTests.cs:136`/`:140`) |
+| hub: qualquer usuário da instituição entra no grupo | `TempoRealHub.cs:14` | yes - `EntrarNoChamado_recusa_com_Chamado_nao_encontrado` falha em `TempoRealEntradaTests.cs:176` |
+| tela: contagem antes das etiquetas | `web/src/chamados/Chamados.tsx:182`, `:185` | yes - `ordem da tela` falha em `filtros.test.tsx:67` |
+| tela: campo de busca fora da barra | `Chamados.tsx:178-179` | yes - falha em `filtros.test.tsx:68` |
+| tela: "Filtros" e "Exportar CSV" fora da barra | `Chamados.tsx:180-181` | yes - falha em `filtros.test.tsx:69` |
+| tela: "Exportar CSV" só com `escopo=todos` | `web/src/chamados/Busca.tsx:209-212` | yes - falha em `filtros.test.tsx:70` |
+| tela: "Limpar filtros" fora de `[data-etiquetas]` | `Busca.tsx:172-182` | yes - falha em `filtros.test.tsx:71` |
+| tela: contagem sem a ordem | `Chamados.tsx:157` | yes - falha em `filtros.test.tsx:72` |
 | tela: `rotuloDaOrdem` dá "Mais antigos primeiro" para `recentes` | `Busca.tsx:46` | yes - `contagem diz a ordem` falha em `filtros.test.tsx:78` |
 | painel: Categoria antes de Setor | `Busca.tsx:123-124` | yes - `ordem dos campos do painel` falha em `filtros.test.tsx:87` |
-| teclado: Enter sem busca imediata | `Busca.tsx:83` | yes - `teclado busca na hora` falha em `filtros.test.tsx:239` (`expected +0 to be 1` em 200 ms) |
-| teclado: Enter sem `blur` | `Busca.tsx:84` | yes - `teclado busca na hora` falha em `filtros.test.tsx:240` |
-| Chamados: campo de busca só na Fila | `Chamados.tsx:179` | yes - `tela chamados com a barra e o painel da fila` falha em `chamadosAdmin.test.tsx:50` |
+| teclado: Enter sem busca imediata | `Busca.tsx:83` | yes - `teclado busca na hora` falha em `filtros.test.tsx:239` |
+| teclado: Enter sem `blur` | `Busca.tsx:84` | yes - falha em `filtros.test.tsx:240` |
+| Chamados: campo de busca só na Fila | `Chamados.tsx:179` | yes - falha em `chamadosAdmin.test.tsx:50` |
 | Chamados: "Exportar CSV" fora de `escopo=todos` | `Busca.tsx:209-212` | yes - falha em `chamadosAdmin.test.tsx:51` |
-| Chamados: opções do painel lidas de `filtros?escopo=fila` | `Chamados.tsx:143` | yes - falha em `chamadosAdmin.test.tsx:54` (`[ 'Todos' ]`) |
-| Chamados: sem a caixa "Fechado" com mais de um setor | `Busca.tsx:119` | yes - falha em `chamadosAdmin.test.tsx:55` (`length of 5 but got 4`) |
-| e2e: barra em coluna também a partir de 768 px | `Chamados.tsx:178` (sem `md:flex-row md:items-center`) | yes - `desktop painel à direita e barra numa linha` falha em `filtros.spec.ts:36` (`Expected: 91 Received: 135`) |
-| e2e: painel à esquerda a partir de 768 px | `Busca.tsx:148` (`side`) | yes - falha em `filtros.spec.ts:40` (`Expected: 1280 Received: 384`) |
-| e2e: painel sempre de baixo | `Busca.tsx:148` (`side={'bottom'}`) | yes - falha em `filtros.spec.ts:41` (`> 640`, `Received: 0`); `deitado o painel rola` também falha (`:87`) |
-| e2e: `max-h-[85dvh]` também à direita | `Busca.tsx:148` (`className`) | yes - falha em `filtros.spec.ts:43` (`Expected: 800 Received: 680`) |
-| e2e: painel 64 px abaixo do topo | `Busca.tsx:148` (`top-16` quando largo) | yes - falha em `filtros.spec.ts:42` (`Expected: 0 Received: 64`) |
+| Chamados: opções do painel lidas de `filtros?escopo=fila` | `Chamados.tsx:143` | yes - falha em `chamadosAdmin.test.tsx:54` |
+| Chamados: sem a caixa "Fechado" com mais de um setor | `Busca.tsx:119` | yes - falha em `chamadosAdmin.test.tsx:55` |
+| e2e: barra em coluna também a partir de 768 px | `Chamados.tsx:178` | yes - falha em `filtros.spec.ts:36` |
+| e2e: painel à esquerda a partir de 768 px | `Busca.tsx:148` | yes - falha em `filtros.spec.ts:40` |
+| e2e: painel sempre de baixo | `Busca.tsx:148` | yes - falha em `filtros.spec.ts:41` e `:87` |
+| e2e: `max-h-[85dvh]` também à direita | `Busca.tsx:148` | yes - falha em `filtros.spec.ts:43` |
+| e2e: painel 64 px abaixo do topo | `Busca.tsx:148` | yes - falha em `filtros.spec.ts:42` |
 
-Carried from `3f7a342`: os 11 mutantes da rodada 1 mortos sobre código que a correção não tocou.
+Carried from `3f7a342`: os 11 mutantes da rodada 1, todos mortos.
 
 | Mutation | Location | Killed |
 | --- | --- | --- |
@@ -222,45 +236,34 @@ A mutação por ferramenta (`mutator`) está suspensa por decisão do usuário (
 
 ## Gate
 
-Verified at `3ff7c50`:
-- `dotnet test Esclari.Api.Tests` - 1077 passed, 0 failed
+Verified at `9d931da`:
+- `dotnet test Esclari.Api.Tests` - 1078 passed, 0 failed
 - `npx vitest run` (web) - 1099 passed, 0 failed
-- `npx playwright test e2e/filtros.spec.ts` - 5 passed, 0 failed
-- `npx playwright test e2e/ux.spec.ts e2e/casca.spec.ts e2e/identidade.spec.ts e2e/filtros.spec.ts e2e/arranjo.spec.ts` - 176 passed, 15 failed (as 15 do E3)
+- `npx playwright test e2e/ux.spec.ts e2e/casca.spec.ts e2e/identidade.spec.ts e2e/filtros.spec.ts e2e/arranjo.spec.ts` - 176 passed, 15 failed (as 15 do E3, aceitas no AD-067); `filtros.spec.ts` 5 de 5 passaram
 - `dotnet build Esclari.slnx --no-incremental` (0 erros), `npm --prefix web run build`, `npm run coverage` + `crapper --source-root src --use-existing-coverage --threshold 10` (máx. 9,8), `dryer.cmd ... --threshold 0.8` ("No duplicate candidates found.") - exit 0
-- `python validate_verification.py filtros-e-relatorios --root D:\esclari` - exit 1 (`verdict is FAIL`), coerente com o veredito
+- `python validate_verification.py filtros-e-relatorios --root D:\esclari` - exit 0 (`0 error(s), 0 warning(s)`)
 
-## Round 1 gaps, re-judged
+## Round 2 gaps and notes, re-judged
 
-| Gap da rodada 1 | Estado em `3ff7c50` |
+| Item da rodada 2 | Estado em `9d931da` |
 | --- | --- |
-| 1. painel à direita a partir de 768 px | fechado - C70 (`filtros.spec.ts:40-43`), 4 mutantes mortos; o limite exato fica na nota 5 |
-| 2. tela Chamados sem barra e painel | fechado - C71 (`chamadosAdmin.test.tsx:50-55`), 4 mutantes mortos |
-| 3. arranjo da Fila e barra numa linha | fechado - C67 (`filtros.test.tsx:67-72`, `filtros.spec.ts:36`), 7 mutantes mortos |
-| 4. sufixo da ordem na contagem sem decisão | aberto - agora tem check (C67, C68), mas a decisão é `Confirmed? n` e contradiz a Tela 1 (gap 1 abaixo) |
-| 5. ordem dos 6 campos do painel | fechado - C69 (`filtros.test.tsx:87`) |
-| 6. rótulos de estado e motivo no CSV | fechado - C65 (`ExportarChamadosTests.cs:123-127`), 5 mutantes mortos |
-| 7. `BaixarAnexo` com `LEITURA` | fechado - C66 (`LeituraDoAdministradorTests.cs:98-100`), 3 mutantes mortos; o comportamento segue o Impact (`plan.md:46`) |
-| 8. barra invertida escapada | fechado - C63 (`BuscaDeChamadosTests.cs:135-139`), 3 mutantes mortos |
-| 9. 400 por parâmetro inválido em `exportar` | parcial - C64 cobre `estado`, `ordem`, `responsavel`, `escopo`, `q`; `de` > `ate`, nomeado no gap, continua sem prova (gap 2 abaixo) |
-| 10a. C57 com `fireEvent.submit` | fechado - `userEvent.type(..., 'boleto{Enter}')`, `filtros.test.tsx:238-239` |
-| 10b. a ordem conta como filtro? | virou o gap 1 abaixo |
-| 10c. tela Chamados sem `FilaMudou` | levado para Out of scope pelo builder (nota 4) |
-| 10d. `identidade.spec.ts:115` para na Raiz | sem mudança: ainda falha no `HEAD` com "Raiz a 390: IMG em serifa" e não chega à Fila |
-| 10e. E3 sem "ok" do dono | sem mudança (nota 3) |
+| gap 1. contagem "N chamados · ..." contra a Tela 1, Assumptions `n` e fora da tabela | fechado - AD-067 (`STATE.md:73`) registra o "ok" do dono; `plan.md:207` diz `y` e está dentro da tabela; Open questions registra o aceite (`plan.md:209`) |
+| gap 2. `de` > `ate` em `exportar` sem prova | fechado - `BuscaDeChamadosTests.cs:299`, C64 com o membro no texto, 2 mutantes mortos (`:307`, `:308`) |
+| nota 3. E3 sem o "ok" do dono | fechado - `checks.md:14` "confirmada pelo dono em 17/11" e AD-067 |
+| nota 4. Out of scope do tempo real na tela Chamados sem o "ok" | fechado - `plan.md:192` e AD-067 |
+| nota 5. limite 767/768 px não medido | sem mudança, sem peso: a Tela 3 decide o lado, e os dois lados estão medidos (C55 a 360, C70 a 1280) |
+| nota 6. ordem das regiões da tela Chamados só pelo componente comum `ListaBuscada` | sem mudança, sem peso (`Chamados.tsx:164-224`) |
+| nota 7. linhas grudadas na Coverage do `checks.md` | fechado em `67a7a67` |
+| nota 8. lições candidatas | continuam abaixo, para quem tiver a skill registrar |
 
-## Ranked gaps
+Os gaps da rodada 1 foram fechados na rodada 2, exceto o 4 e o 9, que viraram os gaps 1 e 2 da rodada 2 e estão fechados acima. O 10d (`identidade.spec.ts:115` para na Raiz) é uma das 15 falhas do E3, que o dono aceitou.
 
-1. **A contagem contradiz a Tela 1 do plano (binding).** O C67 e o C68 afirmam o texto exato "N chamados · Mais antigos/recentes primeiro", e o desenho fixa a contagem "N chamados" (`plan.md:70`). A linha de Assumptions que aceita o sufixo e mantém a ordem fora das etiquetas e de "Limpar filtros" diz `Confirmed? n`, decidido no build depois da rodada 1. Ela também está separada da tabela por uma linha em branco, então nem renderiza como linha da tabela. Fecha de um destes dois jeitos: o dono dá o "ok" (a linha vira `y` e volta para dentro da tabela), ou o sufixo sai e o C67/C68 mudam com o "ok" dele. - C67, C68 - `plan.md:208`; `web/src/chamados/filtros.test.tsx:72`, `:78`; `web/src/chamados/Chamados.tsx:157`
-2. **`de` > `ate` em `exportar` sem prova.** A Surface (`plan.md:64`) dá a `exportar` os mesmos parâmetros de `busca`, e o AC 10 manda responder `400` com `errors.de`. O C64 lista 5 das 6 causas de 400 por parâmetro e o C12 só bate em `busca`. Uma `exportar` que deixasse de validar o período passaria pela suíte. - C64, C12 - `Esclari.Api.Tests/BuscaDeChamadosTests.cs:295-307`, `:215-216`
+## Notes
 
-Notas, sem peso no veredito:
+Sem peso no veredito:
 
-3. O E3 continua sem o "ok" do dono. O C62 foi julgado contra ele. - `checks.md` E3; `.specs/STATE.md` `## Handoff`
-4. A linha nova de Out of scope ("atualização em tempo real da tela Chamados do administrador", `plan.md:192`) estreita o Flow 6 ("invalida todas as consultas de busca abertas", `plan.md:39`) depois da aprovação e não registra o "ok" do dono. O AC 27 continua coberto pela Fila (C32).
-5. O C70 mede o lado do painel só a 1280. O C55 mede de baixo a 360. Nenhum teste mede 767 contra 768, que é o limite que a Tela 3 decide (`useEstreito`).
-6. A ordem das regiões na tela Chamados só está provada pelo componente comum `ListaBuscada` (`Chamados.tsx:164-224`). Um arranjo que dependesse do `escopo` passaria.
-7. Na tabela `## Coverage` do `checks.md`, as linhas "quem ramifica no papel `LEITURA` (5)" e "configuração de partida" estão grudadas numa linha só (`| - || configuração ...`), então a segunda não é uma linha da tabela.
-8. Lições candidatas para quem tiver a skill registrar com `lessons.py` (este Verify só podia commitar este arquivo):
-   - (a) uma emenda de checks que fecha um conjunto deve listar os membros pela autoridade (Surface + ACs), não pela prova irmã; aqui a prova irmã de `busca` (C16) deixava `de` > `ate` de fora.
-   - (b) uma decisão de UI tomada no build depois do Verify vira linha de Assumptions com `Confirmed? n`, e o check que depende dela continua contradizendo a fonte até o dono confirmar.
+1. A linha da Tela 1 (`plan.md:70`) ainda diz só "a contagem 'N chamados'". A decisão que a refina está no `plan.md:207` e no AD-067. Reescrever a Tela 1 deixaria o plano coerente numa leitura só, mas não muda nenhum check.
+2. O texto do C64 mudou depois da E4 (`67a7a67`, um membro a mais: `de` > `ate`). O AD-067, que aceita a E4, veio depois dessa mudança (`9d931da`). A mudança só acrescenta um caso e não enfraquece nenhuma asserção.
+3. Lições candidatas para quem tiver a skill registrar com `lessons.py` (este Verify só podia commitar este arquivo):
+   - (a) uma emenda de checks que fecha um conjunto deve listar os membros pela autoridade (Surface + ACs), não pela prova irmã. Na rodada 2, a prova irmã de `busca` (C16) deixava `de` > `ate` de fora da `exportar`.
+   - (b) uma decisão de UI tomada no build depois do Verify vira linha de Assumptions com `Confirmed? n`, e o check que depende dela continua contradizendo a fonte até o dono confirmar num AD.
