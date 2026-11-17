@@ -9,5 +9,7 @@ public sealed class ArtigoMapeamento : IEntityTypeConfiguration<Artigo>
     {
         e.HasOne<Categoria>().WithMany().HasForeignKey(x => x.CategoriaId);
         e.HasMany(a => a.Versoes).WithOne(v => v.Artigo).HasForeignKey(v => v.ArtigoId);
+        e.HasOne<Chamado>().WithMany().HasForeignKey(x => x.OrigemChamadoId).OnDelete(DeleteBehavior.SetNull);
+        e.HasIndex(x => x.OrigemChamadoId).IsUnique().HasFilter("origem_chamado_id IS NOT NULL");
     }
 }

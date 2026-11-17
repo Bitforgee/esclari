@@ -48,6 +48,10 @@ namespace Esclari.Api.Dados.Migracoes
                         .HasColumnType("bigint")
                         .HasColumnName("instituicao_id");
 
+                    b.Property<long?>("OrigemChamadoId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("origem_chamado_id");
+
                     b.Property<DateOnly>("ValidoAte")
                         .HasColumnType("date")
                         .HasColumnName("valido_ate");
@@ -68,6 +72,11 @@ namespace Esclari.Api.Dados.Migracoes
 
                     b.HasIndex("InstituicaoId")
                         .HasDatabaseName("ix_artigo_instituicao_id");
+
+                    b.HasIndex("OrigemChamadoId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_artigo_origem_chamado_id")
+                        .HasFilter("origem_chamado_id IS NOT NULL");
 
                     b.ToTable("artigo");
                 });
@@ -1986,6 +1995,12 @@ namespace Esclari.Api.Dados.Migracoes
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_artigo_instituicoes_instituicao_id");
+
+                    b.HasOne("Esclari.Api.Dados.Chamados.Chamado", null)
+                        .WithMany()
+                        .HasForeignKey("OrigemChamadoId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_artigo_chamados_origem_chamado_id");
                 });
 
             modelBuilder.Entity("Esclari.Api.Dados.Artigos.VersaoArtigo", b =>

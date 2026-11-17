@@ -13,12 +13,20 @@ public class Artigo : IDaInstituicao
     public DateOnly? VisivelDe { get; private set; }
     public DateOnly? VisivelAte { get; private set; }
     public DateOnly ValidoAte { get; private set; }
+    public long? OrigemChamadoId { get; private set; }
     public IReadOnlyCollection<VersaoArtigo> Versoes => _versoes;
 
     public static Artigo Criar(long categoriaId, DateOnly? visivelDe, DateOnly? visivelAte, VersaoArtigo primeira, Validade validade)
     {
         var a = new Artigo { CategoriaId = categoriaId, VisivelDe = visivelDe, VisivelAte = visivelAte, ValidoAte = validade.Ate };
         a.Acrescentar(primeira.Numero == 1 ? primeira : throw new InvalidOperationException("A primeira versão tem o número 1."));
+        return a;
+    }
+
+    public static Artigo DoChamado(long chamadoId, long categoriaId, VersaoArtigo primeira, Validade validade)
+    {
+        var a = Criar(categoriaId, null, null, primeira, validade);
+        a.OrigemChamadoId = chamadoId;
         return a;
     }
 

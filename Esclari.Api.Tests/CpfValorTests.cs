@@ -14,6 +14,20 @@ public class CpfValorTests
         Assert.Equal("11144477735", comPontuacao.ToString());
     }
 
+    [Fact]
+    public void No_texto_acha_cpf_valido_formatado_ou_nao()
+    {
+        Assert.True(Cpf.NoTexto("O CPF da aluna é 111.444.777-35, confira."));
+        Assert.True(Cpf.NoTexto("cpf 11144477735 no cadastro"));
+        Assert.True(Cpf.NoTexto("11144477735"));
+        Assert.True(Cpf.NoTexto("veja\n111.444.777-35\nobrigado"));
+        Assert.False(Cpf.NoTexto("O número 111.444.777-36 não é CPF."));
+        Assert.False(Cpf.NoTexto("protocolo 911144477735 e 111444777359"));
+        Assert.False(Cpf.NoTexto("Boleto reemitido no portal."));
+        Assert.False(Cpf.NoTexto(""));
+        Assert.False(Cpf.NoTexto(null));
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("1114447773")]

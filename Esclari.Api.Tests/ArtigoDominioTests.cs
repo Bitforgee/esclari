@@ -70,6 +70,24 @@ public class ArtigoDominioTests
     }
 
     [Fact]
+    public void Do_chamado_nasce_rascunho_com_a_origem()
+    {
+        var validade = new Validade(new DateOnly(2026, 11, 17), 12);
+
+        var a = Artigo.DoChamado(7, 10, Versao(1), validade);
+
+        Assert.Equal(EstadosArtigo.Rascunho, a.Estado);
+        Assert.Equal(7, a.OrigemChamadoId);
+        Assert.Equal(10, a.CategoriaId);
+        Assert.Equal((null, null), (a.VisivelDe, a.VisivelAte));
+        Assert.Equal(validade.Ate, a.ValidoAte);
+        Assert.Equal(new DateOnly(2027, 11, 17), a.ValidoAte);
+        Assert.Equal(1, Assert.Single(a.Versoes).Numero);
+        Assert.Null(Rascunho().OrigemChamadoId);
+        Assert.Throws<InvalidOperationException>(() => Artigo.DoChamado(7, 10, Versao(2), validade));
+    }
+
+    [Fact]
     public void Nova_versao_refaz_a_validade()
     {
         var a = Artigo.Criar(10, null, null, Versao(1), new Validade(new DateOnly(2026, 1, 10), 12));

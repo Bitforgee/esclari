@@ -30,7 +30,7 @@ public class SessaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     public async Task Sem_cookie_401_em_toda_rota_privada()
     {
         var privadas = Rotas().Where(r => !Publicas.Contains(r.padrao)).ToList();
-        Assert.Equal(88, privadas.Count);
+        Assert.Equal(89, privadas.Count);
 
         foreach (var (metodo, padrao) in privadas)
         {

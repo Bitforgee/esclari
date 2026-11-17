@@ -1,6 +1,6 @@
 namespace Esclari.Api.Dados.Usuarios;
 
-public sealed record Cpf
+public sealed partial record Cpf
 {
     Cpf(string valor) => Valor = valor;
 
@@ -17,6 +17,12 @@ public sealed record Cpf
     }
 
     public static Cpf Ler(string gravado) => new(gravado);
+
+    public static bool NoTexto(string? texto) =>
+        texto is not null && Candidatos().Matches(texto).Any(m => Tentar(m.Value) is not null);
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"(?<!\d)\d{3}\.?\d{3}\.?\d{3}-?\d{2}(?!\d)")]
+    private static partial System.Text.RegularExpressions.Regex Candidatos();
 
     public override string ToString() => Valor;
 

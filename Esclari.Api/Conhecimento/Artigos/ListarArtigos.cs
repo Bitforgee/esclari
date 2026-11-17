@@ -17,6 +17,7 @@ public sealed class ListarArtigosHandler(EsclariDb db, TimeProvider relogio) : I
         var artigos = await db.Artigos.Include(a => a.Versoes).OrderBy(a => a.Id).ToListAsync();
         var indexacao = await BuscarFontes.Indexacao(db, artigos.Select(a => a.UltimaVersao.Id).ToList());
         var hoje = await db.Hoje(relogio);
-        return Results.Ok(artigos.Select(a => ArtigoResposta.De(a, categorias[a.CategoriaId], indexacao, hoje)));
+        var origens = await ArtigoResposta.Origens(db, artigos);
+        return Results.Ok(artigos.Select(a => ArtigoResposta.De(a, categorias[a.CategoriaId], indexacao, hoje, origens)));
     }
 }

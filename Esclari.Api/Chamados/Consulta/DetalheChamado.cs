@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 using Esclari.Api.Chamados.Permissao;
 using Esclari.Api.Conhecimento;
 using Esclari.Api.Dados;
@@ -12,7 +13,8 @@ public sealed record DetalheChamado(
     string? OrigemCategoria, IReadOnlyList<object> Transcricao, IReadOnlyList<DetalheChamado.DaMensagem> Mensagens,
     IReadOnlyList<DetalheChamado.DoEvento>? Eventos, IEnumerable<string> Acoes, IReadOnlyList<DetalheChamado.Destino>? Setores,
     IReadOnlyList<DetalheChamado.Destino>? Categorias, DetalheChamado.DoFluxo? Fluxo,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] DateTime? PrazoPrimeiraRespostaEm = null)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] DateTime? PrazoPrimeiraRespostaEm = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ArtigoDaResposta = null)
 {
     public sealed record DoFluxo(int Versao, int Etapa, int Total, string Destino, string Abrangencia);
 
@@ -51,7 +53,13 @@ public sealed record DetalheChamado(
             vemDaEquipe ? cabecalho.Solicitante : null, vemDaEquipe ? c.Resumo : null, equipe ? c.OrigemCategoria : null,
             LinhasDaTranscricao(transcricao, equipe, daEquipe), DasMensagens(mensagens, c), daEquipe.Eventos,
             await AcoesDoChamado(db, c, papel, usuarioId), daEquipe.Setores, daEquipe.Categorias, await DoFluxoDoChamado(db, c, vemDaEquipe),
-            Previsao(c, papel, mensagens, prazos));
+            Previsao(c, papel, mensagens, prazos), await DoArtigo(db, c, papel));
+    }
+
+    static async Task<string?> DoArtigo(EsclariDb db, Chamado c, string papel)
+    {
+        if (papel is not (PermissoesChamado.Atendente or PermissoesChamado.Lider) || c.Estado is not (EstadosChamado.Resolvido or EstadosChamado.Fechado)) return null;
+        return await db.Artigos.AnyAsync(a => a.OrigemChamadoId == c.Id) ? "CRIADO" : "PODE_CRIAR";
     }
 
     static DateTime? Previsao(Chamado c, string papel, List<LinhaDaMensagem> mensagens, Prazos prazos) =>

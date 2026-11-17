@@ -35,6 +35,7 @@ POST /api/chamados/{numero}/subir anonimo=False autorizacao=True limite=-
 GET /api/respostas-prontas anonimo=False autorizacao=True limite=-
 GET /api/anexos/{id:long} anonimo=False autorizacao=True limite=-
 GET /api/artigos/versoes/{id:long} anonimo=False autorizacao=True limite=-
+POST /api/chamados/{numero}/artigo anonimo=False autorizacao=True limite=-
 GET /api/indicadores anonimo=False autorizacao=True limite=-
 GET /api/indicadores/detalhe anonimo=False autorizacao=True limite=-
 GET /api/documentos/versoes/{id:long} anonimo=False autorizacao=True limite=-
