@@ -168,12 +168,12 @@ export function Contato({ contato }: { contato: Aparencia['contato'] }) {
     <div className="flex flex-col gap-1 text-sm">
       {contato.horario && <p className="m-0">{contato.horario}</p>}
       {contato.telefone && (
-        <a href={`tel:${contato.telefone.replace(/\D/g, '')}`} translate="no" className="text-primary">
+        <a href={`tel:${contato.telefone.replace(/\D/g, '')}`} translate="no" className="text-primary underline underline-offset-4">
           {contato.telefone}
         </a>
       )}
       {contato.email && (
-        <a href={`mailto:${contato.email}`} translate="no" className="text-primary [overflow-wrap:anywhere]">
+        <a href={`mailto:${contato.email}`} translate="no" className="text-primary underline underline-offset-4 [overflow-wrap:anywhere]">
           {contato.email}
         </a>
       )}

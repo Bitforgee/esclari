@@ -280,6 +280,12 @@ describe('interface nova', () => {
     expect(quentes.map(([valor]) => valor)).toEqual([])
   })
 
+  it('links text-primary sublinhados', () => {
+    const links = arquivos.filter((a) => a.endsWith('.tsx') && !a.includes('.test.')).flatMap((a) => [...texto(a).matchAll(/<a\b[^>]*className="([^"]*\btext-primary\b[^"]*)"/g)].map(([, classes]) => [a, classes]))
+    expect(links.length).toBeGreaterThanOrEqual(4)
+    for (const [arquivo, classes] of links) expect(classes.split(' '), arquivo).toContain('underline')
+  })
+
   it('tipografia raios e graficos intactos', () => {
     const [claro, escuro, tema] = [bloco(':root'), bloco('.dark'), bloco('@theme inline')]
     expect(tema['--font-sans']).toBe("'Public Sans Variable', ui-sans-serif, system-ui, sans-serif")

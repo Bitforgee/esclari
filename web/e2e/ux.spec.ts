@@ -1255,8 +1255,8 @@ test.describe('S6 varreduras', () => {
         await page.setViewportSize({ width: nome === 'Conta' ? 390 : 1440, height: 900 })
         await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
         if (nome === 'Indicadores') await page.waitForFunction(() => [...document.querySelectorAll('[data-barra]')].some((b) => b.getBoundingClientRect().height > 0))
-        const [primaria] = await Promise.all([referencia(page, '--primary')])
-        const indevidos = await page.evaluate((alvo) => {
+        const [primaria, texto] = await Promise.all([referencia(page, '--primary'), referencia(page, '--foreground')])
+        const indevidos = await page.evaluate(([alvo, acaoIgualAoTexto]) => {
           const pintar = window.__ux.pintar
           const igual = (cor: string, sobre: string) => pintar([sobre, cor]).join() === alvo.join()
           const visivel = (e: Element) => e.checkVisibility() && e.getBoundingClientRect().width > 0
@@ -1272,12 +1272,12 @@ test.describe('S6 varreduras', () => {
               const amostra = el.getAttribute('data-testid') === 'amostra' || el.hasAttribute('data-amostra')
               if (!botao && !ativo(el) && !sigla && !amostra) achados.push(`fundo ${rotulo}`)
             }
-            if (igual(s.color, '#fff') && !el.closest('a, [data-variant=link], [aria-current=page], [data-active=true]')) achados.push(`texto ${rotulo}`)
+            if (!acaoIgualAoTexto && igual(s.color, '#fff') && !el.closest('a, [data-variant=link], [aria-current=page], [data-active=true]')) achados.push(`texto ${rotulo}`)
             if (el instanceof SVGElement && el.closest('.recharts-wrapper') && [s.fill, s.stroke].some((c) => c !== 'none' && igual(c, '#fff'))) achados.push(`gráfico ${rotulo}`)
             if (s.borderTopWidth !== '0px' && igual(s.borderTopColor, '#fff')) achados.push(`borda ${rotulo}`)
           }
           return achados
-        }, primaria)
+        }, [primaria, primaria.join() === texto.join()] as const)
         expect(indevidos, `${nome}: cor de ação fora de botão principal, item ativo, link e foco`).toEqual([])
       },
       { ...comAparencia, imagens: { logo: null, icone: null, login: null, assistente: null } },

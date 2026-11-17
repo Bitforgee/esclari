@@ -83,8 +83,8 @@ test.describe('S4 marca da instituição', () => {
       ['light', comAparencia, Cor],
       ['dark', comAparencia, `color-mix(in oklch, ${Cor} 55%, white)`],
       ['black', comAparencia, `color-mix(in oklch, ${Cor} 55%, white)`],
-      ['light', semAparencia, 'oklch(0.45 0.15 262)'],
-      ['dark', semAparencia, 'oklch(0.72 0.12 262)'],
+      ['light', semAparencia, 'oklch(0.216 0.073 281)'],
+      ['dark', semAparencia, 'oklch(0.970 0.010 94)'],
     ]
     for (const [tema, dados, referencia] of casos) {
       await page.addInitScript((t) => localStorage.setItem('esclari-tema', t), tema)
