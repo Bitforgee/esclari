@@ -34,6 +34,7 @@ export type Chamado = {
   categorias?: { id: number; nome: string }[] | null
   fluxo?: DoFluxo | null
   prazoPrimeiraRespostaEm?: string | null
+  artigoDaResposta?: 'PODE_CRIAR' | 'CRIADO'
 }
 
 export const Estados: Record<string, string> = {

@@ -22,7 +22,7 @@ import { Resposta } from './Resposta'
 import { avisoRenovado, dataBr, useFiltroValidade, ValidadeDaLinha, type ComValidade } from './Validade'
 
 type Versao = { id: number; numero: number; titulo: string; perguntas: string[]; resposta: string; links: string[] }
-type Artigo = { id: number; estado: 'RASCUNHO' | 'ATIVO' | 'ARQUIVADO'; indexacao: Indexacao | null; categoriaId: number; categoria: string; visivelDe: string | null; visivelAte: string | null; versao: Versao } & ComValidade
+type Artigo = { id: number; estado: 'RASCUNHO' | 'ATIVO' | 'ARQUIVADO'; indexacao: Indexacao | null; categoriaId: number; categoria: string; visivelDe: string | null; visivelAte: string | null; versao: Versao; origemChamado?: string | null } & ComValidade
 type Rascunho = { id?: number; titulo: string; perguntas: string; categoriaId: string; resposta: string; links: string; visivelDe: string; visivelAte: string }
 
 const Novo: Rascunho = { titulo: '', perguntas: '', categoriaId: '', resposta: '', links: '', visivelDe: '', visivelAte: '' }
@@ -62,6 +62,7 @@ function LinhaArtigo({ a, editar, mudar, arquivar, renovar, pendente }: { a: Art
         <IconeIndexacao valor={a.indexacao} />
         <Detalhe>{[a.categoria, versao, validade(a)].filter(Boolean).join(' · ')}</Detalhe>
         <ValidadeDaLinha item={a} nome={a.versao.titulo} pendente={pendente} renovar={a.estado === 'ARQUIVADO' ? undefined : renovar} />
+        {a.origemChamado && <span className="mt-1 block text-xs text-muted-foreground">{`Origem: ${a.origemChamado}`}</span>}
       </TableCell>
       <CelulaLargo>{a.categoria}</CelulaLargo>
       <CelulaLargo>{versao}</CelulaLargo>

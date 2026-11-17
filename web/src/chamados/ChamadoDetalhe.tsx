@@ -22,6 +22,7 @@ import { Label } from '../ui/label'
 import { NativeSelect, NativeSelectOption } from '../ui/native-select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../ui/sheet'
 import { Textarea } from '../ui/textarea'
+import { ArtigoDaResposta } from './ArtigoDaResposta'
 import { Cabecalho, LinhaDoTempo, Transcricao } from './Conversa'
 
 type Executar = (caminho: string, corpo: unknown, depois?: () => void) => void
@@ -410,7 +411,7 @@ function useMutacaoDoChamado(c: Chamado, carregar: () => Promise<void>, setChama
 
 const doAluno = (pode: Acoes['pode'], equipe: boolean) => !equipe && (pode('confirmar') || pode('rejeitar') || pode('cancelar'))
 
-function ColunaDaEquipe({ c, fuso, erro, folha, setFolha, barra, tem, painel }: { c: Chamado; fuso: string; erro: ReactNode; folha: boolean; setFolha: (aberta: boolean) => void; barra?: Barra; tem: boolean; painel: ReactNode }) {
+function ColunaDaEquipe({ c, fuso, erro, folha, setFolha, barra, tem, painel, artigo }: { c: Chamado; fuso: string; erro: ReactNode; folha: boolean; setFolha: (aberta: boolean) => void; barra?: Barra; tem: boolean; painel: ReactNode; artigo: ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col gap-8 @5xl/main:sticky @5xl/main:top-4 @5xl/main:-m-1 @5xl/main:max-h-[calc(100dvh-2rem)] @5xl/main:self-start @5xl/main:overflow-y-auto @5xl/main:p-1">
       {c.fluxo && (
@@ -422,6 +423,7 @@ function ColunaDaEquipe({ c, fuso, erro, folha, setFolha, barra, tem, painel }: 
       <CaixaDeAcoes barra={barra} folha={folha} setFolha={setFolha} erro={erro} tem={tem}>
         {painel}
       </CaixaDeAcoes>
+      {artigo}
     </div>
   )
 }
@@ -479,7 +481,7 @@ function Detalhe({ c, fuso, carregar, setChamado }: { c: Chamado; fuso: string; 
         <Responder c={c} equipe={equipe} {...acoes} />
         <AcoesDoAluno lugar={lugar} aqui="depois" erro={erro} painel={painel} />
       </div>
-      {equipe && <ColunaDaEquipe c={c} fuso={fuso} erro={erro} folha={folha} setFolha={setFolha} barra={barra} tem={!!(principal || temMais)} painel={painel} />}
+      {equipe && <ColunaDaEquipe c={c} fuso={fuso} erro={erro} folha={folha} setFolha={setFolha} barra={barra} tem={!!(principal || temMais)} painel={painel} artigo={<ArtigoDaResposta c={c} setChamado={setChamado} />} />}
       <ConfirmarPedido pedido={pedido} fechar={() => setPedido(undefined)} executar={executar} />
       <Dialogos c={c} modal={modal} fechar={() => setModal(undefined)} executar={executar} motivo={motivo} setMotivo={setMotivo} />
     </div>
