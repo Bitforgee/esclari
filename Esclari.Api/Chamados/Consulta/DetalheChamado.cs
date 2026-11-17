@@ -11,7 +11,8 @@ public sealed record DetalheChamado(
     string? Responsavel, DateTime CriadoEm, DateTime? ResolvidoEm, DetalheChamado.DaMatricula Matricula, string? Solicitante, string? Resumo,
     string? OrigemCategoria, IReadOnlyList<object> Transcricao, IReadOnlyList<DetalheChamado.DaMensagem> Mensagens,
     IReadOnlyList<DetalheChamado.DoEvento>? Eventos, IEnumerable<string> Acoes, IReadOnlyList<DetalheChamado.Destino>? Setores,
-    IReadOnlyList<DetalheChamado.Destino>? Categorias, DetalheChamado.DoFluxo? Fluxo)
+    IReadOnlyList<DetalheChamado.Destino>? Categorias, DetalheChamado.DoFluxo? Fluxo,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] DateTime? PrazoPrimeiraRespostaEm = null)
 {
     public sealed record DoFluxo(int Versao, int Etapa, int Total, string Destino, string Abrangencia);
 
@@ -34,7 +35,7 @@ public sealed record DetalheChamado(
         public static readonly DaEquipe Nada = new(null, [], null, null);
     }
 
-    public static async Task<DetalheChamado> Montar(EsclariDb db, long usuarioId, Chamado c, string papel)
+    public static async Task<DetalheChamado> Montar(EsclariDb db, long usuarioId, Chamado c, string papel, Prazos prazos)
     {
         var equipe = papel is PermissoesChamado.Atendente or PermissoesChamado.Leitura;
         var lider = papel == PermissoesChamado.Lider;
@@ -49,8 +50,14 @@ public sealed record DetalheChamado(
             cabecalho.Responsavel, c.CriadoEm, c.ResolvidoEm, new DaMatricula(cabecalho.NumeroMatricula, cabecalho.Curso, c.Semestre),
             vemDaEquipe ? cabecalho.Solicitante : null, vemDaEquipe ? c.Resumo : null, equipe ? c.OrigemCategoria : null,
             LinhasDaTranscricao(transcricao, equipe, daEquipe), DasMensagens(mensagens, c), daEquipe.Eventos,
-            await AcoesDoChamado(db, c, papel, usuarioId), daEquipe.Setores, daEquipe.Categorias, await DoFluxoDoChamado(db, c, vemDaEquipe));
+            await AcoesDoChamado(db, c, papel, usuarioId), daEquipe.Setores, daEquipe.Categorias, await DoFluxoDoChamado(db, c, vemDaEquipe),
+            Previsao(c, papel, mensagens, prazos));
     }
+
+    static DateTime? Previsao(Chamado c, string papel, List<LinhaDaMensagem> mensagens, Prazos prazos) =>
+        papel == PermissoesChamado.Aluno
+            ? AtrasoDoChamado.PrevisaoDaPrimeiraResposta(c.Estado, c.CriadoEm, AtrasoDoChamado.RespondidoPelaEquipe(c.SolicitanteId, mensagens.Select(m => new AtrasoDoChamado.Mensagem(m.AutorId, m.Tipo))), prazos.Metas)
+            : null;
 
     public static string Abrangencia(string? curso, int? semestre) =>
         curso is null ? "Todos os cursos" : semestre is null ? curso : $"{curso}, {semestre}º semestre";

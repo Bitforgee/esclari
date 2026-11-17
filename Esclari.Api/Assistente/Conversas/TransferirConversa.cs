@@ -9,13 +9,13 @@ public sealed record TransferirConversa(long Id, TransferirConversa.Entrada? Cor
 {
     public sealed record Entrada(long? MatriculaId);
 
-    public sealed record Resposta(string Numero, string Estado, string Setor);
+    public sealed record Resposta(string Numero, string Estado, string Setor, int PrazoPrimeiraRespostaHoras);
 
     public static void Mapear(RouteGroupBuilder g) =>
         g.MapPost("/conversas/{id:long}/transferir", (long id, TransferirConversa.Entrada? i, HttpContext ctx, IMediator m) => m.Send(new TransferirConversa(id, i, ctx.Usuario(), ctx.Instituicao())));
 }
 
-public sealed class TransferirConversaHandler(EsclariDb db, TimeProvider relogio) : IRequestHandler<TransferirConversa, IResult>
+public sealed class TransferirConversaHandler(EsclariDb db, TimeProvider relogio, Prazos prazos) : IRequestHandler<TransferirConversa, IResult>
 {
     public async ValueTask<IResult> Handle(TransferirConversa m, CancellationToken ct)
     {
@@ -25,6 +25,6 @@ public sealed class TransferirConversaHandler(EsclariDb db, TimeProvider relogio
         var matricula = await Transferencia.Matricula(db, conversa.AlunoId, m.Corpo?.MatriculaId);
         if (matricula is null) return Transferencia.MatriculaInvalida();
         return await Transferido(db, await new AbrirChamado(conversa, matricula).Executar(db, m.Instituicao, relogio.GetUtcNow().UtcDateTime),
-            (numero, estado, setor) => new TransferirConversa.Resposta(numero, estado, setor));
+            (numero, estado, setor) => new TransferirConversa.Resposta(numero, estado, setor, prazos.PrimeiraRespostaHoras));
     }
 }

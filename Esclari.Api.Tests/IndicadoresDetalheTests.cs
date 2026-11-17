@@ -38,14 +38,14 @@ public class IndicadoresDetalheTests(EsclariFactory f) : IClassFixture<EsclariFa
             return c;
         });
 
-    async Task Chamado(Mundo m, DateTime criado, string estado, (double h, string de, string para)[] transicoes, string? motivo = null)
+    async Task Chamado(Mundo m, DateTime criado, string estado, (double h, string de, string para)[] transicoes, string? motivo = null, Setor? setor = null)
     {
         var conversa = await Conversa(m, criado, Desfechos.Transferida);
         await f.Db(m.I.Id, async db =>
         {
             var numero = await db.Database.SqlQuery<long>($"UPDATE instituicao SET ultimo_numero_chamado = ultimo_numero_chamado + 1 WHERE id = {m.I.Id} RETURNING ultimo_numero_chamado AS \"Value\"").ToListAsync();
             var c = Esclari.Api.Dados.Chamados.Chamado.Abrir(new($"ESC-{numero.Single():D6}", "Pergunta", null,
-                new(conversa.Id, m.Aluno.Id, await db.Matriculas.Where(x => x.UsuarioId == m.Aluno.Id).Select(x => x.Id).FirstAsync(), 3), new(m.Categoria.Id, "IA", m.Financeiro.Id)), criado);
+                new(conversa.Id, m.Aluno.Id, await db.Matriculas.Where(x => x.UsuarioId == m.Aluno.Id).Select(x => x.Id).FirstAsync(), 3), new(m.Categoria.Id, "IA", (setor ?? m.Financeiro).Id)), criado);
             var e = db.Entry(c);
             (e.Property(x => x.Estado).CurrentValue, e.Property(x => x.MotivoFechamento).CurrentValue) = (estado, motivo);
             db.Chamados.Add(c);
@@ -148,9 +148,60 @@ public class IndicadoresDetalheTests(EsclariFactory f) : IClassFixture<EsclariFa
         Assert.Equal(HttpStatusCode.Unauthorized, (await f.Cliente().GetAsync(rota)).StatusCode);
 
         var j = await Pedir(m.Admin, "/detalhe");
-        Assert.Equal(["granularidade", "pontos", "desfechos", "chamadosPorEstado", "maisAntigoDias", "tempos"], j.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["granularidade", "pontos", "desfechos", "chamadosPorEstado", "maisAntigoDias", "tempos", "prazos"], j.EnumerateObject().Select(p => p.Name));
         Assert.Equal(["inicio", "conversas", "chamadosAbertos", "chamadosResolvidos"], j.GetProperty("pontos")[0].EnumerateObject().Select(p => p.Name));
         Assert.Equal(["resolvidas", "transferidas", "abandonadas", "encerradas", "semDesfecho"], j.GetProperty("desfechos").EnumerateObject().Select(p => p.Name));
         Assert.Equal(["primeiraRespostaMedianaHoras", "primeiraRespostaP90Horas", "resolucaoMedianaHoras", "resolucaoP90Horas"], j.GetProperty("tempos").EnumerateObject().Select(p => p.Name));
+    }
+
+    DateTime Agora => f.Relogio.GetUtcNow().UtcDateTime;
+
+    [Fact]
+    public async Task Prazos_traz_metas_e_atraso_agora()
+    {
+        var m = await Criar();
+        await Chamado(m, Agora.AddHours(-144), Aberto, []);
+        await Chamado(m, Agora.AddHours(-30), Aberto, []);
+        await Chamado(m, Agora.AddHours(-26), EmAtendimento, [(1, Aberto, EmAtendimento)]);
+        await Chamado(m, Agora.AddHours(-2), Aberto, []);
+        await Chamado(m, Agora.AddHours(-500), AguardandoAluno, [(1, Aberto, AguardandoAluno)]);
+
+        var p = (await Pedir(m.Admin, "/detalhe")).GetProperty("prazos");
+
+        Assert.Equal(["primeiraRespostaMetaHoras", "resolucaoMetaHoras", "primeiraRespostaNoPrazo", "resolucaoNoPrazo", "emAtrasoAgora", "maisAntigoEmAtrasoDias"], p.EnumerateObject().Select(x => x.Name));
+        Assert.Equal((24, 120), (p.GetProperty("primeiraRespostaMetaHoras").GetInt32(), p.GetProperty("resolucaoMetaHoras").GetInt32()));
+        Assert.Equal(3, p.GetProperty("emAtrasoAgora").GetInt32());
+        Assert.Equal(5, p.GetProperty("maisAntigoEmAtrasoDias").GetInt32());
+        Assert.Equal(JsonValueKind.Null, p.GetProperty("primeiraRespostaNoPrazo").ValueKind);
+        Assert.Equal(JsonValueKind.Null, p.GetProperty("resolucaoNoPrazo").ValueKind);
+        Assert.False((await Pedir(m.Admin, "")).TryGetProperty("prazos", out _));
+    }
+
+    [Fact]
+    public async Task Prazos_com_setor()
+    {
+        var m = await Criar();
+        await Chamado(m, Agora.AddHours(-30), Aberto, []);
+        await Chamado(m, Agora.AddHours(-48), Aberto, []);
+        await Chamado(m, Agora.AddHours(-300), Aberto, [], setor: m.Triagem);
+
+        var todos = (await Pedir(m.Admin, "/detalhe")).GetProperty("prazos");
+        var doSetor = (await Pedir(m.Admin, "/detalhe", $"{Periodo}&setorId={m.Financeiro.Id}")).GetProperty("prazos");
+
+        Assert.Equal((3, 11), (todos.GetProperty("emAtrasoAgora").GetInt32(), todos.GetProperty("maisAntigoEmAtrasoDias").GetInt32()));
+        Assert.Equal((2, 1), (doSetor.GetProperty("emAtrasoAgora").GetInt32(), doSetor.GetProperty("maisAntigoEmAtrasoDias").GetInt32()));
+    }
+
+    [Fact]
+    public async Task Status_continuam_os_mesmos()
+    {
+        var m = await Criar();
+        var rota = $"/api/indicadores/detalhe?{Periodo}";
+
+        Assert.Equal(HttpStatusCode.OK, (await m.Admin.GetAsync(rota)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await m.Admin.GetAsync("/api/indicadores/detalhe?de=2026-11-10&ate=2026-11-09")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await m.Admin.GetAsync("/api/indicadores/detalhe")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await f.Cliente().GetAsync(rota)).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await (await f.AlunoLogado(m.I)).Cliente.GetAsync(rota)).StatusCode);
     }
 }

@@ -253,6 +253,7 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         await R("GET", "/api/chamados/{numero}", "atendente", 200, atendente.GetAsync($"/api/chamados/{t1}"));
         await R("GET", "/api/chamados?escopo=fila", "atendente", 200, atendente.GetAsync("/api/chamados?escopo=fila"));
         await R("GET", "/api/chamados?escopo=fila", "aluno", 200, aluno.GetAsync("/api/chamados?escopo=fila"));
+        await R("GET", "/api/chamados/busca?escopo=fila", "atendente", 200, atendente.GetAsync("/api/chamados/busca?escopo=fila"));
         await R("GET", "/api/respostas-prontas?setorId={id}", "atendente", 200, atendente.GetAsync($"/api/respostas-prontas?setorId={triagem.Id}"));
         var versao = await n.Db(i.Id, db => db.VersoesArtigo.Where(v => v.ArtigoId == boleto.Id).Select(v => v.Id).SingleAsync());
         await R("GET", "/api/artigos/versoes/{id}", "atendente", 200, atendente.GetAsync($"/api/artigos/versoes/{versao}"));
@@ -275,6 +276,7 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         await R("GET", "/api/chamados", "aluno", 200, aluno.GetAsync("/api/chamados"));
         await R("GET", "/api/indicadores?de={de}&ate={ate}", "admin", 200, admin.GetAsync("/api/indicadores?de=2026-11-01&ate=2026-11-30"));
         await R("GET", "/api/conhecimento/validade", "admin", 200, admin.GetAsync("/api/conhecimento/validade"));
+        await R("GET", "/api/indicadores/detalhe?de={de}&ate={ate}", "admin", 200, admin.GetAsync("/api/indicadores/detalhe?de=2026-11-01&ate=2026-11-03"));
         return linhas;
     }
 
@@ -286,7 +288,7 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         File.WriteAllLines(Path.Combine(AppContext.BaseDirectory, "sucessos.vivos.txt"), vivos);
 
         var gravados = File.ReadAllLines(Retrato("sucessos.txt"));
-        Assert.Equal(59, gravados.Length);
+        Assert.Equal(61, gravados.Length);
         Assert.Equal(gravados.Select(Normalizar), vivos);
     }
 

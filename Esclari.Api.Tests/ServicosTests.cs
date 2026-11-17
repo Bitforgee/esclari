@@ -20,6 +20,7 @@ public class ServicosTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         "Singleton Esclari.Api.ITarefaAgendada -> Esclari.Api.Chamados.Tarefas.LembrarAguardando",
         "Singleton Esclari.Api.ITarefaAgendada -> Esclari.Api.Chamados.Tarefas.SubirPorPrazo",
         "Singleton Esclari.Api.ITarefaAgendada -> Esclari.Api.Chamados.Tarefas.EnviarEmails",
+        "Singleton Esclari.Api.ITarefaAgendada -> Esclari.Api.Chamados.Tarefas.AvisarAtrasos",
         "Singleton Esclari.Api.ITarefaAgendada -> Esclari.Api.Assistente.Busca.IndexarTrechos",
         "Singleton Esclari.Api.ITarefaAgendada -> Esclari.Api.Chamados.Tarefas.EnviarPushes",
         "Singleton Esclari.Api.ITarefaAgendada -> Esclari.Api.Conhecimento.AvisarValidade",

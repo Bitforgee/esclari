@@ -41,6 +41,7 @@ public class Chamado : IDaInstituicao
     public int? EtapaOrdem { get; private set; }
     public DateTime? EtapaDesde { get; private set; }
     public string? NumeroOriginal { get; private set; }
+    public DateTime? AtrasoAvisadoEm { get; private set; }
     public uint Xmin { get; private set; }
     public IReadOnlyCollection<MensagemChamado> Mensagens => _mensagens;
     public IReadOnlyCollection<EventoChamado> Eventos => _eventos;
@@ -219,6 +220,8 @@ public class Chamado : IDaInstituicao
         AguardandoDesde = null;
         return null;
     }
+
+    public void MarcarAtrasoAvisado(DateTime agora) => AtrasoAvisadoEm = agora;
 
     bool AguardandoHaPeloMenos(int dias, DateTime agora) => AguardandoDesde is { } desde && desde <= agora - TimeSpan.FromDays(dias);
 

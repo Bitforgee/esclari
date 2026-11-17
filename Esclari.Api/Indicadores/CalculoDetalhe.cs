@@ -7,21 +7,47 @@ namespace Esclari.Api.Indicadores;
 public record Ponto(DateOnly Inicio, int? Conversas, int ChamadosAbertos, int ChamadosResolvidos);
 public record DesfechosEmContagem(int Resolvidas, int Transferidas, int Abandonadas, int Encerradas, int SemDesfecho);
 public record Tempos(double? PrimeiraRespostaMedianaHoras, double? PrimeiraRespostaP90Horas, double? ResolucaoMedianaHoras, double? ResolucaoP90Horas);
-public record Detalhe(string Granularidade, List<Ponto> Pontos, DesfechosEmContagem? Desfechos, Dictionary<string, int> ChamadosPorEstado, int? MaisAntigoDias, Tempos Tempos);
+public record DoPrazo(int PrimeiraRespostaMetaHoras, int ResolucaoMetaHoras, double? PrimeiraRespostaNoPrazo, double? ResolucaoNoPrazo, int EmAtrasoAgora, int? MaisAntigoEmAtrasoDias);
+public record Detalhe(string Granularidade, List<Ponto> Pontos, DesfechosEmContagem? Desfechos, Dictionary<string, int> ChamadosPorEstado, int? MaisAntigoDias, Tempos Tempos, DoPrazo Prazos);
 
 public static class CalculoDetalhe
 {
     const int LimiteDeDiasPorDia = 62;
+    public const int MinimoDeCasos = 10;
     static readonly string[] Estados = [Aberto, EmAtendimento, AguardandoAluno, Resolvido];
 
-    public static Detalhe Calcular(Massa m, DateOnly de, DateOnly ate, TimeZoneInfo fuso, DateTime agora)
+    public static Detalhe Calcular(Massa m, DateOnly de, DateOnly ate, TimeZoneInfo fuso, DateTime agora, Prazos prazos)
     {
         var (inicio, fim) = CalculoIndicadores.Periodo(de, ate, fuso);
         var eventos = m.Eventos.OrderBy(e => e.CriadoEm).ThenBy(e => e.Id).ToLookup(e => e.ChamadoId);
         var criados = m.Chamados.Where(c => c.CriadoEm >= inicio && c.CriadoEm < fim).ToList();
         var porSemana = ate.DayNumber - de.DayNumber + 1 > LimiteDeDiasPorDia;
         return new Detalhe(porSemana ? "semana" : "dia", Serie(m, (de, ate), (inicio, fim), fuso, porSemana), ContarDesfechos(m.Conversas),
-            PorEstado(m.Chamados), MaisAntigo(m.Chamados, agora), CalcularTempos(m, criados, eventos));
+            PorEstado(m.Chamados), MaisAntigo(m.Chamados, agora), CalcularTempos(m, criados, eventos),
+            CalcularPrazos(m, criados, eventos, (inicio, fim), prazos, agora));
+    }
+
+    static DoPrazo CalcularPrazos(Massa m, List<ChamadoLido> criados, ILookup<long, EventoChamado> eventos, (DateTime Inicio, DateTime Fim) janela, Prazos prazos, DateTime agora)
+    {
+        var primeira = CalculoIndicadores.TemposDePrimeiraResposta(m, criados);
+        var resolucao = m.Chamados.Where(c => CalculoIndicadores.Resolucoes(eventos[c.Id]).Any(e => e.CriadoEm >= janela.Inicio && e.CriadoEm < janela.Fim))
+            .Select(c => CalculoIndicadores.Resolucao(c, eventos[c.Id])).ToList();
+        var vencidos = Vencidos(m, eventos, prazos.Metas, agora);
+        return new(prazos.PrimeiraRespostaHoras, prazos.ResolucaoHoras, NoPrazo(primeira, prazos.PrimeiraResposta), NoPrazo(resolucao, prazos.Resolucao),
+            vencidos.Count, vencidos.Count == 0 ? null : (int)(agora - vencidos.Min()).TotalDays);
+    }
+
+    static double? NoPrazo(List<TimeSpan> tempos, TimeSpan meta) =>
+        tempos.Count < MinimoDeCasos ? null : Math.Round((double)tempos.Count(t => t <= meta) / tempos.Count, 4);
+
+    static List<DateTime> Vencidos(Massa m, ILookup<long, EventoChamado> eventos, AtrasoDoChamado.Metas metas, DateTime agora)
+    {
+        var respostas = m.Respostas.ToLookup(r => r.ChamadoId);
+        return m.Chamados.Where(c => AtrasoDoChamado.EmAtendimentoAberto(c.Estado))
+            .Select(c => AtrasoDoChamado.Calcular(new AtrasoDoChamado.Situacao(c.Estado, c.CriadoEm,
+                AtrasoDoChamado.RespondidoPelaEquipe(c.SolicitanteId, respostas[c.Id].Select(r => new AtrasoDoChamado.Mensagem(r.AutorId, TiposMensagem.Publica))),
+                AtrasoDoChamado.Pausado(eventos[c.Id].Where(e => e.Tipo == TiposEvento.Transicao).Select(e => new AtrasoDoChamado.Transicao(e.De, e.Para, e.CriadoEm)), agora)), metas, agora))
+            .OfType<AtrasoDoChamado.Vencido>().Select(v => v.VenceuEm).ToList();
     }
 
     static List<Ponto> Serie(Massa m, (DateOnly De, DateOnly Ate) dias, (DateTime Inicio, DateTime Fim) janela, TimeZoneInfo fuso, bool porSemana)

@@ -418,6 +418,10 @@ namespace Esclari.Api.Dados.Migracoes
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("aguardando_desde");
 
+                    b.Property<DateTime?>("AtrasoAvisadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("atraso_avisado_em");
+
                     b.Property<long>("CategoriaId")
                         .HasColumnType("bigint")
                         .HasColumnName("categoria_id");

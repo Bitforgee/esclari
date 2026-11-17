@@ -357,3 +357,17 @@ public class EsclariFactoryValidadeConfigurada(string meses) : EsclariFactory
         builder.UseSetting(Prazos.ChaveValidade, meses);
     }
 }
+
+public class EsclariFactoryMetasConfiguradas(Dictionary<string, string> metas) : EsclariFactory
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        base.ConfigureWebHost(builder);
+        foreach (var (chave, valor) in metas) builder.UseSetting(chave, valor);
+    }
+}
+
+public class EsclariFactoryAtraso : EsclariFactory
+{
+    protected override DateTimeOffset Inicio => new(2026, 11, 17, 12, 0, 0, TimeSpan.Zero);
+}

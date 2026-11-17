@@ -43,7 +43,7 @@ public class DetalheChamadoTests(EsclariFactory f) : IClassFixture<EsclariFactor
         var chamado = await db.Chamados.SingleAsync(c => c.Numero == numero);
         var antes = contador.Total;
 
-        var detalhe = await DetalheChamado.Montar(db, papel == PermissoesChamado.Aluno ? chamado.SolicitanteId : b.A.Usuario.Id, chamado, papel);
+        var detalhe = await DetalheChamado.Montar(db, papel == PermissoesChamado.Aluno ? chamado.SolicitanteId : b.A.Usuario.Id, chamado, papel, f.Services.GetRequiredService<Prazos>());
 
         Assert.Equal(numero, detalhe.Numero);
         Assert.True(contador.Total - antes <= 4, $"{papel}: {contador.Total - antes} consultas");
@@ -86,7 +86,7 @@ public class DetalheChamadoTests(EsclariFactory f) : IClassFixture<EsclariFactor
         await using var db = new EsclariDb(opcoes) { InstituicaoAtual = c.I.Id };
         var antes = contador.Total;
 
-        var detalhe = await DetalheChamado.Montar(db, papel == PermissoesChamado.Aluno ? chamado.SolicitanteId : atendente.Usuario.Id, chamado, papel);
+        var detalhe = await DetalheChamado.Montar(db, papel == PermissoesChamado.Aluno ? chamado.SolicitanteId : atendente.Usuario.Id, chamado, papel, f.Services.GetRequiredService<Prazos>());
 
         Assert.Equal(numero, detalhe.Numero);
         Assert.Equal(comFluxo && papel != PermissoesChamado.Aluno, detalhe.Fluxo is not null);

@@ -90,6 +90,50 @@ public class PrazosTests(EsclariFactoryPrazos f, EsclariFactory padrao) : IClass
         Assert.Equal(12, padrao.Services.GetRequiredService<Prazos>().ValidadeConhecimentoMeses);
     }
 
+    static Dictionary<string, string> Metas(int primeira, int resolucao) =>
+        new() { [Prazos.ChavePrimeiraResposta] = primeira.ToString(), [Prazos.ChaveResolucao] = resolucao.ToString() };
+
+    static Prazos MetasLidas(Dictionary<string, string> metas) =>
+        Prazos.Ler(new ConfigurationBuilder().AddInMemoryCollection(metas.Select(m => KeyValuePair.Create(m.Key, (string?)m.Value))).Build());
+
+    static async Task Recusa(Dictionary<string, string> metas, string chave)
+    {
+        Assert.Contains(chave, Assert.Throws<InvalidOperationException>(() => MetasLidas(metas)).Message);
+        await using var recusada = new EsclariFactoryMetasConfiguradas(metas);
+        Assert.Contains(chave, Assert.ThrowsAny<Exception>(() => recusada.Services).ToString());
+    }
+
+    static async Task Sobe(Dictionary<string, string> metas, int primeira, int resolucao)
+    {
+        Assert.Equal((primeira, resolucao), (MetasLidas(metas).PrimeiraRespostaHoras, MetasLidas(metas).ResolucaoHoras));
+        await using var aceita = new EsclariFactoryMetasConfiguradas(metas);
+        var prazos = aceita.Services.GetRequiredService<Prazos>();
+        Assert.Equal((primeira, resolucao), (prazos.PrimeiraRespostaHoras, prazos.ResolucaoHoras));
+    }
+
+    [Fact]
+    public async Task Metas_aceitam_de_1_a_8760()
+    {
+        Assert.Equal((24, 120), (padrao.Services.GetRequiredService<Prazos>().PrimeiraRespostaHoras, padrao.Services.GetRequiredService<Prazos>().ResolucaoHoras));
+        await Sobe(Metas(1, 120), 1, 120);
+        await Sobe(Metas(8760, 8760), 8760, 8760);
+        await Sobe(Metas(1, 1), 1, 1);
+        await Sobe(Metas(24, 8760), 24, 8760);
+        await Recusa(Metas(0, 120), Prazos.ChavePrimeiraResposta);
+        await Recusa(Metas(8761, 8761), Prazos.ChavePrimeiraResposta);
+        await Recusa(Metas(1, 0), Prazos.ChaveResolucao);
+        await Recusa(Metas(24, 8761), Prazos.ChaveResolucao);
+        Assert.Equal("Prazos:PrimeiraRespostaHoras", Prazos.ChavePrimeiraResposta);
+        Assert.Equal("Prazos:ResolucaoHoras", Prazos.ChaveResolucao);
+    }
+
+    [Fact]
+    public async Task Resolucao_nao_pode_ser_menor_que_a_primeira_resposta()
+    {
+        await Recusa(Metas(24, 23), Prazos.ChaveResolucao);
+        await Sobe(Metas(24, 24), 24, 24);
+    }
+
     [Fact]
     public async Task Padroes_sem_configuracao()
     {

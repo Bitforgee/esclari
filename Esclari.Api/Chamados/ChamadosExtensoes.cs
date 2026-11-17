@@ -24,6 +24,7 @@ public static class ChamadosExtensoes
         s.AddSingleton<ITarefaAgendada, LembrarAguardando>();
         s.AddSingleton<ITarefaAgendada, SubirPorPrazo>();
         s.AddSingleton<ITarefaAgendada, EnviarEmails>();
+        s.AddSingleton<ITarefaAgendada, AvisarAtrasos>();
         return s;
     }
 

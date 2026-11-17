@@ -286,4 +286,18 @@ public class ChamadoDominioTests
         var fora = Chamado.Abrir(new("ESC-000002", "Titulo", null, new(1, 2, 3, 4), new(10, "IA", 20, VersaoFluxoId: 5, EtapaOrdem: null)), Antes);
         Assert.Equal((null, null, null), (fora.VersaoFluxoId, fora.EtapaOrdem, fora.EtapaDesde));
     }
+
+    [Fact]
+    public void Marcar_atraso_avisado_so_grava_a_marca()
+    {
+        var c = EmAtend();
+        var antes = Colunas(c);
+        var (eventos, mensagens) = (c.Eventos.Count, c.Mensagens.Count);
+
+        c.MarcarAtrasoAvisado(Agora);
+
+        Assert.Equal(["AtrasoAvisadoEm"], Mudaram(antes, c));
+        Assert.Equal(Agora, c.AtrasoAvisadoEm);
+        Assert.Equal((EmAtendimento, eventos, mensagens), (c.Estado, c.Eventos.Count, c.Mensagens.Count));
+    }
 }

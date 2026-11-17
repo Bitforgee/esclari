@@ -49,6 +49,30 @@ public class AgendadorLogsTests(EsclariFactory f) : IClassFixture<EsclariFactory
     }
 
     [Fact]
+    public async Task Avisar_atrasos_registra_contagens()
+    {
+        var (i, _) = await Admin.Criar(f);
+        var b = await Balcao.Criar(f, i);
+        var primeira = await b.Chamado(Aberto, "Boleto vencido do semestre");
+        await b.Recuar(primeira, TimeSpan.FromHours(30));
+        var resolucao = await b.Chamado(Aberto, "Rematrícula pendente");
+        Assert.True((await Balcao.Mensagem(b.A.Cliente, resolucao, "Estamos vendo.")).IsSuccessStatusCode);
+        await b.Recuar(resolucao, TimeSpan.FromHours(130));
+        var outra = await b.Chamado(Aberto, "Histórico escolar");
+        await b.Recuar(outra, TimeSpan.FromHours(26));
+
+        await Agendador.Executar();
+
+        var log = Assert.Single(Do("Atrasos da instituição {InstituicaoId}: primeiraResposta={PrimeiraResposta} resolucao={Resolucao} emails={Emails}"), l => Equals(l.Campos["InstituicaoId"], i.Id));
+        Assert.Equal((CategoriaDaBase, LogLevel.Information), (log.Categoria, log.Nivel));
+        Assert.Equal((2, 1), ((int)log.Campos["PrimeiraResposta"]!, (int)log.Campos["Resolucao"]!));
+        var emails = await f.Db(i.Id, db => db.EmailsSaida.CountAsync(e => e.Assunto.Contains("em atraso")));
+        Assert.Equal(emails, (int)log.Campos["Emails"]!);
+        Assert.True(emails >= 2);
+        Assert.All(new[] { "Boleto", "Rematrícula", "Histórico" }, t => Assert.DoesNotContain(t, log.Mensagem));
+    }
+
+    [Fact]
     public async Task Fechamento_automatico_loga_na_categoria_do_agendador()
     {
         var b = await Balcao.Criar(f);

@@ -7,7 +7,7 @@ namespace Esclari.Api.Tests;
 
 public class AgendadorTarefasTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 {
-    static readonly string[] TiposDaBase = ["conversa", "chamado", "aguardando", "lembrete", "subir", "email", "trecho", "push", "validade"];
+    static readonly string[] TiposDaBase = ["conversa", "chamado", "aguardando", "lembrete", "subir", "email", "atraso", "trecho", "push", "validade"];
 
     List<ITarefaAgendada> Registradas => [.. f.Services.GetServices<ITarefaAgendada>()];
 
@@ -16,7 +16,7 @@ public class AgendadorTarefasTests(EsclariFactory f) : IClassFixture<EsclariFact
     {
         var tarefas = Registradas;
 
-        Assert.Equal(10, tarefas.Count);
+        Assert.Equal(11, tarefas.Count);
         Assert.Equal(TiposDaBase, tarefas.Where(t => t is not ApagarLancamentos).Select(t => t.Tipo));
         Assert.Single(tarefas, t => t is ApagarLancamentos);
     }
@@ -38,6 +38,7 @@ public class AgendadorTarefasTests(EsclariFactory f) : IClassFixture<EsclariFact
             ["IndexarTrechos"] = ("Esclari.Api.Assistente.Busca", Embeddings.Lote),
             ["EnviarPushes"] = ("Esclari.Api.Chamados.Tarefas", 1),
             ["AvisarValidade"] = ("Esclari.Api.Conhecimento", 1),
+            ["AvisarAtrasos"] = ("Esclari.Api.Chamados.Tarefas", 1),
         }.OrderBy(x => x.Key), tarefas.OrderBy(x => x.Key));
     }
 }

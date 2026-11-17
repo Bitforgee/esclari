@@ -21,7 +21,7 @@ public sealed record ExportarChamados(FiltroDeChamados Filtro, long UsuarioId) :
             m.Send(new ExportarChamados(filtro, ctx.Usuario().Id))).RequireRateLimiting("exportar");
 }
 
-public sealed class ExportarChamadosHandler(EsclariDb db, TimeProvider relogio, ILogger<ExportarChamadosHandler> log) : IRequestHandler<ExportarChamados, IResult>
+public sealed class ExportarChamadosHandler(EsclariDb db, TimeProvider relogio, Prazos prazos, ILogger<ExportarChamadosHandler> log) : IRequestHandler<ExportarChamados, IResult>
 {
     static readonly Dictionary<string, string> RotuloDoEstado = new()
     {
@@ -39,7 +39,7 @@ public sealed class ExportarChamadosHandler(EsclariDb db, TimeProvider relogio, 
 
     public async ValueTask<IResult> Handle(ExportarChamados m, CancellationToken ct)
     {
-        var (pedido, recusa) = await m.Filtro.Consultar(db, m.UsuarioId);
+        var (pedido, recusa) = await m.Filtro.Consultar(db, m.UsuarioId, prazos, relogio.GetUtcNow().UtcDateTime);
         if (recusa is not null) return recusa;
         if (await db.SoLideranca(pedido!.Usuario)) return Problemas.Erro(403, "A exportação não está disponível para a liderança de turma.");
         if (await pedido.Consulta.CountAsync(ct) > ExportarChamados.LimiteDeLinhas)

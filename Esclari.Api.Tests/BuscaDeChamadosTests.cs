@@ -262,7 +262,7 @@ public class BuscaDeChamadosTests(EsclariFactory f) : IClassFixture<EsclariFacto
 
         Assert.Equal(["itens", "total", "pagina", "porPagina"], j.EnumerateObject().Select(p => p.Name));
         var item = Assert.Single(j.GetProperty("itens").EnumerateArray());
-        Assert.Equal(["numero", "titulo", "estado", "setor", "categoria", "responsavel", "criadoEm", "dias"], item.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["numero", "titulo", "estado", "setor", "categoria", "responsavel", "criadoEm", "dias", "atraso"], item.EnumerateObject().Select(p => p.Name));
         Assert.Equal(numero, item.GetProperty("numero").GetString());
         Assert.Equal("Boleto não chegou", item.GetProperty("titulo").GetString());
         Assert.Equal(EmAtendimento, item.GetProperty("estado").GetString());
@@ -388,5 +388,80 @@ public class BuscaDeChamadosTests(EsclariFactory f) : IClassFixture<EsclariFacto
         var instalada = await f.Db(null, db => db.Database.SqlQuery<int>($"SELECT count(*)::int AS \"Value\" FROM pg_extension WHERE extname = 'unaccent'").SingleAsync());
 
         Assert.Equal(1, instalada);
+    }
+
+    DateTime Agora => f.Relogio.GetUtcNow().UtcDateTime;
+
+    async Task<(Balcao, string Primeira, string Resolucao, string EmDia)> ComAtrasos()
+    {
+        var b = await Balcao.Criar(f);
+        var primeira = await b.Chamado(Aberto);
+        var resolucao = await b.Chamado(Aberto);
+        await Ok(await Balcao.Mensagem(b.A.Cliente, resolucao, "Estamos vendo."));
+        var emDia = await b.Chamado(Aberto);
+        await f.Criado(b.Instituicao, primeira, Agora.AddHours(-25));
+        await f.Criado(b.Instituicao, resolucao, Agora.AddHours(-121));
+        await f.Criado(b.Instituicao, emDia, Agora.AddHours(-23));
+        return (b, primeira, resolucao, emDia);
+    }
+
+    static Dictionary<string, JsonElement> AtrasoPorNumero(JsonElement j) =>
+        j.GetProperty("itens").EnumerateArray().ToDictionary(i => i.GetProperty("numero").GetString()!, i => i.GetProperty("atraso"));
+
+    [Fact]
+    public async Task Itens_trazem_atraso()
+    {
+        var (b, primeira, resolucao, emDia) = await ComAtrasos();
+
+        var atrasos = AtrasoPorNumero(await Buscar(b.A.Cliente));
+
+        Assert.Equal("PRIMEIRA_RESPOSTA", atrasos[primeira].GetString());
+        Assert.Equal("RESOLUCAO", atrasos[resolucao].GetString());
+        Assert.Equal(JsonValueKind.Null, atrasos[emDia].ValueKind);
+        Assert.Equal(3, atrasos.Count);
+        foreach (var (escopo, cliente) in new[] { ("fila", b.A.Cliente), ("meus", b.ClienteAluno) })
+        {
+            var r = await cliente.GetAsync($"/api/chamados?escopo={escopo}");
+            Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+            var itens = (await r.Json()).EnumerateArray().ToList();
+            Assert.NotEmpty(itens);
+            Assert.All(itens, i => Assert.False(i.TryGetProperty("atraso", out _), escopo));
+        }
+    }
+
+    [Fact]
+    public async Task Filtro_atraso()
+    {
+        var (b, primeira, resolucao, emDia) = await ComAtrasos();
+        var aguardando = await b.Chamado(AguardandoAluno);
+        var resolvido = await b.Chamado(Resolvido);
+        await f.Criado(b.Instituicao, aguardando, Agora.AddHours(-500));
+        await f.Criado(b.Instituicao, resolvido, Agora.AddHours(-500));
+
+        var atrasados = await NumerosDe(b.A.Cliente, "&atraso=true");
+        var emDiaLista = await NumerosDe(b.A.Cliente, "&atraso=false");
+        var todos = await NumerosDe(b.A.Cliente);
+
+        Assert.Equal([resolucao, primeira], atrasados);
+        Assert.Equal(new[] { emDia, aguardando, resolvido }.Order(), emDiaLista.Order());
+        Assert.Equal(5, todos.Count);
+        Assert.Equal(2, (await Buscar(b.A.Cliente, "&atraso=true")).GetProperty("total").GetInt32());
+    }
+
+    [Fact]
+    public async Task Atraso_invalido_responde_400()
+    {
+        var b = await Balcao.Criar(f);
+        await b.Chamado(Aberto);
+
+        foreach (var valor in new[] { "talvez", "" })
+        {
+            var r = await b.A.Cliente.GetAsync($"/api/chamados/busca?escopo=fila&atraso={valor}");
+            Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode);
+            Assert.Equal("application/problem+json", r.Content.Headers.ContentType?.MediaType);
+            Assert.True((await r.Json()).GetProperty("errors").TryGetProperty("atraso", out _), valor);
+        }
+        foreach (var valor in new[] { "true", "false" })
+            Assert.Equal(HttpStatusCode.OK, (await b.A.Cliente.GetAsync($"/api/chamados/busca?escopo=fila&atraso={valor}")).StatusCode);
     }
 }

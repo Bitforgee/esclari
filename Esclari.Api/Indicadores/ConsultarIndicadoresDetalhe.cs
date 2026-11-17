@@ -10,7 +10,7 @@ public sealed record ConsultarIndicadoresDetalhe(DateOnly? De, DateOnly? Ate, lo
             m.Send(new ConsultarIndicadoresDetalhe(de, ate, setorId, ctx.Usuario(), ctx.Instituicao())));
 }
 
-public sealed class ConsultarIndicadoresDetalheHandler(EsclariDb db, TimeProvider relogio) : IRequestHandler<ConsultarIndicadoresDetalhe, IResult>
+public sealed class ConsultarIndicadoresDetalheHandler(EsclariDb db, TimeProvider relogio, Prazos prazos) : IRequestHandler<ConsultarIndicadoresDetalhe, IResult>
 {
     public async ValueTask<IResult> Handle(ConsultarIndicadoresDetalhe m, CancellationToken ct)
     {
@@ -20,6 +20,6 @@ public sealed class ConsultarIndicadoresDetalheHandler(EsclariDb db, TimeProvide
 
         var fuso = TimeZoneInfo.FindSystemTimeZoneById(m.Instituicao.Fuso);
         var massa = await leitor.Ler(pedido!.Setores, CalculoIndicadores.Periodo(pedido.De, pedido.Ate, fuso));
-        return Results.Ok(CalculoDetalhe.Calcular(massa, pedido.De, pedido.Ate, fuso, relogio.GetUtcNow().UtcDateTime));
+        return Results.Ok(CalculoDetalhe.Calcular(massa, pedido.De, pedido.Ate, fuso, relogio.GetUtcNow().UtcDateTime, prazos));
     }
 }

@@ -10,6 +10,7 @@ public class CalculoDetalheTests
     static readonly DateTime Meio = new(2026, 11, 10, 16, 0, 0, DateTimeKind.Utc);
     static readonly Dictionary<long, string> Categorias = new() { [1] = "Financeiro" };
     static long ultimoEvento;
+    static readonly Prazos Prazos = new(30, 7, 3, 7);
 
     static IEnumerable<EventoChamado> Transicoes(long chamado, DateTime criado, params (double h, string de, string para)[] t) =>
         t.Select(x => new EventoChamado { Id = ++ultimoEvento, ChamadoId = chamado, Tipo = "TRANSICAO", De = x.de, Para = x.para, CriadoEm = criado.AddHours(x.h) });
@@ -20,7 +21,7 @@ public class CalculoDetalheTests
     static Massa Massa(List<ChamadoLido>? chamados = null, List<EventoChamado>? eventos = null, List<RespostaLida>? respostas = null, List<ConversaLida>? conversas = null) =>
         new(chamados ?? [], eventos ?? [], respostas ?? [], conversas, [], Categorias);
 
-    static Detalhe Calcular(Massa m, DateOnly de, DateOnly ate, DateTime? agora = null) => CalculoDetalhe.Calcular(m, de, ate, Cuiaba, agora ?? Meio);
+    static Detalhe Calcular(Massa m, DateOnly de, DateOnly ate, DateTime? agora = null) => CalculoDetalhe.Calcular(m, de, ate, Cuiaba, agora ?? Meio, Prazos);
 
     static Massa UmChamadoComResposta(double horas, long id) =>
         Massa([Chamado(id, Meio)], respostas: [new RespostaLida(id, 900, Meio.AddHours(horas))]);
@@ -144,5 +145,75 @@ public class CalculoDetalheTests
         Assert.Equal(6, com.Pontos.Single().Conversas);
         Assert.Null(sem.Desfechos);
         Assert.Null(sem.Pontos.Single().Conversas);
+    }
+
+    static readonly DateOnly Dia = new(2026, 11, 10);
+
+    static (List<ChamadoLido>, List<RespostaLida>) Respondidos(int dentro, int fora, long inicio = 1)
+    {
+        var chamados = new List<ChamadoLido>();
+        var respostas = new List<RespostaLida>();
+        for (var n = 0; n < dentro + fora; n++)
+        {
+            var id = inicio + n;
+            chamados.Add(Chamado(id, Meio.AddHours(-3)));
+            respostas.Add(new RespostaLida(id, 900, Meio.AddHours(-3).AddHours(n < dentro ? 24 : 25)));
+        }
+        return (chamados, respostas);
+    }
+
+    static (List<ChamadoLido>, List<EventoChamado>) Resolvidos(int dentro, int fora, long inicio = 100)
+    {
+        var chamados = new List<ChamadoLido>();
+        var eventos = new List<EventoChamado>();
+        for (var n = 0; n < dentro + fora; n++)
+        {
+            var id = inicio + n;
+            var horas = n < dentro ? 150 : 151;
+            var criado = Meio.AddHours(-horas);
+            chamados.Add(Chamado(id, criado, Resolvido));
+            eventos.AddRange(Transicoes(id, criado, (1, Aberto, AguardandoAluno), (31, AguardandoAluno, EmAtendimento), (horas, EmAtendimento, Resolvido)));
+        }
+        return (chamados, eventos);
+    }
+
+    [Fact]
+    public void Primeira_resposta_no_prazo()
+    {
+        var (chamados, respostas) = Respondidos(8, 2);
+        chamados.Add(Chamado(50, Meio.AddHours(-3)));
+        chamados.Add(Chamado(51, Meio.AddHours(-3)));
+        respostas.Add(new RespostaLida(51, 100 + 51, Meio.AddHours(-2)));
+
+        var p = Calcular(Massa(chamados, respostas: respostas), Dia, Dia, Meio.AddDays(3)).Prazos;
+
+        Assert.Equal(0.8, p.PrimeiraRespostaNoPrazo);
+        Assert.Equal(24, p.PrimeiraRespostaMetaHoras);
+    }
+
+    [Fact]
+    public void Resolucao_no_prazo_com_pausa()
+    {
+        var (chamados, eventos) = Resolvidos(7, 3);
+
+        var p = Calcular(Massa(chamados, eventos), Dia, Dia, Meio.AddDays(3)).Prazos;
+
+        Assert.Equal(0.7, p.ResolucaoNoPrazo);
+        Assert.Equal(120, p.ResolucaoMetaHoras);
+    }
+
+    [Fact]
+    public void Taxas_de_prazo_exigem_10_casos()
+    {
+        var (c9, r9) = Respondidos(9, 0);
+        var (s9, e9) = Resolvidos(9, 0);
+        var nove = Calcular(Massa([.. c9, .. s9], e9, r9), Dia, Dia, Meio.AddDays(3)).Prazos;
+        var (c10, r10) = Respondidos(9, 1);
+        var (s10, e10) = Resolvidos(9, 1);
+        var dez = Calcular(Massa([.. c10, .. s10], e10, r10), Dia, Dia, Meio.AddDays(3)).Prazos;
+
+        Assert.Equal(((double?)null, (double?)null), (nove.PrimeiraRespostaNoPrazo, nove.ResolucaoNoPrazo));
+        Assert.Equal(((double?)0.9, (double?)0.9), (dez.PrimeiraRespostaNoPrazo, dez.ResolucaoNoPrazo));
+        Assert.Equal(10, CalculoDetalhe.MinimoDeCasos);
     }
 }

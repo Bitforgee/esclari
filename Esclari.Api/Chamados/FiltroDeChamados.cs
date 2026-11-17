@@ -4,7 +4,7 @@ using static Esclari.Api.Dados.Chamados.EstadosChamado;
 
 namespace Esclari.Api.Chamados;
 
-public sealed record FiltroDeChamados(string? Escopo, string? Q, string[]? Estado, long? SetorId, long? CategoriaId, string? Responsavel, DateOnly? De, DateOnly? Ate, string? Ordem)
+public sealed record FiltroDeChamados(string? Escopo, string? Q, string[]? Estado, long? SetorId, long? CategoriaId, string? Responsavel, DateOnly? De, DateOnly? Ate, string? Ordem, string? Atraso = null)
 {
     public const string Fila = "fila";
     public const string Todos = "todos";
@@ -15,8 +15,15 @@ public sealed record FiltroDeChamados(string? Escopo, string? Q, string[]? Estad
     static readonly string?[] Escopos = [null, Fila, Todos];
     static readonly string?[] Ordens = [null, "antigos", "recentes"];
     static readonly string?[] Responsaveis = [null, "eu", "ninguem"];
+    static readonly string?[] Atrasos = [null, "true", "false"];
 
-    public sealed record Pedido(IQueryable<Chamado> Consulta, Usuario Usuario, Instituicao Instituicao);
+    public sealed record Pedido(IQueryable<Chamado> Consulta, Usuario Usuario, Instituicao Instituicao, IReadOnlyDictionary<long, AtrasoDoChamado.Vencido> Atrasados);
+
+    sealed record Candidato(long Id, string Estado, DateTime CriadoEm, long SolicitanteId);
+
+    sealed record Autor(long ChamadoId, long? AutorId, string Tipo);
+
+    sealed record Passagem(long ChamadoId, string? De, string? Para, DateTime CriadoEm);
 
     public string Texto() => Q?.Trim() ?? "";
 
@@ -27,7 +34,7 @@ public sealed record FiltroDeChamados(string? Escopo, string? Q, string[]? Estad
         var usados = new (string nome, bool usado)[]
         {
             ("escopo", Escopo is not null), ("q", Texto() != ""), ("estado", Estado is { Length: > 0 }), ("setorId", SetorId is not null), ("categoriaId", CategoriaId is not null),
-            ("responsavel", Responsavel is not null), ("de", De is not null), ("ate", Ate is not null), ("ordem", Ordem is not null),
+            ("responsavel", Responsavel is not null), ("de", De is not null), ("ate", Ate is not null), ("ordem", Ordem is not null), ("atraso", Atraso is not null),
         };
         return usados.Where(u => u.usado).Select(u => u.nome);
     }
@@ -40,6 +47,7 @@ public sealed record FiltroDeChamados(string? Escopo, string? Q, string[]? Estad
             ((Estado ?? []).Any(e => !Estados.Contains(e)), "estado", $"O estado deve ser um destes: {string.Join(", ", Estados)}."),
             (!Responsaveis.Contains(Responsavel), "responsavel", "O responsável deve ser eu ou ninguem."),
             (!Ordens.Contains(Ordem), "ordem", "A ordem deve ser antigos ou recentes."),
+            (!Atrasos.Contains(Atraso), "atraso", "O atraso deve ser true ou false."),
             (De > Ate, "de", "A data inicial deve ser anterior ou igual à final."),
             (Texto().Length > LimiteDoTexto, "q", $"A busca deve ter até {LimiteDoTexto} caracteres."),
         };
@@ -58,7 +66,7 @@ public sealed record FiltroDeChamados(string? Escopo, string? Q, string[]? Estad
     public static Task<List<long>> SetoresDe(EsclariDb db, Usuario u) =>
         db.AtendenteSetores.Where(a => a.UsuarioId == u.Id).Select(a => a.SetorId).ToListAsync();
 
-    public async Task<(Pedido?, IResult?)> Consultar(EsclariDb db, long usuarioId)
+    public async Task<(Pedido?, IResult?)> Consultar(EsclariDb db, long usuarioId, Prazos prazos, DateTime agora)
     {
         var u = await Quem(db, usuarioId);
         var recusa = Recusa(u, DeTodos()) ?? Invalido();
@@ -68,7 +76,36 @@ public sealed record FiltroDeChamados(string? Escopo, string? Q, string[]? Estad
         var i = await db.Instituicoes.SingleAsync(x => x.Id == db.InstituicaoAtual);
         var fuso = TimeZoneInfo.FindSystemTimeZoneById(i.Fuso);
         var consulta = PorTexto(db, PorPeriodo(PorCampos(db.Chamados, setores, u.Id), fuso));
-        return (new Pedido(Ordenar(consulta), u, i), null);
+        var atrasados = await Atrasados(db, consulta, prazos.Metas, agora);
+        return (new Pedido(Ordenar(PorAtraso(consulta, atrasados)), u, i, atrasados), null);
+    }
+
+    IQueryable<Chamado> PorAtraso(IQueryable<Chamado> q, Dictionary<long, AtrasoDoChamado.Vencido> atrasados)
+    {
+        var ids = atrasados.Keys.ToList();
+        if (Atraso == "true") return q.Where(c => ids.Contains(c.Id));
+        return Atraso == "false" ? q.Where(c => !ids.Contains(c.Id)) : q;
+    }
+
+    public static async Task<Dictionary<long, AtrasoDoChamado.Vencido>> Atrasados(EsclariDb db, IQueryable<Chamado> q, AtrasoDoChamado.Metas metas, DateTime agora)
+    {
+        var limite = agora - metas.PrimeiraResposta;
+        var candidatos = await q.Where(c => (c.Estado == Aberto || c.Estado == EmAtendimento) && c.CriadoEm <= limite)
+            .Select(c => new Candidato(c.Id, c.Estado, c.CriadoEm, c.SolicitanteId)).ToListAsync();
+        var ids = candidatos.Select(c => c.Id).ToList();
+        var autores = (await db.MensagensChamado.Where(m => ids.Contains(m.ChamadoId) && m.Tipo == TiposMensagem.Publica && m.AutorId != null)
+            .Select(m => new Autor(m.ChamadoId, m.AutorId, m.Tipo)).ToListAsync()).ToLookup(m => m.ChamadoId);
+        var passagens = (await db.EventosChamado.Where(e => ids.Contains(e.ChamadoId) && e.Tipo == TiposEvento.Transicao && (e.De == AguardandoAluno || e.Para == AguardandoAluno))
+            .Select(e => new Passagem(e.ChamadoId, e.De, e.Para, e.CriadoEm)).ToListAsync()).ToLookup(e => e.ChamadoId);
+        var atrasados = new Dictionary<long, AtrasoDoChamado.Vencido>();
+        foreach (var c in candidatos)
+        {
+            var situacao = new AtrasoDoChamado.Situacao(c.Estado, c.CriadoEm,
+                AtrasoDoChamado.RespondidoPelaEquipe(c.SolicitanteId, autores[c.Id].Select(m => new AtrasoDoChamado.Mensagem(m.AutorId, m.Tipo))),
+                AtrasoDoChamado.Pausado(passagens[c.Id].Select(e => new AtrasoDoChamado.Transicao(e.De, e.Para, e.CriadoEm)), agora));
+            if (AtrasoDoChamado.Calcular(situacao, metas, agora) is { } vencido) atrasados[c.Id] = vencido;
+        }
+        return atrasados;
     }
 
     IQueryable<Chamado> PorCampos(IQueryable<Chamado> q, List<long>? setores, long usuarioId)

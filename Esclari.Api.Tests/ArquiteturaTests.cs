@@ -71,7 +71,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     public void IgnoreQueryFilters_so_no_agendador_e_no_comando()
     {
         var api = Path.Combine(Raiz(), "Esclari.Api");
-        var permitidos = new[] { Path.Combine(api, "Acesso", "ApagarLancamentos.cs"), Path.Combine(api, "Assistente", "Conversas", "AbandonarConversas.cs"), Path.Combine(api, "Chamados", "Tarefas", "FecharResolvidos.cs"), Path.Combine(api, "Chamados", "Tarefas", "ResolverSemResposta.cs"), Path.Combine(api, "Chamados", "Tarefas", "LembrarAguardando.cs"), Path.Combine(api, "Chamados", "Tarefas", "SubirPorPrazo.cs"), Path.Combine(api, "Chamados", "Tarefas", "EnviarEmails.cs"), Path.Combine(api, "Chamados", "Tarefas", "EnviarPushes.cs"), Path.Combine(api, "Assistente", "Busca", "IndexarTrechos.cs"), Path.Combine(api, "Conhecimento", "AvisarValidade.cs") };
+        var permitidos = new[] { Path.Combine(api, "Acesso", "ApagarLancamentos.cs"), Path.Combine(api, "Assistente", "Conversas", "AbandonarConversas.cs"), Path.Combine(api, "Chamados", "Tarefas", "FecharResolvidos.cs"), Path.Combine(api, "Chamados", "Tarefas", "ResolverSemResposta.cs"), Path.Combine(api, "Chamados", "Tarefas", "LembrarAguardando.cs"), Path.Combine(api, "Chamados", "Tarefas", "SubirPorPrazo.cs"), Path.Combine(api, "Chamados", "Tarefas", "EnviarEmails.cs"), Path.Combine(api, "Chamados", "Tarefas", "EnviarPushes.cs"), Path.Combine(api, "Chamados", "Tarefas", "AvisarAtrasos.cs"), Path.Combine(api, "Assistente", "Busca", "IndexarTrechos.cs"), Path.Combine(api, "Conhecimento", "AvisarValidade.cs") };
         var sep = Path.DirectorySeparatorChar;
         var usos = Directory.EnumerateFiles(api, "*.cs", SearchOption.AllDirectories)
             .Where(p => !p.Contains($"{sep}bin{sep}") && !p.Contains($"{sep}obj{sep}"))
@@ -359,9 +359,9 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             ["Consulta"] = ["ListarChamados", "BuscarChamados", "ExportarChamados", "FiltrosDaBusca", "VerChamado", "DetalheChamado", "ConsultasDoDetalhe", "ConsultasDeFluxo", "ChamadoDoUsuario", "BaixarAnexo", "AnexoDeFormulario", "RespostasProntasDoSetor"],
             ["Push"] = ["AtivarPush", "DesativarPush", "ConfigPush", "VerChavePush", "PushComando", "PushEnviador"],
             ["TempoReal"] = ["TempoRealGrupos", "TempoRealHub", "AvisarMudanca", "ColetaDeMudancas"],
-            ["Tarefas"] = ["FecharResolvidos", "LembrarAguardando", "ResolverSemResposta", "SubirPorPrazo", "EnviarEmails", "EnviarPushes"],
+            ["Tarefas"] = ["FecharResolvidos", "LembrarAguardando", "ResolverSemResposta", "SubirPorPrazo", "EnviarEmails", "EnviarPushes", "AvisarAtrasos"],
             [""] = ["Avisos", "ChamadosExtensoes", "FiltroDeChamados", "CsvDeChamados"],
-        }, 48);
+        }, 49);
 
     [Fact]
     public void Mapa_de_Administracao() =>
@@ -736,7 +736,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     {
         var publicos = new Dictionary<Type, string[]>
         {
-            [typeof(Chamado)] = ["Abrir", "Assumir", "ResponderComoAluno", "ResponderComoEquipe", "Anotar", "Resolver", "Confirmar", "Rejeitar", "Cancelar", "Encaminhar", "Subir", "Reclassificar", "MarcarDuplicado", "DevolverAFila", "LembrarAluno", "ResolverPorFaltaDeResposta", "FecharPorInatividade"],
+            [typeof(Chamado)] = ["Abrir", "Assumir", "ResponderComoAluno", "ResponderComoEquipe", "Anotar", "Resolver", "Confirmar", "Rejeitar", "Cancelar", "Encaminhar", "Subir", "Reclassificar", "MarcarDuplicado", "DevolverAFila", "LembrarAluno", "ResolverPorFaltaDeResposta", "FecharPorInatividade", "MarcarAtrasoAvisado"],
             [typeof(Artigo)] = ["Criar", "NovaVersao", "Ativar", "Arquivar", "Renovar"],
             [typeof(Documento)] = ["Criar", "NovaVersao", "Arquivar", "Renovar"],
         };
@@ -1042,7 +1042,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 
         var agir = typeof(Esclari.Api.Chamados.Permissao.AgirNoChamado<,>);
         Assert.Equal(["Handle"], Publicos(agir));
-        Assert.Equal([typeof(EsclariDb), typeof(Esclari.Api.Chamados.Permissao.AcessoChamado), typeof(TimeProvider)],
+        Assert.Equal([typeof(EsclariDb), typeof(Esclari.Api.Chamados.Permissao.AcessoChamado), typeof(TimeProvider), typeof(Prazos)],
             Assert.Single(agir.GetConstructors()).GetParameters().Select(p => p.ParameterType));
         var handle = agir.GetMethod("Handle")!;
         Assert.Equal(typeof(ValueTask<>), handle.ReturnType.GetGenericTypeDefinition());
