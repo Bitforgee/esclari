@@ -204,10 +204,9 @@ O administrador vê e lê todos os chamados da instituição, sem agir neles.
 | quando aplicar | busca interativa (300 ms) e painel em lote com "Aplicar" | NN/g: lote quando a pessoa escolhe vários filtros, e no celular o painel cobre a lista | y |
 | onde guardar o recorte | na query string, nada no `localStorage` | volta com o botão Voltar, abre igual num link; nada autenticado fica no aparelho (prompt mobile-first, princípio 5) | y |
 | limite de exportação | 10 000 linhas, 5 por minuto por usuário | cerca de 2 MB de arquivo; protege o banco de exportações repetidas | y |
-
 | a ordem conta como filtro? | não: a ordem não ganha etiqueta nem entra no número de "Filtros (N)"; aparece na contagem ("N chamados · Mais antigos primeiro", como a linha "Mais antigos primeiro" que a Fila já tinha) e "Limpar filtros" a mantém | ordenar não tira chamado da lista, então não é um recorte; decidido no build depois da rodada 1 do Verify | n |
 
-**Open questions:** none - all resolved or logged above. O dono aprovou o plano com todos os padrões acima em 17/11 ("aprovo pode seguir").
+**Open questions:** none - all resolved or logged above. O dono aprovou o plano com os padrões acima em 17/11 ("aprovo pode seguir"), menos a linha "a ordem conta como filtro?", decidida no build e ainda sem o ok dele.
 
 ## Observable
 

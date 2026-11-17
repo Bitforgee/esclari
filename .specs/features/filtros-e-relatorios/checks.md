@@ -231,7 +231,7 @@ A rodada 1 (`verification.md`, `3f7a342`) não achou defeito e marcou FAIL por c
 **C63** - `q=\` devolve `total` 0 quando nenhum título tem `\`, e depois de abrir "Arquivo em C:\temp\notas" `q=C:\temp` e `q=\` devolvem só esse chamado (AC 4, porta 3)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~BuscaDeChamadosTests.Barra_invertida_e_texto_comum"`
 
-**C64** - `GET /api/chamados/exportar` responde `400` com o nome do campo em `errors` para `estado=PERDIDO`, `ordem=meio`, `responsavel=fulano`, `escopo=meus` e `q` de 101 caracteres (AC 13)
+**C64** - `GET /api/chamados/exportar` responde `400` com o nome do campo em `errors` para `estado=PERDIDO`, `ordem=meio`, `responsavel=fulano`, `escopo=meus`, `de=2026-11-12&ate=2026-11-11` (campo `de`) e `q` de 101 caracteres (AC 10, AC 13)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~BuscaDeChamadosTests.Parametro_invalido_400_na_exportacao"`
 
 **C65** - No CSV a coluna Estado traz "Aberto", "Em atendimento", "Aguardando aluno", "Resolvido" e "Fechado", e "Motivo de fechamento" traz "Confirmado pelo aluno", "Cancelado pelo aluno", "Duplicado" e "Fechado automaticamente" (AC 32)
@@ -291,8 +291,9 @@ Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~TempoRealEntr
 | rótulos de estado no CSV (5) | `ABERTO` C65 · `EM_ATENDIMENTO` C65 · `AGUARDANDO_ALUNO` C65 · `RESOLVIDO` C65 · `FECHADO` C65 | - |
 | rótulos de motivo no CSV (4) | `CONFIRMADO` C65 · `CANCELADO` C65 · `DUPLICADO` C65 · `FECHADO_AUTOMATICAMENTE` C65 | - |
 | caracteres escapados na busca (3) | `%` C6 · `_` C6 · `\` C63 | - |
-| parâmetros recusados na exportação (5) | `estado` C64 · `ordem` C64 · `responsavel` C64 · `escopo` C64 · `q` C64 | - |
-| quem ramifica no papel `LEITURA` (5) | `DetalheChamado.Montar` C49 · `PermissoesChamado` C50 · `AgirNoChamado` C50 · `TempoRealHub.EntrarNoChamado` C72 · `BaixarAnexo` C66 | - || configuração de partida: política de limite `exportar` (1 montagem) | `Program` usado pelo `EsclariFactoryComLimites` C44 | - |
+| parâmetros recusados na exportação (6) | `estado` C64 · `ordem` C64 · `responsavel` C64 · `escopo` C64 · `de` > `ate` C64 · `q` C64 | - |
+| quem ramifica no papel `LEITURA` (5) | `DetalheChamado.Montar` C49 · `PermissoesChamado` C50 · `AgirNoChamado` C50 · `TempoRealHub.EntrarNoChamado` C72 · `BaixarAnexo` C66 | - |
+| configuração de partida: política de limite `exportar` (1 montagem) | `Program` usado pelo `EsclariFactoryComLimites` C44 | - |
 
 - Afirmações de status, rota ou forma de resposta: C1, C9, C12, C14 a C22, C35, C42 a C44, C47 a C50 - cada uma tem prova que bate na rota HTTP.
 - Test policy: o `AGENTS.md` (seção Testes) já responde o nível - rota HTTP no teste de integração, regra de domínio em teste unitário na entidade - e esta feature segue isso; sem seção própria.

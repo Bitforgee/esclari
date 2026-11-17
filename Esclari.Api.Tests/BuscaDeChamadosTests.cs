@@ -296,6 +296,7 @@ public class BuscaDeChamadosTests(EsclariFactory f) : IClassFixture<EsclariFacto
     [InlineData("ordem=meio", "ordem")]
     [InlineData("responsavel=fulano", "responsavel")]
     [InlineData("escopo=meus", "escopo")]
+    [InlineData("de=2026-11-12&ate=2026-11-11", "de")]
     [InlineData("q=" + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "q")]
     public async Task Parametro_invalido_400_na_exportacao(string consulta, string campo)
     {
