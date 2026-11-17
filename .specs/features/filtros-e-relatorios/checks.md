@@ -7,6 +7,8 @@ Plan: `.specs/features/filtros-e-relatorios/plan.md`
 
 **Como as provas rodam.** Na raiz `D:\esclari`, salvo `cd web &&`. API: `docker compose up -d postgres mailpit minio` e uma execução de `dotnet test` por vez. Vitest: `cd web && npx vitest run <arquivo> -t "<nome>"`. Playwright: `docker compose up -d --build` e `cd web && npx playwright test <spec> -g "<nome>"`. Um filtro que não seleciona teste sai com 0 (L-002): conferir a contagem de testes executados. Mutação suspensa (AD-025).
 
+**Emenda de construção E1 (Impact, porta 4).** `TempoRealEntradaTests.EntrarNoChamado_recusa_com_Chamado_nao_encontrado` tinha o caso `(admin, numero)`, que esperava a recusa do administrador ao entrar no grupo do chamado no hub. Com o papel `LEITURA` o administrador lê o chamado e entra no grupo, como o Impact previu para quem ramifica no papel (`TempoRealHub.EntrarNoChamado`). O caso saiu da lista de recusas e virou o teste `EntrarNoChamado_entra_o_administrador_em_leitura`, que afirma a entrada; os outros 5 casos de recusa ficam. As contagens de inventário de `ArquiteturaTests`, `MediatorTests`, `RetratoTests` (e `Retratos/rotas.txt`) e `SessaoTests` sobem com as 3 rotas novas (C59, C60).
+
 ## Checks
 
 ### S1 - Busca e filtros na API · 8 arquivos · ~30k

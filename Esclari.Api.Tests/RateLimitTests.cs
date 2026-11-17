@@ -45,6 +45,21 @@ public class RateLimitTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Seis_exportacoes_em_60s_429()
+    {
+        await using var g = new EsclariFactoryComLimites();
+        await g.InitializeAsync();
+        var i = await g.Instituicao();
+        var triagem = await g.Db(i.Id, db => Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.SingleAsync(db.Setores, s => s.Triagem));
+        var a = await g.Atendente(i, triagem);
+
+        for (var n = 1; n <= 5; n++)
+            Assert.Equal(HttpStatusCode.OK, (await a.Cliente.GetAsync("/api/chamados/exportar?escopo=fila")).StatusCode);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, (await a.Cliente.GetAsync("/api/chamados/exportar?escopo=fila")).StatusCode);
+    }
+
+    [Fact]
     public async Task Atendimento_direto_conta_no_limite_do_aluno()
     {
         var aluno = await f.AlunoLogado();

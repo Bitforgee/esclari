@@ -36,7 +36,7 @@ public sealed record DetalheChamado(
 
     public static async Task<DetalheChamado> Montar(EsclariDb db, long usuarioId, Chamado c, string papel)
     {
-        var equipe = papel == PermissoesChamado.Atendente;
+        var equipe = papel is PermissoesChamado.Atendente or PermissoesChamado.Leitura;
         var lider = papel == PermissoesChamado.Lider;
         var vemDaEquipe = equipe || lider;
         var cabecalho = await LerCabecalho(db, c, lider, equipe);

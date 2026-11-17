@@ -7,6 +7,7 @@ public static class PermissoesChamado
     public const string Aluno = "ALUNO";
     public const string Atendente = "ATENDENTE";
     public const string Lider = "LIDER";
+    public const string Leitura = "LEITURA";
 
     static readonly string[] Abertos = [Aberto, EmAtendimento, AguardandoAluno];
     static readonly string[] NaoFechados = [.. Abertos, Resolvido];

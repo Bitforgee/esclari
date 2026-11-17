@@ -32,6 +32,9 @@ public static class ChamadosExtensoes
     public static void MapChamados(this RouteGroupBuilder api)
     {
         ListarChamados.Mapear(api);
+        BuscarChamados.Mapear(api);
+        ExportarChamados.Mapear(api);
+        FiltrosDaBusca.Mapear(api);
         VerChamado.Mapear(api);
         AcoesChamado.Mapear(api);
         RespostasProntasDoSetor.Mapear(api);

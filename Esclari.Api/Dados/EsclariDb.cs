@@ -47,6 +47,7 @@ public class EsclariDb(DbContextOptions<EsclariDb> options) : DbContext(options)
     protected override void OnModelCreating(ModelBuilder mb)
     {
         mb.HasPostgresExtension("vector");
+        mb.HasPostgresExtension("unaccent");
 mb.ApplyConfiguration(new InstituicaoMapeamento());
         mb.ApplyConfiguration(new ImagemInstituicaoMapeamento());
         mb.ApplyConfiguration(new PlataformaMoodleMapeamento());

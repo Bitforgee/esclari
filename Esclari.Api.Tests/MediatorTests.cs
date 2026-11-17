@@ -23,7 +23,7 @@ public class MediatorTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     {
         using var escopo = f.Services.CreateScope();
         var mensagens = ArquiteturaTests.Mensagens();
-        Assert.Equal(88, mensagens.Count);
+        Assert.Equal(91, mensagens.Count);
         var (acoes, outras) = (0, 0);
         foreach (var (mensagem, resposta) in mensagens)
         {
@@ -39,6 +39,6 @@ public class MediatorTests(EsclariFactory f) : IClassFixture<EsclariFactory>
                 Assert.True(behaviors.Count == 0, $"{mensagem.Name}: {behaviors.Count} behaviors");
             }
         }
-        Assert.Equal((10, 78), (acoes, outras));
+        Assert.Equal((10, 81), (acoes, outras));
     }
 }

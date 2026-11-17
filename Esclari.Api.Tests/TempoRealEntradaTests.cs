@@ -127,6 +127,20 @@ public class TempoRealEntradaTests(EsclariFactory f) : IClassFixture<EsclariFact
     }
 
     [Fact]
+    public async Task EntrarNoChamado_entra_o_administrador_em_leitura()
+    {
+        var b = await Balcao.Criar(f);
+        var numero = await b.Chamado();
+        var admin = await f.Usuario(b.Instituicao, [Papeis.Administrador]);
+        await using var c = await f.Abrir(b.Instituicao, admin);
+        await c.Entrar(numero);
+
+        var grupo = TempoRealGrupos.Chamado(b.Instituicao.Id, numero);
+        await f.Sonda(grupo);
+        Assert.Equal([$"Sonda:{grupo}"], await c.Esperar(1));
+    }
+
+    [Fact]
     public async Task EntrarNoChamado_duas_vezes_entrega_um_aviso_so()
     {
         var b = await Balcao.Criar(f);
@@ -148,14 +162,12 @@ public class TempoRealEntradaTests(EsclariFactory f) : IClassFixture<EsclariFact
         var numero = await b.Chamado();
         var outraInstituicao = await f.AlunoLogado();
         var outroAluno = await f.Usuario(b.Instituicao, [Papeis.Aluno]);
-        var admin = await f.Usuario(b.Instituicao, [Papeis.Administrador]);
         var casos = new (Usuario quem, string numero)[]
         {
             (b.Aluno.Usuario, "ESC-000999"),
             (outraInstituicao.Usuario, numero),
             (outroAluno, numero),
             (b.Alheio.Usuario, numero),
-            (admin, numero),
             (b.Aluno.Usuario, ""),
         };
         foreach (var (quem, n) in casos)

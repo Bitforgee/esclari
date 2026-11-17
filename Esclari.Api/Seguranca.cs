@@ -17,6 +17,8 @@ public static class Seguranca
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = Limite(c, "Limites:McpPorMinuto", 60), Window = TimeSpan.FromSeconds(60) }));
             o.AddPolicy("mensagens", c => RateLimitPartition.GetFixedWindowLimiter(c.User.FindFirstValue("sub") ?? "",
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = Limite(c, "Limites:MensagensPorMinuto", 10), Window = TimeSpan.FromSeconds(60) }));
+            o.AddPolicy("exportar", c => RateLimitPartition.GetFixedWindowLimiter(c.User.FindFirstValue("sub") ?? "",
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Limite(c, "Limites:ExportarPorMinuto", 5), Window = TimeSpan.FromSeconds(60) }));
         });
         return s;
     }
