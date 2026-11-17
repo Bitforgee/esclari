@@ -8,7 +8,7 @@ Quem atende não consegue achar um chamado nem recortar a fila. A tela Fila (`we
 - Não há como ver só "os meus", só "os sem responsável", só uma categoria ou só os abertos numa semana. O atendente rola a lista inteira, 50 por vez.
 - O administrador que não é atendente não vê chamado nenhum: não tem lista e `ChamadoDoUsuario.Carregar` responde 404 ao detalhe. O RF-03 diz que o administrador vê todos os chamados (`D:\One\One\docs\requisitos\conteudo.md`, RF-03).
 - Nada sai do sistema. Os Indicadores mostram totais e taxas do período, mas não a lista de chamados por trás deles, e não existe exportação em lugar nenhum do produto (nenhum `text/csv` no código). A coordenadora relatou que o MEC exige registro das manifestações e que elas gerem insumos para melhoria (conteúdo.md, linha 115); a "exportação de relatórios" ficou fora do escopo inicial (conteúdo.md, linha 30).
-- Quem paga: o atendente, que perde tempo procurando, e o gestor, que monta relatório à mão. Evidência: nenhuma medida de uso (não há produção); o problema vem da leitura do código e do pedido do dono em 18/11.
+- Quem paga: o atendente, que perde tempo procurando, e o gestor, que monta relatório à mão. Evidência: nenhuma medida de uso (não há produção); o problema vem da leitura do código e do pedido do dono em 17/11.
 
 Depois disto, o atendente busca por número, título ou nome do aluno, filtra por estado (inclusive Fechado), setor, categoria, responsável e período de abertura, e o recorte fica na URL. O administrador tem a tela Chamados com todos os setores e lê qualquer chamado sem poder agir nele. Qualquer recorte sai num CSV que abre certo no Excel em português, sem dado pessoal do aluno.
 
@@ -47,7 +47,8 @@ flowchart TD
 | domain | termo existente: "Fila" continua sendo os setores do atendente sem `FECHADO` por padrão; com o filtro de estado passa a mostrar `FECHADO` também |
 | rota existente | `GET /api/chamados?escopo=fila\|meus` não muda; o `listar_chamados` do MCP continua lendo `ListarChamados.RespostaDaFila` com o mesmo JSON (AD-055, `McpFerramentasTests`) |
 | rota existente | `GET /api/chamados/{numero}` para um administrador fora do setor passa de `404` a `200` com `acoes: []`; as ações `POST` continuam `403` para ele. Hoje nenhum teste espera esse `404` de administrador (a conferir no build; se houver, é emenda, não edição) |
-| web | `Fila` passa a chamar `/api/chamados/busca`; `UrlDaFila` e as duas invalidações de `tempo-real.ts` passam a usar a chave da busca. Testes que leem a fila hoje: `listas.test.tsx`, `tempoReal.test.tsx`, `textos.test.tsx`, `sessao.test.tsx` e os e2e de fila |
+| web | `Fila` passa a chamar `/api/chamados/busca`; `UrlDaFila` sai de `tempo-real.ts` e as duas invalidações usam a chave `ChaveDaBusca` (`['busca']`). Os testes que simulavam `GET /api/chamados?escopo=fila` (16 arquivos Vitest e 5 e2e, mais `e2e/simulada.ts`) passam a simular a busca com o envelope `{ itens, total, pagina, porPagina }` pelos auxiliares `FILA`, `rotasDaFila`, `comoPagina` e `rotaDaLista` de `web/src/test/util.tsx`; `web/src/test/estrutura.test.ts` passa a ignorar a query string ao ler a rota aberta por `abrir(...)` |
+| web | `Autenticado.tsx`: com o item `chamados` no menu, a rota `chamados/:numero` continua aberta a todo papel (`podeAbrir`) e "no chamado" passa a exigir o número na URL, para a lista `/:slug/chamados` não esconder a barra de baixo |
 | web | menu: item novo "Chamados" (`/:slug/chamados`) para `ADMINISTRADOR` no grupo Atendimento. A barra inferior do celular do administrador passa de Indicadores, Gerir, Conta a Chamados, Indicadores, Gerir, Conta (AD-052 aceita de 3 a 5); testes do `mobile-m1-casca` que fixam essa barra mudam por emenda |
 | stored data | nada a migrar: só leitura de `chamado`, `mensagem_chamado`, `categoria`, `setor`, `usuario` e `matricula`. A migration cria a extensão `unaccent`, sem tocar em linha. A busca por texto é varredura sequencial dentro da instituição (`unaccent` não é `IMMUTABLE` e não entra em índice); aceita para o volume de uma instituição |
 
@@ -203,7 +204,7 @@ O administrador vê e lê todos os chamados da instituição, sem agir neles.
 | onde guardar o recorte | na query string, nada no `localStorage` | volta com o botão Voltar, abre igual num link; nada autenticado fica no aparelho (prompt mobile-first, princípio 5) | y |
 | limite de exportação | 10 000 linhas, 5 por minuto por usuário | cerca de 2 MB de arquivo; protege o banco de exportações repetidas | y |
 
-**Open questions:** none - all resolved or logged above. O dono aprovou o plano com todos os padrões acima em 18/11 ("aprovo pode seguir").
+**Open questions:** none - all resolved or logged above. O dono aprovou o plano com todos os padrões acima em 17/11 ("aprovo pode seguir").
 
 ## Observable
 
@@ -233,6 +234,6 @@ O administrador vê e lê todos os chamados da instituição, sem agir neles.
 
 ## Sources
 
-- Pedido do dono em 18/11: filtrar chamados e ter relatórios, estudando a melhor forma.
+- Pedido do dono em 17/11: filtrar chamados e ter relatórios, estudando a melhor forma.
 - `D:\One\One\docs\requisitos\conteudo.md` - RF-03 (administrador vê todos os chamados), linha 115 (registro exigido pelo MEC), linha 30 (exportação fora do escopo inicial).
 - Pesquisa: [NN/g, filtros em lote ou interativos](https://www.nngroup.com/articles/applying-filters/); [Zendesk, filtrar e ordenar uma visão por estado e responsável](https://support.zendesk.com/hc/en-us/articles/5430058226330-Filtering-tickets-in-a-view-to-refine-results); [Freshdesk, exportar chamados com o filtro da lista](https://support.freshdesk.com/support/solutions/articles/225158-how-to-export-my-tickets-from-freshdesk-); [OWASP, CSV Injection](https://wiki.owasp.org/index.php/CSV_Injection) e [CVE-2021-41270, prefixo `'` e TAB/CR](https://github.com/advisories/GHSA-2xhg-w2g5-w95x); [Câmara dos Deputados, UTF-8 e CP-1252 no Excel](https://dadosabertos.camara.leg.br/howtouse/2017-03-02-csv-corrigindo-acentuacao.html); Npgsql `EF.Functions.Unaccent` e `ILike` (documentação do efcore.pg).

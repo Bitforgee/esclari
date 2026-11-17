@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import pacote from '../../package.json'
 import { formatarData } from '../datas'
 import { iniciais } from '../Autenticado'
-import { abrir, api, me } from '../test/util'
+import { abrir, api, me, rotasDaFila } from '../test/util'
 import { Toaster } from '../ui/sonner'
 import { ThemeProvider } from '../ui/theme-provider'
 
@@ -204,11 +204,11 @@ describe('acesso', () => {
   })
 
   it('link ativo da barra lateral', async () => {
-    api({ 'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE', 'ADMINISTRADOR'] })], 'GET /api/chamados?escopo=fila': () => [200, []] })
+    api({ 'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE', 'ADMINISTRADOR'] })], ...rotasDaFila([]) })
     abrir('/univag/fila')
     const nav = await screen.findByRole('navigation')
     const links = await within(nav).findAllByRole('link')
-    expect(links.length).toBe(9)
+    expect(links.length).toBe(10)
     for (const link of links) {
       const ativo = link.textContent === 'Fila'
       expect(link.getAttribute('aria-current'), link.textContent!).toBe(ativo ? 'page' : null)
@@ -251,7 +251,7 @@ describe('acesso', () => {
     for (const [papel, links] of [
       ['ALUNO', ['Assistente', 'Minhas solicitações']],
       ['ATENDENTE', ['Fila', 'Indicadores']],
-      ['ADMINISTRADOR', ['Indicadores', 'Artigos', 'Documentos', 'Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']],
+      ['ADMINISTRADOR', ['Chamados', 'Indicadores', 'Artigos', 'Documentos', 'Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']],
     ] as const) {
       api({ 'GET /api/auth/me': () => [200, me({ papeis: [papel] })] })
       const { unmount } = abrir('/univag/trocar-senha')
@@ -431,7 +431,7 @@ describe('barra lateral com grupos', () => {
 
   const Todos = ['ALUNO', 'ATENDENTE', 'ADMINISTRADOR']
   const Esperado = [
-    ['Atendimento', ['Assistente', 'Minhas solicitações', 'Fila', 'Indicadores']],
+    ['Atendimento', ['Assistente', 'Minhas solicitações', 'Fila', 'Chamados', 'Indicadores']],
     ['Conhecimento', ['Artigos', 'Documentos']],
     ['Administração', ['Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']],
   ]
@@ -455,7 +455,7 @@ describe('barra lateral com grupos', () => {
   it.each([
     [['ALUNO'], [['Atendimento', ['Assistente', 'Minhas solicitações']]]],
     [['ATENDENTE'], [['Atendimento', ['Fila', 'Indicadores']]]],
-    [['ADMINISTRADOR'], [['Atendimento', ['Indicadores']], ['Conhecimento', ['Artigos', 'Documentos']], ['Administração', ['Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']]]],
+    [['ADMINISTRADOR'], [['Atendimento', ['Chamados', 'Indicadores']], ['Conhecimento', ['Artigos', 'Documentos']], ['Administração', ['Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']]]],
   ])('grupos por papel (%j)', async (papeis, esperado) => {
     api({ 'GET /api/auth/me': () => [200, me({ papeis })] })
     abrir('/univag/trocar-senha')

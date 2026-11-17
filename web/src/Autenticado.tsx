@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { BookText, Building2, ChartColumn, ChevronLeft, CircleAlert, CircleUser, FileText, Inbox, LayoutGrid, ListChecks, LogOut, MessageCircle, Menu as IconeMenu, Monitor, Moon, MoonStar, Palette, Phone, Plug, Settings, Sun, Upload, Users } from 'lucide-react'
+import { BookText, Building2, ChartColumn, ClipboardList, ChevronLeft, CircleAlert, CircleUser, FileText, Inbox, LayoutGrid, ListChecks, LogOut, MessageCircle, Menu as IconeMenu, Monitor, Moon, MoonStar, Palette, Phone, Plug, Settings, Sun, Upload, Users } from 'lucide-react'
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Link as RouterLink, Navigate, NavLink, Outlet, useLocation, useMatch, useNavigate, useParams } from 'react-router'
 import { api, ErroApi, type Me } from './api'
@@ -21,6 +21,7 @@ const Menu = [
   { grupo: 'Atendimento', papeis: ['ALUNO'], caminho: 'assistente', rotulo: 'Assistente', Icone: MessageCircle },
   { grupo: 'Atendimento', papeis: ['ALUNO'], caminho: 'solicitacoes', rotulo: 'Minhas solicitações', abrev: 'Solicitações', Icone: ListChecks },
   { grupo: 'Atendimento', papeis: ['ATENDENTE'], caminho: 'fila', rotulo: 'Fila', Icone: Inbox },
+  { grupo: 'Atendimento', papeis: ['ADMINISTRADOR'], caminho: 'chamados', rotulo: 'Chamados', Icone: ClipboardList },
   { grupo: 'Atendimento', papeis: ['ATENDENTE', 'ADMINISTRADOR'], caminho: 'indicadores', rotulo: 'Indicadores', Icone: ChartColumn },
   { grupo: 'Conhecimento', papeis: ['ADMINISTRADOR'], caminho: 'artigos', rotulo: 'Artigos', Icone: BookText },
   { grupo: 'Conhecimento', papeis: ['ADMINISTRADOR'], caminho: 'documentos', rotulo: 'Documentos', Icone: FileText },
@@ -362,14 +363,18 @@ function ErroDaSessao({ erro, tentar }: { erro: Error; tentar: () => void }) {
   )
 }
 
+function podeAbrir(papeis: string[], pathname: string, inicial: string) {
+  const [, , caminho, numero] = pathname.split('/')
+  return (caminho === 'chamados' && !!numero) || rotaPermitida(papeis, caminho) || caminho === inicial
+}
+
 function desvio({ me, erro, slug, pathname }: { me?: Me; erro: Error | null; slug?: string; pathname: string }) {
   if (semSessao(erro)) return `/${slug}`
   if (!me) return undefined
   if (me.instituicao.slug !== slug) return `/${me.instituicao.slug}`
   if (me.deveTrocarSenha && !pathname.endsWith('/trocar-senha')) return `/${slug}/trocar-senha`
   const inicial = telaInicial(me)
-  const caminho = pathname.split('/')[2]
-  return !rotaPermitida(me.papeis, caminho) && caminho !== inicial ? `/${slug}/${inicial}` : undefined
+  return podeAbrir(me.papeis, pathname, inicial) ? undefined : `/${slug}/${inicial}`
 }
 
 export function Autenticado() {
@@ -415,7 +420,7 @@ function useModo(me: Me, slug?: string) {
   const deitado = useConsulta(Deitado)
   const { soAluno, equipe, lista } = perfilDoModo(me)
   const voltarAoChamado = useVoltar(slug, lista)
-  const noChamado = pathname.split('/')[2] === 'chamados'
+  const noChamado = /^\/[^/]+\/chamados\/[^/]+/.test(pathname)
   const abas = celular && (soAluno || !me.deveTrocarSenha)
   return {
     abas,

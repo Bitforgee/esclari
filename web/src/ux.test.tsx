@@ -6,7 +6,7 @@ import { createMemoryRouter, RouterProvider, useLocation } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { App } from './App'
 import { textoVisivel } from './test/textos'
-import { abrir, api, chamado, comTexto, instituicao, me, type Rota } from './test/util'
+import { abrir, api, chamado, comTexto, FILA, instituicao, me, type Rota, rotasDaFila } from './test/util'
 import { Dialog, DialogContent, DialogTitle } from './ui/dialog'
 import { Sheet, SheetContent, SheetTitle } from './ui/sheet'
 
@@ -144,7 +144,7 @@ describe('ux', () => {
   const Vazios = (...urls: string[]) => Object.fromEntries(urls.map((u) => [`GET ${u}`, (() => [200, []]) as Rota]))
   const Superficies: Superficie[] = [
     { nome: 'Minhas solicitações', papeis: ['ALUNO'], caminho: '/univag/solicitacoes', url: '/api/chamados?escopo=meus', oque: 'suas solicitações', depois: 'Nenhuma solicitação' },
-    { nome: 'Fila', papeis: ['ATENDENTE'], caminho: '/univag/fila', url: '/api/chamados?escopo=fila', oque: 'a fila', depois: 'Fila em dia' },
+    { nome: 'Fila', papeis: ['ATENDENTE'], caminho: '/univag/fila', url: FILA, oque: 'a fila', depois: 'Fila em dia', ok: { itens: [], total: 0, pagina: 1, porPagina: 50 } },
     { nome: 'detalhe como aluno', papeis: ['ALUNO'], caminho: '/univag/chamados/ESC-000001', url: '/api/chamados/ESC-000001', oque: 'a solicitação', depois: 'preciso do boleto', ok: chamado() },
     { nome: 'detalhe como equipe', papeis: ['ATENDENTE'], caminho: '/univag/chamados/ESC-000001', url: '/api/chamados/ESC-000001', oque: 'o chamado', depois: 'preciso do boleto', ok: chamado({ eventos: [], resumo: 'x', solicitante: 'Ana', acoes: ['responder'] }) },
     { nome: 'Artigos', papeis: ['ADMINISTRADOR'], caminho: '/univag/artigos', url: '/api/admin/artigos', oque: 'os artigos', vazios: ['/api/admin/categorias'], depois: 'Nenhum artigo' },
@@ -235,7 +235,7 @@ describe('ux', () => {
   })
 
   it('aluno lê Solicitação e a equipe lê Chamado (o vazio da Fila da equipe)', async () => {
-    api({ 'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'] })], 'GET /api/chamados?escopo=fila': () => [200, []] })
+    api({ 'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'] })], ...rotasDaFila([]) })
     abrir('/univag/fila')
     expect(await screen.findByText('Nenhum chamado na fila dos seus setores.')).toBeInTheDocument()
   })

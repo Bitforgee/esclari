@@ -16,6 +16,7 @@ const corSobreFundo = (alvo: Locator, propriedade: 'color' | 'backgroundColor' |
   alvo.evaluate((el, p) => window.__ux.pintar([...window.__ux.pilha(el.parentElement ?? el), getComputedStyle(el)[p as 'color']]), propriedade)
 const caixa = async (l: Locator) => (await l.boundingBox())!
 const json = (corpo: unknown, status = 200) => ({ status, contentType: 'application/json', body: JSON.stringify(corpo) })
+const pagina = (itens: unknown[]) => ({ itens, total: itens.length, pagina: 1, porPagina: 50 })
 const responder = (page: Page, rota: RegExp, corpo: unknown, status = 200) => page.route(rota, (r) => r.fulfill(json(corpo, status)))
 
 
@@ -228,7 +229,7 @@ test.describe('S1 contraste', () => {
     for (const tema of Temas) {
       await page.unroute('**/api/**')
       await emTema(page, tema, null)
-      await page.route(/\/api\/chamados\?escopo=fila/, async (r) => {
+      await page.route(/\/api\/chamados\/busca\?escopo=fila/, async (r) => {
         await new Promise((resolve) => setTimeout(resolve, 2000))
         await r.fallback()
       })
@@ -254,7 +255,7 @@ test.describe('S1 contraste', () => {
       for (const marca of Marcas) {
         await page.unroute('**/api/**')
         await emTema(page, tema, marca)
-        await responder(page, /\/api\/chamados\?escopo=fila/, fila)
+        await responder(page, /\/api\/chamados\/busca\?escopo=fila/, pagina(fila))
         await responder(page, /\/api\/admin\/artigos/, [artigo(1, 'ATIVO'), artigo(2, 'RASCUNHO'), artigo(3, 'ARQUIVADO')])
         await responder(page, /\/api\/admin\/usuarios/, [usuario])
         const selos: [string, string, string][] = [
@@ -719,12 +720,12 @@ const MeusTres = (titulo: string) => [
 ]
 const listasDeChamados = async (page: Page, titulo = longoTitulo) => {
   await page.route(/\/api\/chamados\?escopo=meus/, (r) => r.fulfill(json(MeusTres(titulo))))
-  await page.route(/\/api\/chamados\?escopo=fila/, (r) =>
+  await page.route(/\/api\/chamados\/busca\?escopo=fila/, (r) =>
     r.fulfill(
-      json([
+      json(pagina([
         { numero: 'ESC-000001', titulo, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 2 },
         { numero: 'ESC-000002', titulo: 'Segunda via', categoria: 'Financeiro > Boletos e mensalidades', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-03T12:00:00Z', dias: 1 },
-      ]),
+      ])),
     ),
   )
 }
@@ -1330,7 +1331,7 @@ test.describe('S7 acréscimos', () => {
     await simularApi(page)
     const dias = [0, 1, 2]
     const item = (n: number) => ({ numero: `ESC-${String(200 + n).padStart(6, '0')}`, titulo: `Pedido ${n}`, categoria: 'Financeiro', estado: 'ABERTO', responsavel: null, criadoEm: new Date(Date.now() - n * 86_400_000).toISOString(), dias: n })
-    await page.route(/\/api\/chamados\?escopo=fila/, (r) => r.fulfill(json(dias.map(item))))
+    await page.route(/\/api\/chamados\/busca\?escopo=fila/, (r) => r.fulfill(json(pagina(dias.map(item)))))
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/univag/fila')
     await page.getByText('ESC-000200').waitFor()
@@ -1356,12 +1357,12 @@ test.describe('S7 acréscimos', () => {
     await simularApi(page)
     await listasDeChamados(page, Titulo104)
     const antes = (dias: number) => new Date(Date.now() - dias * 86_400_000).toISOString()
-    await page.route(/\/api\/chamados\?escopo=fila/, (r) =>
+    await page.route(/\/api\/chamados\/busca\?escopo=fila/, (r) =>
       r.fulfill(
-        json([
+        json(pagina([
           { numero: 'ESC-000001', titulo: Titulo104, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: null, criadoEm: antes(2), dias: 2 },
           { numero: 'ESC-000002', titulo: 'Segunda via', categoria: 'Financeiro > Boletos e mensalidades', estado: 'ABERTO', responsavel: null, criadoEm: antes(1), dias: 1 },
-        ]),
+        ])),
       ),
     )
     await page.goto('/univag/fila')

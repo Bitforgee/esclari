@@ -1118,7 +1118,7 @@ test.describe('painel', () => {
 
   test('lista vazia centralizada', async ({ page }) => {
     await simularApi(page)
-    await page.route((url) => url.pathname === '/api/chamados' && url.search.includes('escopo=fila'), (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }))
+    await page.route((url) => url.pathname === '/api/chamados/busca' && url.search.includes('escopo=fila'), (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ itens: [], total: 0, pagina: 1, porPagina: 50 }) }))
     for (const w of [360, 1280]) {
       await page.setViewportSize({ width: w, height: 800 })
       await page.goto('/univag/fila')

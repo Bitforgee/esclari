@@ -75,6 +75,13 @@ export async function simularApi(page: Page, papeis = ['ALUNO', 'ATENDENTE', 'AD
       })
     if (caminho === '/api/conversas')
       return json(201, { conversaId: 1, resposta: { tipo: 'resposta', texto: 'O boleto do semestre fica no Portal do Aluno: https://portal.univag.edu.br/financeiro/boletos/segunda-via' } })
+    if (caminho === '/api/chamados/busca')
+      {
+      const fila = { numero: 'ESC-000123', titulo: longo, setor: 'Coordenação de Análise e Desenvolvimento de Sistemas', categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: 'Carla Regina de Souza', criadoEm: '2026-11-02T12:00:00Z', dias: 12 }
+      const itens = mais([fila], { ...fila, numero: 'ESC-000124', titulo: TituloLongo })
+      return json(200, { itens, total: itens.length, pagina: 1, porPagina: 50 })
+    }
+    if (caminho === '/api/chamados/filtros') return json(200, { setores: [{ id: 1, nome: 'Coordenação de Análise e Desenvolvimento de Sistemas' }], categorias: [{ id: 1, nome: 'Financeiro > Boletos e mensalidades' }] })
     if (caminho === '/api/chamados' && rota.request().url().includes('escopo=fila'))
       {
       const fila = { numero: 'ESC-000123', titulo: longo, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: 'Carla Regina de Souza', criadoEm: '2026-11-02T12:00:00Z', dias: 12 }

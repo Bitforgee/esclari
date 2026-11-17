@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { abrir, api, me, type Rota } from './test/util'
+import { abrir, api, me, type Rota, rotasDaFila } from './test/util'
 
 const admin = me({ papeis: ['ALUNO', 'ATENDENTE', 'ADMINISTRADOR'], matriculas: [] })
 const sequencia = (n: number) => Array.from({ length: n }, (_, i) => i + 1)
@@ -15,7 +15,7 @@ const chamado = (i: number) => ({ numero: `ESC-${String(i).padStart(6, '0')}`, t
 
 const telas: [string, string, (n: number) => Record<string, Rota>][] = [
   ['Usuários', '/univag/usuarios', (n) => ({ 'GET /api/admin/usuarios': () => [200, sequencia(n).map(usuario)], 'GET /api/admin/setores': () => [200, []] })],
-  ['Chamados', '/univag/fila', (n) => ({ 'GET /api/chamados?escopo=fila': () => [200, sequencia(n).map(chamado)] })],
+  ['Chamados', '/univag/fila', (n) => ({ ...rotasDaFila(sequencia(n).map(chamado)) })],
   ['Artigos', '/univag/artigos', (n) => ({ 'GET /api/admin/artigos': () => [200, sequencia(n).map(artigo)], 'GET /api/admin/categorias': () => [200, [{ id: 3, nome: 'Estágio', ativa: true }]] })],
   ['Documentos', '/univag/documentos', (n) => ({ 'GET /api/admin/documentos': () => [200, sequencia(n).map(documento)], 'GET /api/admin/categorias': () => [200, [{ id: 3, nome: 'Estágio', ativa: true }]] })],
 ]

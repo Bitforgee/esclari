@@ -3,11 +3,15 @@
 Profile: ui
 Plan: `.specs/features/filtros-e-relatorios/plan.md`
 
-62 checks em 6 slices · 4 one-way doors · 0 perguntas abertas (plano aprovado pelo dono em 18/11: "aprovo pode seguir"; AD-066)
+62 checks em 6 slices · 4 one-way doors · 0 perguntas abertas (plano aprovado pelo dono em 17/11: "aprovo pode seguir"; AD-066)
 
 **Como as provas rodam.** Na raiz `D:\esclari`, salvo `cd web &&`. API: `docker compose up -d postgres mailpit minio` e uma execução de `dotnet test` por vez. Vitest: `cd web && npx vitest run <arquivo> -t "<nome>"`. Playwright: `docker compose up -d --build` e `cd web && npx playwright test <spec> -g "<nome>"`. Um filtro que não seleciona teste sai com 0 (L-002): conferir a contagem de testes executados. Mutação suspensa (AD-025).
 
 **Emenda de construção E1 (Impact, porta 4).** `TempoRealEntradaTests.EntrarNoChamado_recusa_com_Chamado_nao_encontrado` tinha o caso `(admin, numero)`, que esperava a recusa do administrador ao entrar no grupo do chamado no hub. Com o papel `LEITURA` o administrador lê o chamado e entra no grupo, como o Impact previu para quem ramifica no papel (`TempoRealHub.EntrarNoChamado`). O caso saiu da lista de recusas e virou o teste `EntrarNoChamado_entra_o_administrador_em_leitura`, que afirma a entrada; os outros 5 casos de recusa ficam. As contagens de inventário de `ArquiteturaTests`, `MediatorTests`, `RetratoTests` (e `Retratos/rotas.txt`) e `SessaoTests` sobem com as 3 rotas novas (C59, C60).
+
+**Emenda de construção E2 (C61, só a prova).** A prova escrita (`npm run coverage && crapper`, `dryer`) mede a pasta `web/` inteira, inclusive `e2e/` e `apresentacao/`, e não o escopo que a afirmação nomeia. As provas passam a ser as das features anteriores: `cd web && npm run coverage && crapper --source-root src --use-existing-coverage --threshold 10` (exit 0, maior nota 9,8 em `Sidebar`, código de `ui/` anterior) e o `dryer` sobre as 6 fatias e os arquivos da raiz de `web/src` com `--threshold 0.8`, que imprime "No duplicate candidates found." (o mesmo escopo do E3 de `interface-marca-esclari`). A afirmação não muda.
+
+**Emenda de construção E3 (C62, pede o "ok" do dono).** Na base `7005230`, com a imagem da base no compose, já falham 15 testes e2e: `casca.spec.ts` "foco sem auréola no botão e no campo", "barras do ranking na cor calma e sem Recharts", "categoria longa inteira nas 5 larguras", "total do ranking em uma linha", "barra do ranking embaixo do rótulo no estreito"; `identidade.spec.ts` "serifa só em títulos de 20 px ou mais", "Indicador principal em serifa de 40 px com a variação ao lado", "3 destaques em faixa de 3 colunas sem caixa", "9 métricas em lista de rótulo e valor sem caixa", "gráficos sem cartão com o título", "variação abaixo do número a 360"; `arranjo.spec.ts` "arranjo Indicadores", "raiz com a marca e o texto centralizados", "quebras medidas dos dois lados", "valores de tipo e bordas". Todos são da tela Indicadores ou da Raiz, que esta feature não toca. O C62 passa a afirmar: os 5 specs passam no HEAD, exceto esses 15, que falham igual na base, e nenhum outro falha.
 
 ## Checks
 
@@ -269,3 +273,7 @@ Proof: `cd web && npx playwright test e2e/arranjo.spec.ts`
 
 - Tamanho: arquivos existentes que o build lê ou muda somam 240 740 bytes (`ChamadosExtensoes`, `ChamadoDoUsuario`, `PermissoesChamado`, `DetalheChamado`, `ListarChamados`, `Seguranca`, `EsclariDb`, `ArquiteturaTests` 85 779, `RateLimitTests`, `AgendadorLogsTests`, `Chamados.tsx`, `Autenticado.tsx`, `App.tsx`, `tempo-real.ts`, `Tabela.tsx`, `test/util.tsx`, `ChamadoDetalhe.tsx`, `e2e/simulada.ts`, `listas.test.tsx`, `tempoReal.test.tsx`, `tabela.test.tsx`, `ux.test.tsx`) = ~60k; código e testes novos estimados em ~125 000 bytes = ~31k; os ~12 testes web que só trocam a URL da fila, ~10k. Total ~101k, abaixo do orçamento de 150k - um construtor.
 - Mechanism: one builder (cabe no orçamento; sem pergunta).
+
+- **Boundary:** C1-C62 construídos em `9ea3d2d..HEAD` (API em `bc799c6`; web no commit seguinte). Provas do autor: `dotnet test Esclari.Api.Tests` 1069/1069; Vitest 1095/1095; `npm --prefix web run build` e `dotnet build Esclari.slnx` exit 0; `crapper --source-root src --use-existing-coverage --threshold 10` exit 0 (máx. 9,8); `dryer` sem candidato; e2e `filtros.spec.ts` 4/4, `ux.spec.ts` inteiro verde, `casca`/`identidade`/`arranjo` com as 15 falhas da base e nenhuma a mais.
+- **Settled mid-build:** nenhuma pergunta ao dono; E1-E3 acima.
+- **Abandoned:** prova do `Cabecalhos_do_arquivo` com `Results.File` (o ASP.NET não põe aspas no `filename`); o arquivo sai por um `IResult` próprio com `filename="..."`.

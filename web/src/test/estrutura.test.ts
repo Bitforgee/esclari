@@ -32,7 +32,7 @@ it('estrutura em fatias', () => {
   expect(testes.length).toBeGreaterThan(0)
   for (const teste of testes) {
     expect(Fatias, teste).toContain(pasta(teste))
-    const abertas = [...texto(teste).matchAll(/abrir\('\/[^/']+\/?([^/']*)/g)].map(([, caminho]) => caminhos[caminho])
+    const abertas = [...texto(teste).matchAll(/abrir\('\/[^/']+\/?([^/'?]*)/g)].map(([, caminho]) => caminhos[caminho])
     expect(abertas, teste).toContain(pasta(teste))
   }
 

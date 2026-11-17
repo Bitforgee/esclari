@@ -2,7 +2,7 @@ import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Chamado } from '../chamado'
-import { abrir, api, chamado, me } from '../test/util'
+import { abrir, api, chamado, me, rotaDaLista, rotasDaFila } from '../test/util'
 
 const equipe = me({ papeis: ['ALUNO', 'ATENDENTE'] })
 const celular = () =>
@@ -32,7 +32,7 @@ describe('listas de chamados revisadas', () => {
         celular()
         relogio(agora)
         const item = { numero: 'ESC-000001', titulo: 'boleto', categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm, dias }
-        api({ 'GET /api/auth/me': () => [200, equipe], [`GET /api/chamados?escopo=${escopo}`]: () => [200, [item]] })
+        api({ 'GET /api/auth/me': () => [200, equipe], ...rotaDaLista(escopo, () => [200, [item]]) })
         abrir(caminho)
         await screen.findByText('ESC-000001')
         const linha = linhas()[0]
@@ -67,7 +67,7 @@ describe('listas de chamados revisadas', () => {
       numero: `ESC-${String(n).padStart(6, '0')}`, titulo: `pedido ${n}`, categoria: 'Financeiro > Boletos e mensalidades', estado: 'ABERTO', responsavel: null, criadoEm, dias: 3,
       aluno: 'Ana Beatriz da Silva', setor: 'Coordenação de Sistemas',
     })
-    api({ 'GET /api/auth/me': () => [200, equipe], 'GET /api/chamados?escopo=fila': () => [200, [item(1, '2026-11-01T15:00:00Z'), item(2, '2026-11-03T15:00:00Z')]] })
+    api({ 'GET /api/auth/me': () => [200, equipe], ...rotasDaFila([item(1, '2026-11-01T15:00:00Z'), item(2, '2026-11-03T15:00:00Z')]) })
     abrir('/univag/fila')
     await screen.findByText('ESC-000001')
     const [primeira, segunda] = linhas()

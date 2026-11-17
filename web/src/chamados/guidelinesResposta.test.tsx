@@ -1,14 +1,14 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { abrir, api, chamado, me } from '../test/util'
+import { abrir, api, chamado, me, rotasDaFila } from '../test/util'
 
 const atendente = me({ papeis: ['ATENDENTE'], matriculas: [] })
 const detalhe = chamado({ solicitante: 'Ana', eventos: [], acoes: ['responder', 'nota'] })
 const titulo = () => document.querySelector('header h1')
 
 async function abrirChamado() {
-  api({ 'GET /api/auth/me': () => [200, atendente], 'GET /api/chamados/ESC-000001': () => [200, detalhe], 'GET /api/chamados?escopo=fila': () => [200, []] })
+  api({ 'GET /api/auth/me': () => [200, atendente], 'GET /api/chamados/ESC-000001': () => [200, detalhe], ...rotasDaFila([]) })
   abrir('/univag/chamados/ESC-000001')
   return screen.findByLabelText('Responder')
 }

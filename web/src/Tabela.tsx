@@ -42,7 +42,7 @@ export function useMostrarMais<T>(itens?: T[]) {
 
 export const useEstreito = () => useConsulta('(max-width: 767px)')
 
-export function Tabela({ colunas, itens, vazio = SemItens, erro, densa, children }: { colunas: Coluna[]; itens?: unknown[]; vazio?: Vazio; erro?: unknown; densa?: boolean; children: ReactNode }) {
+export function Tabela({ colunas, itens, vazio = SemItens, erro, densa, ocupada, children }: { colunas: Coluna[]; itens?: unknown[]; vazio?: Vazio; erro?: unknown; densa?: boolean; ocupada?: boolean; children: ReactNode }) {
   const cartoes = useEstreito()
   if (!itens)
     return erro ? null : (
@@ -62,14 +62,10 @@ export function Tabela({ colunas, itens, vazio = SemItens, erro, densa, children
     ) : (
       children
     )
-  if (cartoes)
-    return (
-      <div role="list" {...{ [densa ? 'data-linhas' : 'data-cartoes']: '' }} className={`flex flex-col text-sm ${densa ? '' : 'gap-2'}`}>
-        <Cartoes value>{corpo}</Cartoes>
-      </div>
-    )
+  const ocupado = ocupada || undefined
+  if (cartoes) return <ListaDeCartoes densa={densa} ocupado={ocupado}>{corpo}</ListaDeCartoes>
   return (
-    <Table>
+    <Table aria-busy={ocupado}>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
           {colunas.map((c) => (
@@ -81,6 +77,14 @@ export function Tabela({ colunas, itens, vazio = SemItens, erro, densa, children
       </TableHeader>
       <TableBody>{corpo}</TableBody>
     </Table>
+  )
+}
+
+function ListaDeCartoes({ densa, ocupado, children }: { densa?: boolean; ocupado?: boolean; children: ReactNode }) {
+  return (
+    <div role="list" aria-busy={ocupado} {...{ [densa ? 'data-linhas' : 'data-cartoes']: '' }} className={`flex flex-col text-sm ${densa ? '' : 'gap-2'}`}>
+      <Cartoes value>{children}</Cartoes>
+    </div>
   )
 }
 

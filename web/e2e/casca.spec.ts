@@ -850,8 +850,8 @@ test('corte de 2 linhas sem o alto da terceira', async ({ page }) => {
   const titulo = 'SOLICITAÇÃO DE SEGUNDA VIA DO BOLETO DA MENSALIDADE DE NOVEMBRO, ÁREA FINANCEIRA, ÍNDICE DE REMATRÍCULA DO SEMESTRE ANTERIOR: ÃO ÁGUA ÍNDIO'
   const fila = { numero: 'ESC-000123', titulo, categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 2 }
   const rotas = (p: Page) =>
-    p.route(/\/api\/chamados\?escopo=/, (r) =>
-      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(r.request().url().includes('escopo=fila') ? [fila] : [{ numero: 'ESC-000123', titulo, estado: 'AGUARDANDO_ALUNO', criadoEm: fila.criadoEm }]) }),
+    p.route(/\/api\/chamados(\/busca)?\?escopo=/, (r) =>
+      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(r.request().url().includes('escopo=fila') ? { itens: [fila], total: 1, pagina: 1, porPagina: 50 } : [{ numero: 'ESC-000123', titulo, estado: 'AGUARDANDO_ALUNO', criadoEm: fila.criadoEm }]) }),
     )
   let medidas = 0
   for (const [rota, papeis] of [['/univag/fila', ['ATENDENTE']], ['/univag/solicitacoes', ['ALUNO']]] as const)

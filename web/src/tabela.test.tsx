@@ -4,12 +4,12 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { Tabela } from './Tabela'
 import { TableCell, TableRow } from './ui/table'
-import { abrir, api, me } from './test/util'
+import { abrir, api, comoPagina, FILA, me, rotasDaFila } from './test/util'
 
 const admin = me({ papeis: ['ALUNO', 'ATENDENTE', 'ADMINISTRADOR'] })
 const vazias = ['setores', 'categorias', 'cursos', 'fluxos', 'respostas-prontas'].map((k) => [`GET /api/admin/${k}`, () => [200, []]] as const)
 const Listas: [string, string, string, string, string?][] = [
-  ['GET /api/chamados?escopo=fila', '/univag/fila', 'Fila em dia', 'Nenhum chamado na fila dos seus setores.'],
+  [`GET ${FILA}`, '/univag/fila', 'Fila em dia', 'Nenhum chamado na fila dos seus setores.'],
   ['GET /api/chamados?escopo=meus', '/univag/solicitacoes', 'Nenhuma solicitação', 'Você ainda não tem solicitações.', 'Falar com o assistente'],
   ['GET /api/admin/artigos', '/univag/artigos', 'Nenhum artigo', 'Os artigos são a base das respostas do assistente.', 'Novo artigo'],
   ['GET /api/admin/documentos', '/univag/documentos', 'Nenhum documento', 'PDFs como regulamentos e calendários também alimentam o assistente.', 'Novo documento'],
@@ -30,14 +30,14 @@ describe('Tabela', () => {
       ['RESOLVIDO', 'Resolvido', 'bg-success/15'],
       ['FECHADO', 'Fechado', 'bg-success/15'],
     ]
-    api({ 'GET /api/auth/me': () => [200, atendente], 'GET /api/chamados?escopo=fila': () => [200, fila(grupos.map(([estado]) => estado))] })
+    api({ 'GET /api/auth/me': () => [200, atendente], ...rotasDaFila(fila(grupos.map(([estado]) => estado))) })
     abrir('/univag/fila')
     await screen.findByText('ESC-000001')
     for (const [, texto, classe] of grupos) expect(screen.getByText(texto, { selector: '[data-slot=badge]' }), texto).toHaveClass(classe)
   })
 
   it('carregando mostra 3 esqueletos', async () => {
-    api({ 'GET /api/auth/me': () => [200, atendente], 'GET /api/chamados?escopo=fila': () => new Promise(() => {}) })
+    api({ 'GET /api/auth/me': () => [200, atendente], [`GET ${FILA}`]: () => new Promise(() => {}) })
     abrir('/univag/fila')
     await screen.findByRole('heading', { name: 'Fila' })
     expect(document.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(3)
@@ -45,7 +45,7 @@ describe('Tabela', () => {
   })
 
   it.each(Listas)('vazio com ícone nas 6 listas (%s)', async (rota, caminho, titulo, frase, botao) => {
-    api({ 'GET /api/auth/me': () => [200, admin], ...Object.fromEntries(vazias), 'GET /api/admin/categorias': () => [200, []], 'GET /api/admin/usuarios': () => [200, []], [rota]: () => [200, []] })
+    api({ 'GET /api/auth/me': () => [200, admin], ...Object.fromEntries(vazias), 'GET /api/admin/categorias': () => [200, []], 'GET /api/admin/usuarios': () => [200, []], [rota]: rota.includes('/busca') ? comoPagina(() => [200, []]) : () => [200, []] })
     abrir(caminho)
     const celula = (await screen.findByText(frase)).closest('[data-slot=table-cell]') as HTMLElement
     expect(celula.querySelectorAll('svg.lucide')).toHaveLength(1)
@@ -69,7 +69,7 @@ describe('Tabela', () => {
   const servirFila = (n: number) =>
     api({
       'GET /api/auth/me': () => [200, atendente],
-      'GET /api/chamados?escopo=fila': () => [200, fila(Array.from({ length: n }, (_, i) => ['ABERTO', 'EM_ATENDIMENTO', 'RESOLVIDO'][i % 3]))],
+      ...rotasDaFila(fila(Array.from({ length: n }, (_, i) => ['ABERTO', 'EM_ATENDIMENTO', 'RESOLVIDO'][i % 3]))),
     })
   const noCelular = () => vi.stubGlobal('matchMedia', (media: string) => ({ media, matches: media.startsWith('(max-width: 767px)'), addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }))
 

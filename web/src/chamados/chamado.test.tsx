@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { Chamado } from '../chamado'
-import { abrir, api, chamado, me } from '../test/util'
+import { abrir, api, chamado, me, rotasDaFila } from '../test/util'
 
 function daEquipe(parcial: Partial<Chamado> = {}): Chamado {
   return chamado({
@@ -354,7 +354,7 @@ describe('chamado', () => {
   })
 
   it('Fila vazia e Minhas solicitações vazia', async () => {
-    api({ 'GET /api/auth/me': () => [200, me({ papeis: ['ALUNO', 'ATENDENTE'] })], 'GET /api/chamados?escopo=fila': () => [200, []], 'GET /api/chamados?escopo=meus': () => [200, []] })
+    api({ 'GET /api/auth/me': () => [200, me({ papeis: ['ALUNO', 'ATENDENTE'] })], ...rotasDaFila([]), 'GET /api/chamados?escopo=meus': () => [200, []] })
     abrir('/univag/fila')
     expect(await screen.findByText('Nenhum chamado na fila dos seus setores.')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('link', { name: /Minhas solicitações/ }))

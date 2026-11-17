@@ -912,7 +912,7 @@ test('detalhe sem caixa e com fundo tingido só no que pede ação', async ({ pa
 type Vazio = { nome: string; caminho: string; frase: string; botao?: string; rotas?: (p: Page) => Promise<unknown>; espera?: (p: Page) => Promise<unknown>; papeis?: string[] }
 const vazio = (p: Page, re: RegExp | string, corpo: unknown = []) => p.route(re, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(corpo) }))
 const Vazios: Vazio[] = [
-  { nome: 'Fila', caminho: '/univag/fila', frase: 'Nenhum chamado na fila dos seus setores.', rotas: (p) => vazio(p, /\/api\/chamados\?escopo=fila/) },
+  { nome: 'Fila', caminho: '/univag/fila', frase: 'Nenhum chamado na fila dos seus setores.', rotas: (p) => vazio(p, /\/api\/chamados\/busca\?escopo=fila/, { itens: [], total: 0, pagina: 1, porPagina: 50 }) },
   { nome: 'Minhas solicitações', caminho: '/univag/solicitacoes', frase: 'Você ainda não tem solicitações.', botao: 'Falar com o assistente', rotas: (p) => vazio(p, /\/api\/chamados\?escopo=meus/) },
   { nome: 'Artigos', caminho: '/univag/artigos', frase: 'Os artigos são a base das respostas do assistente.', botao: 'Novo artigo', rotas: (p) => vazio(p, '**/api/admin/artigos') },
   { nome: 'Documentos', caminho: '/univag/documentos', frase: 'PDFs como regulamentos e calendários também alimentam o assistente.', botao: 'Novo documento', rotas: (p) => vazio(p, '**/api/admin/documentos') },

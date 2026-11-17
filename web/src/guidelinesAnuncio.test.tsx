@@ -2,7 +2,7 @@ import { cleanup, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Carga } from './administracao/fluxos/EdicaoDoFluxo'
-import { abrir, api, chamado, instituicao, me, type Rota } from './test/util'
+import { abrir, api, chamado, instituicao, me, type Rota, FILA } from './test/util'
 
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
 const atendente = me({ papeis: ['ATENDENTE'], matriculas: [] })
@@ -69,7 +69,7 @@ describe('carregamentos anunciados', () => {
   })
 
   it('C28 Chamados', async () => {
-    api({ 'GET /api/auth/me': () => [200, atendente], 'GET /api/chamados?escopo=fila': eterna })
+    api({ 'GET /api/auth/me': () => [200, atendente], [`GET ${FILA}`]: eterna })
     abrir('/univag/fila')
     await anuncia()
   })

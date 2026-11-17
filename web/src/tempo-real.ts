@@ -2,7 +2,7 @@ import { HubConnectionBuilder, HubConnectionState, LogLevel, type HubConnection 
 import type { QueryClient } from '@tanstack/react-query'
 import { useEffect, useSyncExternalStore } from 'react'
 
-export const UrlDaFila = '/api/chamados?escopo=fila'
+export const ChaveDaBusca = ['busca']
 const EsperaMaxima = 30_000
 
 let conexao: HubConnection | undefined
@@ -31,7 +31,7 @@ function entrarNosGrupos() {
 
 function reler(cliente: QueryClient) {
   for (const numero of chamadosAbertos.keys()) void cliente.invalidateQueries({ queryKey: ['chamado', numero] })
-  if (filasAbertas > 0) void cliente.invalidateQueries({ queryKey: [UrlDaFila] })
+  if (filasAbertas > 0) void cliente.invalidateQueries({ queryKey: ChaveDaBusca })
 }
 
 async function tentar(minha: number) {
@@ -71,7 +71,7 @@ export function abrirTempoReal(cliente: QueryClient) {
   conexao = nova
   falhas = 0
   nova.on('ChamadoMudou', (numero: string) => void cliente.invalidateQueries({ queryKey: ['chamado', numero] }))
-  nova.on('FilaMudou', () => void cliente.invalidateQueries({ queryKey: [UrlDaFila] }))
+  nova.on('FilaMudou', () => void cliente.invalidateQueries({ queryKey: ChaveDaBusca }))
   nova.onreconnecting(notificar)
   nova.onreconnected(() => {
     notificar()

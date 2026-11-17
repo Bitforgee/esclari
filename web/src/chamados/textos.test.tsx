@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { frase, type Chamado } from '../chamado'
 import { formatarData } from '../datas'
 import { estados } from '../test/textos'
-import { abrir, api, chamado, me, type Rota } from '../test/util'
+import { abrir, api, chamado, me, rotaDaLista, type Rota } from '../test/util'
 
 const data = (iso: string) => formatarData(iso, 'America/Cuiaba')
 const Estados = ['Aberto', 'Em atendimento', 'Aguardando aluno', 'Resolvido', 'Fechado']
@@ -138,7 +138,7 @@ describe('textos', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-11-05T15:00:00Z'))
     const t = estados(literais)
-    const rota = (r: Rota) => api({ 'GET /api/auth/me': () => [200, me({ papeis: ['ALUNO', 'ATENDENTE'] })], [`GET /api/chamados?escopo=${escopo}`]: r })
+    const rota = (r: Rota) => api({ 'GET /api/auth/me': () => [200, me({ papeis: ['ALUNO', 'ATENDENTE'] })], ...rotaDaLista(escopo, r) })
 
     rota(() => new Promise(() => {}))
     let montada = abrir(caminho)
@@ -193,6 +193,6 @@ describe('textos', () => {
       item(1, 'ABERTO', { categoria: 'Boleto', responsavel: null, dias: 1 }),
       item(2, 'EM_ATENDIMENTO', { categoria: 'Matrícula', responsavel: 'Carla', dias: 3 }),
     ]
-    await lista('/univag/fila', 'fila', ['Fila', 'Fila em dia', 'Nenhum chamado na fila dos seus setores.', 'Aberto', 'Em atendimento', 'Número', 'Título', 'Categoria', 'Responsável', 'Aberto', 'Estado', 'Mais antigos primeiro', 'Boleto · sem responsável · aberto há 3 dias', 'Matrícula · Carla · aberto há 3 dias', 'sem responsável', 'aberto há 3 dias', 'há 3 dias', 'Carla'], itens, ['ESC-000001', 'ESC-000002', 'pedido', '1', '2', 'Boleto', 'Matrícula'])
+    await lista('/univag/fila', 'fila', ['Fila', 'Fila em dia', 'Nenhum chamado na fila dos seus setores.', 'Aberto', 'Em atendimento', 'Número', 'Título', 'Categoria', 'Responsável', 'Aberto', 'Estado', 'Mais antigos primeiro', 'Filtros', 'Exportar CSV', '0 chamados', '2 chamados', 'Boleto · sem responsável · aberto há 3 dias', 'Matrícula · Carla · aberto há 3 dias', 'sem responsável', 'aberto há 3 dias', 'há 3 dias', 'Carla'], itens, ['ESC-000001', 'ESC-000002', 'pedido', '1', '2', 'Boleto', 'Matrícula'])
   })
 })

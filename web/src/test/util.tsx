@@ -21,7 +21,24 @@ export const detalheVazio = {
 const previaPadrao = (metodo: string, url: string): Rota | undefined => {
   if (metodo !== 'GET') return undefined
   if (/^\/api\/conversas\/\d+\/destino/.test(url)) return () => [200, { lideranca: false }]
+  if (url.startsWith('/api/chamados/filtros?')) return () => [200, { setores: [], categorias: [] }]
   return url.startsWith('/api/indicadores/detalhe?') ? () => [200, detalheVazio] : undefined
+}
+
+export const FILA = '/api/chamados/busca?escopo=fila'
+
+export const comoPagina = (rota: Rota): Rota => async (corpo) => {
+  const [status, json] = await rota(corpo)
+  return [status, Array.isArray(json) ? { itens: json, total: json.length, pagina: 1, porPagina: 50 } : json]
+}
+
+export const rotaDaLista = (escopo: string, rota: Rota): Record<string, Rota> => (escopo === 'fila' ? { [`GET ${FILA}`]: comoPagina(rota) } : { [`GET /api/chamados?escopo=${escopo}`]: rota })
+
+export function rotasDaFila<T>(itens: T[], base = FILA): Record<string, Rota> {
+  const paginas = Math.max(1, Math.ceil(itens.length / 50))
+  return Object.fromEntries(
+    Array.from({ length: paginas }, (_, i) => [`GET ${base}${i > 0 ? `&pagina=${i + 1}` : ''}`, () => [200, { itens: itens.slice(i * 50, i * 50 + 50), total: itens.length, pagina: i + 1, porPagina: 50 }]]),
+  )
 }
 
 export function api(rotas: Record<string, Rota>) {

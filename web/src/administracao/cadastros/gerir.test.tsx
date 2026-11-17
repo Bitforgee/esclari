@@ -17,7 +17,7 @@ const Administracao: [string, string[]] = ['Administração', ['Usuários', 'Mat
 const Esperado: [string[], [string, string[]][]][] = [
   [['ADMINISTRADOR'], [Conhecimento, Administracao]],
   [['OPERADOR'], [['Plataforma', ['Instituições']]]],
-  [['ALUNO', 'ATENDENTE', 'ADMINISTRADOR'], [['Atendimento', ['Indicadores']], Conhecimento, Administracao]],
+  [['ALUNO', 'ATENDENTE', 'ADMINISTRADOR'], [['Atendimento', ['Chamados', 'Indicadores']], Conhecimento, Administracao]],
 ]
 
 const conteudo = () => document.querySelector('[class*="container/main"]') as HTMLElement
@@ -32,7 +32,7 @@ describe('Gerir', () => {
     const principal = conteudo()
     await within(principal).findAllByRole('link')
     expect(sequencia(principal)).toEqual(grupos.flatMap(([nome, itens]) => [nome, ...itens]))
-    const caminhos = { Artigos: 'artigos', Documentos: 'documentos', 'Usuários': 'usuarios', 'Matrículas': 'matriculas', Cadastros: 'cadastros', 'Aparência': 'aparencia', 'Integrações': 'integracoes', 'Instituições': 'instituicoes', Indicadores: 'indicadores' } as Record<string, string>
+    const caminhos = { Artigos: 'artigos', Documentos: 'documentos', 'Usuários': 'usuarios', 'Matrículas': 'matriculas', Cadastros: 'cadastros', 'Aparência': 'aparencia', 'Integrações': 'integracoes', 'Instituições': 'instituicoes', Indicadores: 'indicadores', Chamados: 'chamados' } as Record<string, string>
     for (const link of within(principal).getAllByRole('link')) expect(link).toHaveAttribute('href', `/univag/${caminhos[link.textContent!]}`)
     const tela = estados(grupos.flatMap(([nome, itens]) => [nome, ...itens]))
     tela.conferir(principal)

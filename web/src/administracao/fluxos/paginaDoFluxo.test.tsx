@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { abrir, api, me, type Rota } from '../../test/util'
+import { abrir, api, me, type Rota, rotasDaFila } from '../../test/util'
 
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
 const etapa = (destino: string, setorId: number | null = null, prazoHoras: number | null = null) => ({ destino, setorId, prazoHoras, x: null, y: null })
@@ -25,7 +25,7 @@ const listas: Record<string, unknown[]> = {
 
 function montar(rotas: Record<string, Rota> = {}, quem = admin, sobre: Record<string, unknown[]> = {}) {
   const leituras = Object.fromEntries(Object.entries({ ...listas, ...sobre }).map(([k, v]) => [`GET /api/admin/${k}`, (() => [200, v]) as Rota]))
-  const chamadas = api({ 'GET /api/auth/me': () => [200, quem], 'GET /api/chamados?escopo=fila': () => [200, []], ...leituras, ...rotas })
+  const chamadas = api({ 'GET /api/auth/me': () => [200, quem], ...rotasDaFila([]), ...leituras, ...rotas })
   return chamadas
 }
 

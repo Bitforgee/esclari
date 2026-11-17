@@ -22,8 +22,8 @@ afterEach(() => {
 const PorPapel: [string[], [string, string][]][] = [
   [['ALUNO'], [['Assistente', 'assistente'], ['Solicitações', 'solicitacoes'], ['Conta', 'conta']]],
   [['ATENDENTE'], [['Fila', 'fila'], ['Indicadores', 'indicadores'], ['Conta', 'conta']]],
-  [['ADMINISTRADOR'], [['Indicadores', 'indicadores'], ['Gerir', 'gerir'], ['Conta', 'conta']]],
-  [['ATENDENTE', 'ADMINISTRADOR'], [['Fila', 'fila'], ['Indicadores', 'indicadores'], ['Gerir', 'gerir'], ['Conta', 'conta']]],
+  [['ADMINISTRADOR'], [['Chamados', 'chamados'], ['Indicadores', 'indicadores'], ['Gerir', 'gerir'], ['Conta', 'conta']]],
+  [['ATENDENTE', 'ADMINISTRADOR'], [['Fila', 'fila'], ['Chamados', 'chamados'], ['Indicadores', 'indicadores'], ['Gerir', 'gerir'], ['Conta', 'conta']]],
   [['OPERADOR'], [['Gerir', 'gerir'], ['Conta', 'conta']]],
   [['ALUNO', 'ATENDENTE'], [['Assistente', 'assistente'], ['Solicitações', 'solicitacoes'], ['Fila', 'fila'], ['Indicadores', 'indicadores'], ['Conta', 'conta']]],
   [['ALUNO', 'ATENDENTE', 'ADMINISTRADOR'], [['Assistente', 'assistente'], ['Solicitações', 'solicitacoes'], ['Fila', 'fila'], ['Gerir', 'gerir'], ['Conta', 'conta']]],

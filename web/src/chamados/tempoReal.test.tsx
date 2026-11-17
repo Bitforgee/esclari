@@ -2,7 +2,7 @@ import { act, cleanup, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { encerrarTempoReal } from '../tempo-real'
-import { abrir, api, chamado, me, type Chamada } from '../test/util'
+import { abrir, api, chamado, comoPagina, me, type Chamada } from '../test/util'
 
 const conexao = () => globalThis.conexoesFalsas.at(-1)!
 const leituras = (chamadas: Chamada[], url: string) => chamadas.filter((c) => c.metodo === 'GET' && c.url === url).length
@@ -10,7 +10,7 @@ const mensagem = (texto: string) => ({ id: 1, tipo: 'PUBLICA' as const, texto, a
 const item = (numero: string, titulo: string) => ({ numero, titulo, estado: 'ABERTO', criadoEm: '2026-11-02T12:00:00Z', categoria: 'Boleto', responsavel: null, dias: 1 })
 const atendente = me({ papeis: ['ATENDENTE'], matriculas: [] })
 const titulo = { name: 'preciso do boleto' }
-const FILA = '/api/chamados?escopo=fila'
+const FILA = '/api/chamados/busca?escopo=fila'
 const MEUS = '/api/chamados?escopo=meus'
 const nav = () => within(screen.getByRole('navigation'))
 const abrirConexao = () => act(async () => conexao().abrir())
@@ -56,7 +56,7 @@ describe('tempo real: chamado e fila', () => {
 
   it('FilaMudou relê a fila do atendente', async () => {
     let itens = [item('ESC-000001', 'preciso do boleto')]
-    const chamadas = api({ 'GET /api/auth/me': () => [200, atendente], [`GET ${FILA}`]: () => [200, itens] })
+    const chamadas = api({ 'GET /api/auth/me': () => [200, atendente], [`GET ${FILA}`]: comoPagina(() => [200, itens]) })
     abrir('/univag/fila')
     expect(await screen.findByText('preciso do boleto')).toBeInTheDocument()
     await abrirConexao()
@@ -67,10 +67,25 @@ describe('tempo real: chamado e fila', () => {
     expect(leituras(chamadas, FILA)).toBe(2)
   })
 
+  it('FilaMudou refaz a busca filtrada', async () => {
+    let itens = [item('ESC-000001', 'preciso do boleto')]
+    const filtrada = `${FILA}&estado=FECHADO`
+    const chamadas = api({ 'GET /api/auth/me': () => [200, atendente], [`GET ${filtrada}`]: comoPagina(() => [200, itens]) })
+    abrir('/univag/fila?estado=FECHADO')
+    expect(await screen.findByText('preciso do boleto')).toBeInTheDocument()
+    await abrirConexao()
+
+    itens = [...itens, item('ESC-000002', 'fechado agora')]
+    await act(async () => conexao().emitir('FilaMudou'))
+    expect(await screen.findByText('fechado agora')).toBeInTheDocument()
+    expect(leituras(chamadas, filtrada)).toBe(2)
+    expect(leituras(chamadas, FILA)).toBe(0)
+  })
+
   it('FilaMudou não relê Minhas solicitações', async () => {
     const chamadas = api({
       'GET /api/auth/me': () => [200, me({ papeis: ['ALUNO', 'ATENDENTE'] })],
-      [`GET ${FILA}`]: () => [200, [item('ESC-000001', 'preciso do boleto')]],
+      [`GET ${FILA}`]: comoPagina(() => [200, [item('ESC-000001', 'preciso do boleto')]]),
       [`GET ${MEUS}`]: () => [200, [item('ESC-000002', 'minha solicitação')]],
     })
     abrir('/univag/fila')
@@ -107,7 +122,7 @@ describe('tempo real: chamado e fila', () => {
   it('abrir a fila chama EntrarNaFila', async () => {
     api({
       'GET /api/auth/me': () => [200, atendente],
-      [`GET ${FILA}`]: () => [200, [item('ESC-000001', 'preciso do boleto')]],
+      [`GET ${FILA}`]: comoPagina(() => [200, [item('ESC-000001', 'preciso do boleto')]]),
       'GET /api/chamados/ESC-000001': () => [200, chamado()],
     })
     abrir('/univag/fila')
@@ -132,7 +147,7 @@ describe('tempo real: chamado e fila', () => {
     await waitFor(() => expect(conexao().chamadas('EntrarNoChamado')).toEqual([['ESC-000001']]))
     cleanup()
 
-    api({ 'GET /api/auth/me': () => [200, atendente], [`GET ${FILA}`]: () => [200, []] })
+    api({ 'GET /api/auth/me': () => [200, atendente], [`GET ${FILA}`]: comoPagina(() => [200, []]) })
     abrir('/univag/fila')
     await screen.findByText('Nenhum chamado na fila dos seus setores.')
     expect(conexao().invocacoes).toEqual([])
@@ -191,7 +206,7 @@ describe('tempo real: chamado e fila', () => {
     await waitFor(() => expect(leituras(chamadas, '/api/chamados/ESC-000001')).toBe(2))
     cleanup()
 
-    const fila = api({ 'GET /api/auth/me': () => [200, atendente], [`GET ${FILA}`]: () => [200, []] })
+    const fila = api({ 'GET /api/auth/me': () => [200, atendente], [`GET ${FILA}`]: comoPagina(() => [200, []]) })
     abrir('/univag/fila')
     await screen.findByText('Nenhum chamado na fila dos seus setores.')
     await abrirConexao()

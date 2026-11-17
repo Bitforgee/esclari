@@ -6,7 +6,7 @@ import { CampoImagem } from './administracao/aparencia/CampoImagem'
 import { AjudaDosAnexos } from './assistente/Anexos'
 import { plural } from './formatos'
 import { LinkDeAnexo } from './LinkDeAnexo'
-import { abrir, api, chamado as chamadoPronto, detalheVazio, escolher, instituicao, me, type Rota } from './test/util'
+import { abrir, api, chamado as chamadoPronto, detalheVazio, escolher, instituicao, me, type Rota, rotasDaFila } from './test/util'
 
 const NB = '\u00a0'
 const fontes = import.meta.glob('/src/**/*.{ts,tsx}', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
@@ -225,7 +225,7 @@ describe('translate no', () => {
 
   it('C44 o protocolo ESC-n da fila sai com translate no', async () => {
     const chamado = { numero: 'ESC-000001', titulo: 'boleto', categoria: 'Boleto', estado: 'ABERTO', responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 }
-    api({ 'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'] })], 'GET /api/chamados?escopo=fila': () => [200, [chamado]] })
+    api({ 'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'] })], ...rotasDaFila([chamado]) })
     abrir('/univag/fila')
     expect(fixo(await screen.findByText('ESC-000001'))).toHaveAttribute('translate', 'no')
   })

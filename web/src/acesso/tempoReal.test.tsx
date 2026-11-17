@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { abrir, api, me } from '../test/util'
+import { abrir, api, me, rotasDaFila } from '../test/util'
 
 async function entrar() {
   await userEvent.type(await screen.findByLabelText('CPF'), '123.456.789-09')
@@ -14,7 +14,7 @@ describe('tempo real: sessão', () => {
     api({
       'GET /api/instituicoes/univag': () => [200, { nome: 'Univag' }],
       'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'], matriculas: [] })],
-      'GET /api/chamados?escopo=fila': () => [200, []],
+      ...rotasDaFila([]),
       'POST /api/auth/logout': () => [204, undefined],
       'POST /api/auth/login': () => [200, { id: 1, nome: 'Ana', papeis: ['ATENDENTE'], deveTrocarSenha: false, instituicao: { slug: 'univag', nome: 'Univag' } }],
     })

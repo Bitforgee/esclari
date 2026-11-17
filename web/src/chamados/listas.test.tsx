@@ -1,12 +1,12 @@
 import { screen, within } from '@testing-library/react'
 import { onlineManager } from '@tanstack/react-query'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { abrir, api, cabecalhos, esperaLinhaVazia, me, type Rota } from '../test/util'
+import { abrir, api, cabecalhos, esperaLinhaVazia, FILA, me, rotaDaLista, type Rota } from '../test/util'
 
 const atendente = me({ papeis: ['ALUNO', 'ATENDENTE'] })
 
 function lista(escopo: string, rota: Rota) {
-  api({ 'GET /api/auth/me': () => [200, atendente], [`GET /api/chamados?escopo=${escopo}`]: rota })
+  api({ 'GET /api/auth/me': () => [200, atendente], ...rotaDaLista(escopo, rota) })
 }
 
 describe('listas de chamados', () => {
@@ -104,7 +104,7 @@ describe('listas de chamados', () => {
       abrir('/univag/fila')
       expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível carregar a fila. Verifique sua conexão.')
       expect(screen.queryByRole('status', { name: 'Carregando' })).not.toBeInTheDocument()
-      expect(fetch.mock.calls.filter(([url]) => url === '/api/chamados?escopo=fila')).toHaveLength(1)
+      expect(fetch.mock.calls.filter(([url]) => url === FILA)).toHaveLength(1)
     } finally {
       onlineManager.setOnline(true)
     }

@@ -16,7 +16,7 @@ import { Usuarios } from './administracao/cadastros/Usuarios'
 import { Assistente } from './assistente/Assistente'
 import { Autenticado } from './Autenticado'
 import { ChamadoDetalhe } from './chamados/ChamadoDetalhe'
-import { Fila, Solicitacoes } from './chamados/Chamados'
+import { Fila, Solicitacoes, TodosOsChamados } from './chamados/Chamados'
 import { Artigos } from './conhecimento/Artigos'
 import { Documentos } from './conhecimento/Documentos'
 import { Indicadores } from './indicadores/Indicadores'
@@ -62,6 +62,7 @@ function Rotas() {
             <Route path="conta" element={<Conta />} />
             <Route path="gerir" element={<Gerir />} />
             <Route path="solicitacoes" element={<Solicitacoes />} />
+            <Route path="chamados" element={<TodosOsChamados />} />
             <Route path="chamados/:numero" element={<ChamadoDetalhe />} />
             <Route path="fila" element={<Fila />} />
             <Route path="artigos" element={<Artigos />} />
