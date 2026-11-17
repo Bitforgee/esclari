@@ -11,7 +11,9 @@ import { dia } from '../Periodo'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { BlocoVazio } from '../Tabela'
+import { useSessao } from '../sessao'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
+import { BaseDeConhecimento } from './BaseDeConhecimento'
 import { comDesfecho, DesfechosDoAssistente } from './Desfechos'
 import { FilaPorEstado, TemposDeAtendimento } from './Fila'
 import { ChamadosPorPeriodo, ConversasPorPeriodo } from './Series'
@@ -214,6 +216,7 @@ function periodoDaUrl(params: URLSearchParams, padrao: { de: string; ate: string
 }
 
 export function Indicadores() {
+  const { me } = useSessao()
   const hoje = new Date()
   const [params, setParams] = useSearchParams()
   const [inicial] = useState(() => periodoDaUrl(params, { de: dia(new Date(hoje.getFullYear(), hoje.getMonth(), 1)), ate: dia(hoje) }))
@@ -257,6 +260,11 @@ export function Indicadores() {
       <ErroDe erro={error} oque="os indicadores" tentar={() => void refetch()} />
       {dados?.semDados && <BlocoVazio Icone={ChartColumn} frase="Sem atendimentos neste período." />}
       {dados && !dados.semDados && <Painel c={{ dados, anterior: anterior?.semDados ? undefined : anterior, detalhe }} />}
+      {me.papeis.includes('ADMINISTRADOR') && (
+        <Secao titulo="A base de conhecimento está em dia?">
+          <BaseDeConhecimento />
+        </Secao>
+      )}
     </div>
   )
 }

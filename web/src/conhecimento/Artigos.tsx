@@ -19,13 +19,13 @@ import { Textarea } from '../ui/textarea'
 import { useEditarNaUrl } from '../urlDaTela'
 import { ConfirmarArquivar, IconeIndexacao, SeloEstado, useCatalogo, type Categoria, type Indexacao } from './comum'
 import { Resposta } from './Resposta'
+import { avisoRenovado, dataBr, useFiltroValidade, ValidadeDaLinha, type ComValidade } from './Validade'
 
 type Versao = { id: number; numero: number; titulo: string; perguntas: string[]; resposta: string; links: string[] }
-type Artigo = { id: number; estado: 'RASCUNHO' | 'ATIVO' | 'ARQUIVADO'; indexacao: Indexacao | null; categoriaId: number; categoria: string; visivelDe: string | null; visivelAte: string | null; versao: Versao }
+type Artigo = { id: number; estado: 'RASCUNHO' | 'ATIVO' | 'ARQUIVADO'; indexacao: Indexacao | null; categoriaId: number; categoria: string; visivelDe: string | null; visivelAte: string | null; versao: Versao } & ComValidade
 type Rascunho = { id?: number; titulo: string; perguntas: string; categoriaId: string; resposta: string; links: string; visivelDe: string; visivelAte: string }
 
 const Novo: Rascunho = { titulo: '', perguntas: '', categoriaId: '', resposta: '', links: '', visivelDe: '', visivelAte: '' }
-const dataBr = (iso: string) => iso.split('-').reverse().join('/')
 const linhas = (texto: string) => texto.split('\n').map((l) => l.trim()).filter(Boolean)
 
 const rascunho = (a: Artigo): Rascunho => ({
@@ -53,7 +53,7 @@ const Colunas = [{ titulo: 'Título' }, { titulo: 'Categoria', largo: true }, { 
 
 const validade = (a: Artigo) => [a.visivelDe && `válido de ${dataBr(a.visivelDe)}`, a.visivelAte && `válido até ${dataBr(a.visivelAte)}`].filter(Boolean).join(' · ')
 
-function LinhaArtigo({ a, editar, mudar, arquivar, pendente }: { a: Artigo; editar: () => void; mudar: () => void; arquivar: () => void; pendente: boolean }) {
+function LinhaArtigo({ a, editar, mudar, arquivar, renovar, pendente }: { a: Artigo; editar: () => void; mudar: () => void; arquivar: () => void; renovar: () => void; pendente: boolean }) {
   const versao = `versão ${a.versao.numero}`
   return (
     <TableRow>
@@ -61,6 +61,7 @@ function LinhaArtigo({ a, editar, mudar, arquivar, pendente }: { a: Artigo; edit
         <span>{a.versao.titulo}</span>
         <IconeIndexacao valor={a.indexacao} />
         <Detalhe>{[a.categoria, versao, validade(a)].filter(Boolean).join(' · ')}</Detalhe>
+        <ValidadeDaLinha item={a} nome={a.versao.titulo} pendente={pendente} renovar={a.estado === 'ARQUIVADO' ? undefined : renovar} />
       </TableCell>
       <CelulaLargo>{a.categoria}</CelulaLargo>
       <CelulaLargo>{versao}</CelulaLargo>
@@ -127,7 +128,8 @@ const tituloDaJanela = (r?: Rascunho) => (r?.id ? 'Editar artigo' : 'Novo artigo
 export function Artigos() {
   const { itens: artigos, categorias, erro, recarregar } = useCatalogo<Artigo>('/api/admin/artigos')
   const vazia = artigos?.length === 0
-  const { visiveis, mais } = useMostrarMais(artigos)
+  const { filtrados, seletor, vazio: comFiltro } = useFiltroValidade(artigos, 'artigo')
+  const { visiveis, mais } = useMostrarMais(filtrados)
   const achar = (id: number) => artigos?.filter((a) => a.id === id).map(rascunho)[0]
   const { editando, setEditando, abrir, fechar } = useEditarNaUrl(achar, Novo, !!artigos)
   const [arquivar, setArquivar] = useState<Artigo>()
@@ -144,6 +146,8 @@ export function Artigos() {
     acao.mutate({ chamar: () => api(`/api/admin/artigos/${a.id}/${para}`, {}), aviso: Avisos[para] })
   }
 
+  const renovar = (a: Artigo) => acao.mutate({ chamar: () => api(`/api/admin/artigos/${a.id}/renovar`, {}), aviso: avisoRenovado })
+
   return (
     <div className="flex flex-col gap-2">
       <Cabecalho botao={vazia ? undefined : 'Novo artigo'} Icone={Plus} aoClicar={() => abrir({ ...Novo })}>
@@ -151,14 +155,15 @@ export function Artigos() {
       </Cabecalho>
       <ErroDe erro={erro} oque="os artigos" tentar={recarregar} />
       <ErroDe erro={acao.error} oculto={!!editando} />
+      {seletor}
       <Tabela
         colunas={Colunas}
-        itens={artigos}
+        itens={filtrados}
         erro={erro}
-        vazio={{ Icone: BookText, titulo: 'Nenhum artigo', frase: 'Os artigos são a base das respostas do assistente.', acao: <Button onClick={() => abrir({ ...Novo })}>Novo artigo</Button> }}
+        vazio={comFiltro({ Icone: BookText, titulo: 'Nenhum artigo', frase: 'Os artigos são a base das respostas do assistente.', acao: <Button onClick={() => abrir({ ...Novo })}>Novo artigo</Button> })}
       >
         {visiveis?.map((a) => (
-          <LinhaArtigo key={a.id} a={a} editar={() => abrir(rascunho(a))} mudar={() => setAtivar(a)} arquivar={() => setArquivar(a)} pendente={acao.isPending} />
+          <LinhaArtigo key={a.id} a={a} editar={() => abrir(rascunho(a))} mudar={() => setAtivar(a)} arquivar={() => setArquivar(a)} renovar={() => renovar(a)} pendente={acao.isPending} />
         ))}
       </Tabela>
       {mais}

@@ -18,10 +18,13 @@ export const detalheVazio = {
   tempos: { primeiraRespostaMedianaHoras: null, primeiraRespostaP90Horas: null, resolucaoMedianaHoras: null, resolucaoP90Horas: null },
 }
 
+export const validadeVazia = { artigos: { vigentes: 0, venceEm30Dias: 0, vencidos: 0 }, documentos: { vigentes: 0, venceEm30Dias: 0, vencidos: 0 } }
+
 const previaPadrao = (metodo: string, url: string): Rota | undefined => {
   if (metodo !== 'GET') return undefined
   if (/^\/api\/conversas\/\d+\/destino/.test(url)) return () => [200, { lideranca: false }]
   if (url.startsWith('/api/chamados/filtros?')) return () => [200, { setores: [], categorias: [] }]
+  if (url === '/api/conhecimento/validade') return () => [200, validadeVazia]
   return url.startsWith('/api/indicadores/detalhe?') ? () => [200, detalheVazio] : undefined
 }
 

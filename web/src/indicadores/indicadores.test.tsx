@@ -108,6 +108,7 @@ describe('indicadores', () => {
       ['A equipe responde a tempo?', ['Tempo até a 1ª resposta', 'Tempo de resolução']],
       ['Qualidade do atendimento', ['Roteamento correto', 'Reabertura']],
       ['O que mais pesa', []],
+      ['A base de conhecimento está em dia?', []],
     ])
     expect(secoes[0].closest('form')).toBeNull()
     expect(screen.getByLabelText('De').closest('form')!.compareDocumentPosition(secoes[0]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()

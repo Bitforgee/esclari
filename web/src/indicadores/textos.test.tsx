@@ -18,6 +18,7 @@ const Indicadores = [
   'Chamados abertos agora: 4', 'Aberto · 1 · 25\u00a0%', 'Em atendimento · 1 · 25\u00a0%', 'Aguardando aluno · 1 · 25\u00a0%', 'Resolvido · 1 · 25\u00a0%', 'O mais antigo espera há 9 dias',
   'Qualidade do atendimento', 'Roteamento correto', 'Reabertura', 'Resolvidos sem encaminhamento entre setores.', 'Resolvidos que o aluno reabriu.',
   'O que mais pesa', 'Categorias por conversas', 'Categorias por chamados', 'Categoria', 'Total', 'Boleto3',
+  'A base de conhecimento está em dia?', 'Nenhum conteúdo publicado ainda',
   '12,3\u00a0%', '50\u00a0%', '20\u00a0%', '10\u00a0%', '5', '12', '0', '2', '4',
 ]
 

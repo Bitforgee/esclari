@@ -17,6 +17,7 @@ import { NativeSelect } from '../ui/native-select'
 import { TableCell, TableRow } from '../ui/table'
 import { useEditarNaUrl } from '../urlDaTela'
 import { ConfirmarArquivar, IconeIndexacao, SeloEstado, useCatalogo, type Categoria, type Indexacao } from './comum'
+import { avisoRenovado, useFiltroValidade, ValidadeDaLinha, type ComValidade } from './Validade'
 
 type Documento = {
   id: number
@@ -26,7 +27,7 @@ type Documento = {
   estado: 'ATIVO' | 'ARQUIVADO'
   versao: { id: number; numero: number; nomeArquivo: string; paginas: number; criadaEm: string }
   indexacao: Indexacao
-}
+} & ComValidade
 type Envio = { id?: number; titulo: string; categoriaId: string; arquivo?: File }
 
 const NovoEnvio: Envio = { titulo: '', categoriaId: '' }
@@ -46,7 +47,7 @@ function formulario(r: Envio) {
 
 const Colunas = [{ titulo: 'Título' }, { titulo: 'Categoria', largo: true }, { titulo: 'Versão', largo: true }, { titulo: 'Arquivo', largo: true }, { titulo: 'Situação' }, { titulo: '' }]
 
-function LinhaDocumento({ d, novaVersao, arquivar, pendente }: { d: Documento; novaVersao: () => void; arquivar: () => void; pendente: boolean }) {
+function LinhaDocumento({ d, novaVersao, arquivar, renovar, pendente }: { d: Documento; novaVersao: () => void; arquivar: () => void; renovar: () => void; pendente: boolean }) {
   const versao = `versão ${d.versao.numero} · ${d.versao.paginas} ${paginas(d.versao.paginas)}`
   return (
     <TableRow>
@@ -54,6 +55,7 @@ function LinhaDocumento({ d, novaVersao, arquivar, pendente }: { d: Documento; n
         <span>{d.titulo}</span>
         <IconeIndexacao valor={d.indexacao} />
         <Detalhe>{[d.categoria, versao, d.versao.nomeArquivo].join(' · ')}</Detalhe>
+        <ValidadeDaLinha item={d} nome={d.titulo} pendente={pendente} renovar={d.estado === 'ATIVO' ? renovar : undefined} />
       </TableCell>
       <CelulaLargo>{d.categoria}</CelulaLargo>
       <CelulaLargo>{versao}</CelulaLargo>
@@ -114,7 +116,8 @@ const rotaDoEnvio = (r: Envio) => (r.id ? `/api/admin/documentos/${r.id}/versoes
 
 export function Documentos() {
   const { itens: documentos, categorias, erro, recarregar } = useCatalogo<Documento>('/api/admin/documentos')
-  const { visiveis, mais } = useMostrarMais(documentos)
+  const { filtrados, seletor, vazio: comFiltro } = useFiltroValidade(documentos, 'documento')
+  const { visiveis, mais } = useMostrarMais(filtrados)
   const achar = (id: number) => documentos?.filter((d) => d.estado === 'ATIVO' && d.id === id).map(novaVersao)[0]
   const { editando: envio, setEditando: setEnvio, abrir, fechar } = useEditarNaUrl(achar, NovoEnvio, !!documentos)
   const [arquivar, setArquivar] = useState<Documento>()
@@ -130,6 +133,8 @@ export function Documentos() {
     acao.mutate({ chamar: () => api(`/api/admin/documentos/${d.id}/arquivar`, {}), aviso: 'Documento arquivado.' })
   }
 
+  const renovar = (d: Documento) => acao.mutate({ chamar: () => api(`/api/admin/documentos/${d.id}/renovar`, {}), aviso: avisoRenovado })
+
   return (
     <div className="flex flex-col gap-2">
       <Cabecalho botao={vazia ? undefined : 'Novo documento'} Icone={Upload} aoClicar={() => abrir({ ...NovoEnvio })}>
@@ -137,19 +142,20 @@ export function Documentos() {
       </Cabecalho>
       <ErroDe erro={erro} oque="os documentos" tentar={recarregar} />
       <ErroDe erro={acao.error} oculto={!!envio} />
+      {seletor}
       <Tabela
         colunas={Colunas}
-        itens={documentos}
+        itens={filtrados}
         erro={erro}
-        vazio={{
+        vazio={comFiltro({
           Icone: FileText,
           titulo: 'Nenhum documento',
           frase: 'PDFs como regulamentos e calendários também alimentam o assistente.',
           acao: <Button onClick={() => abrir({ ...NovoEnvio })}>Novo documento</Button>,
-        }}
+        })}
       >
         {visiveis?.map((d) => (
-          <LinhaDocumento key={d.id} d={d} novaVersao={() => abrir(novaVersao(d))} arquivar={() => setArquivar(d)} pendente={acao.isPending} />
+          <LinhaDocumento key={d.id} d={d} novaVersao={() => abrir(novaVersao(d))} arquivar={() => setArquivar(d)} renovar={() => renovar(d)} pendente={acao.isPending} />
         ))}
       </Tabela>
       {mais}

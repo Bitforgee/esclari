@@ -106,6 +106,7 @@ export async function simularApi(page: Page, papeis = ['ALUNO', 'ATENDENTE', 'AD
         versao: { id: 1, numero: 12, titulo: 'Como emitir a segunda via do boleto do semestre com o valor corrigido', perguntas: ['boleto?'], resposta: 'x', links: [] } }
       return json(200, mais([artigo], { ...artigo, id: 2, versao: { ...artigo.versao, id: 2, titulo: TituloLongo } }))
     }
+    if (caminho === '/api/conhecimento/validade') return json(200, { artigos: { vigentes: 120, venceEm30Dias: 14, vencidos: 3 }, documentos: { vigentes: 40, venceEm30Dias: 2, vencidos: 1 } })
     if (caminho === '/api/indicadores/detalhe')
       return json(200, {
         granularidade: 'dia',
