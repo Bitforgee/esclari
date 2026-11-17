@@ -1,0 +1,49 @@
+
+=== fio-procedencia-lockup.svg  (3629 bytes)
+viewBox 0 0 1024 256 ┬À aspect 4.0 (horizontal)
+colours 1: #000000 ┬À gradients 0 ┬À anchors 176
+margins L43.1 R85.2 T28.9 B39.9 ┬À bbox fill 0.64
+┬À INFO [strokes] 1 element(s) with strokes. Expand strokes to filled outlines in the master so the mark scales and cuts predictably (or document that it is a stroke-based variant).
+┬À INFO [complexity] 176 anchor points (library median 75.0, p75 155.0). Check every point earns its place.
+┬À INFO [off-centre-x] Horizontal margins differ (left 43.1, right 85.2). Intentional optical centring? Otherwise centre it.
+production-readiness score: 97/100 (heuristic)
+
+=== fio-procedencia-symbol.svg  (374 bytes)
+viewBox 0 0 256 256 ┬À aspect 1.0 (square)
+colours 1: #000000 ┬À gradients 0 ┬À anchors 7
+margins L36.0 R28.0 T32.0 B32.0 ┬À bbox fill 0.562
+┬À INFO [strokes] 1 element(s) with strokes. Expand strokes to filled outlines in the master so the mark scales and cuts predictably (or document that it is a stroke-based variant).
+┬À INFO [off-centre-x] Horizontal margins differ (left 36.0, right 28.0). Intentional optical centring? Otherwise centre it.
+production-readiness score: 98/100 (heuristic)
+
+=== fonte-embutida-lockup.svg  (3027 bytes)
+viewBox 0 0 1024 256 ┬À aspect 4.0 (horizontal)
+colours 1: #000000 ┬À gradients 0 ┬À anchors 157
+margins L267.4 R87.2 T28.9 B72.2 ┬À bbox fill 0.396
+┬À INFO [complexity] 157 anchor points (library median 75.0, p75 155.0). Check every point earns its place.
+┬À INFO [off-centre-x] Horizontal margins differ (left 267.4, right 87.2). Intentional optical centring? Otherwise centre it.
+┬À INFO [off-centre-y] Vertical margins differ (top 28.9, bottom 72.2). Remember the optical centre sits slightly above the geometric centre.
+production-readiness score: 97/100 (heuristic)
+
+=== fonte-embutida-symbol.svg  (428 bytes)
+viewBox 0 0 256 256 ┬À aspect 1.0 (square)
+colours 1: #000000 ┬À gradients 0 ┬À anchors 21
+margins L28.0 R22.0 T24.0 B24.0 ┬À bbox fill 0.654
+Ô£ö no issues found
+production-readiness score: 100/100 (heuristic)
+
+=== manicula-lockup.svg  (3650 bytes)
+viewBox 0 0 1024 256 ┬À aspect 4.0 (horizontal)
+colours 1: #000000 ┬À gradients 0 ┬À anchors 194
+margins L32.1 R85.2 T28.9 B36.2 ┬À bbox fill 0.66
+┬À INFO [complexity] 194 anchor points (library median 75.0, p75 155.0). Check every point earns its place.
+┬À INFO [off-centre-x] Horizontal margins differ (left 32.1, right 85.2). Intentional optical centring? Otherwise centre it.
+production-readiness score: 98/100 (heuristic)
+
+=== manicula-symbol.svg  (395 bytes)
+viewBox 0 0 256 256 ┬À aspect 1.0 (square)
+colours 1: #000000 ┬À gradients 0 ┬À anchors 25
+margins L24.0 R10.0 T39.6 B28.0 ┬À bbox fill 0.638
+┬À INFO [off-centre-x] Horizontal margins differ (left 24.0, right 10.0). Intentional optical centring? Otherwise centre it.
+┬À INFO [off-centre-y] Vertical margins differ (top 39.6, bottom 28.0). Remember the optical centre sits slightly above the geometric centre.
+production-readiness score: 98/100 (heuristic)
