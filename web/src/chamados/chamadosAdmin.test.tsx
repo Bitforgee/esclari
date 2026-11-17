@@ -1,4 +1,5 @@
 import { screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { abrir, api, cabecalhos, chamado, me, type Chamada } from '../test/util'
 
@@ -38,6 +39,21 @@ describe('chamados do administrador', () => {
     expect(within(linha).getAllByRole('cell')[2]).toHaveTextContent(/^Financeiro$/)
   })
 
+  it('tela chamados com a barra e o painel da fila', async () => {
+    api({
+      'GET /api/auth/me': () => [200, admin],
+      [`GET ${Todos}`]: () => [200, pagina([item])],
+      'GET /api/chamados/filtros?escopo=todos': () => [200, { setores: [{ id: 2, nome: 'Financeiro' }, { id: 3, nome: 'Secretaria' }], categorias: [] }],
+    })
+    abrir('/univag/chamados')
+    await screen.findByText('ESC-000001')
+    expect(screen.getByRole('searchbox', { name: 'Buscar por número, título ou aluno' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Exportar CSV' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Filtros' }))
+    const painel = within(await screen.findByRole('dialog', { name: 'Filtros' }))
+    expect(within(painel.getByRole('combobox', { name: 'Setor' })).getAllByRole('option').map((o) => o.textContent)).toEqual(['Todos', 'Financeiro', 'Secretaria'])
+    expect(within(painel.getByRole('group', { name: 'Estado' })).getAllByRole('checkbox')).toHaveLength(5)
+  })
   it('detalhe em leitura', async () => {
     api({ 'GET /api/auth/me': () => [200, admin], 'GET /api/chamados/ESC-000001': () => [200, chamado({ estado: 'ABERTO', acoes: [], eventos: [], solicitante: 'Ana', resumo: 'x' })] })
     abrir('/univag/chamados/ESC-000001')

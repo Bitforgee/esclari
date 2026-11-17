@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Esclari.Api.Dados;
 using Esclari.Api.Tests.Infra;
@@ -101,6 +102,30 @@ public class ExportarChamadosTests(EsclariFactory f) : IClassFixture<EsclariFact
         Assert.Equal(("Aberto", "", "", ""), (a[2], a[11], a[12], a[13]));
     }
 
+    [Fact]
+    public async Task Rotulos_de_estado_e_motivo()
+    {
+        var b = await Balcao.Criar(f);
+        var porEstado = new Dictionary<string, string>();
+        foreach (var estado in new[] { Aberto, EmAtendimento, AguardandoAluno, Resolvido, Fechado }) porEstado[estado] = await b.Chamado(estado);
+        var cancelado = await b.Chamado();
+        await Ok(await b.ClienteAluno.PostAsJsonAsync($"/api/chamados/{cancelado}/cancelar", new { motivo = "resolvi sozinho" }));
+        var duplicado = await b.Chamado();
+        await Ok(await b.A.Cliente.PostAsJsonAsync($"/api/chamados/{duplicado}/duplicado", new { numeroOriginal = porEstado[Aberto] }));
+        var automatico = await b.Chamado(Resolvido);
+        await b.Recuar(automatico, TimeSpan.FromDays(30));
+        await f.Services.GetRequiredService<Agendador>().Executar();
+        Assert.Equal(Fechado, (await b.Ler(automatico)).Estado);
+
+        var linhas = await Linhas(await Exportar(b.A.Cliente, "&estado=ABERTO&estado=EM_ATENDIMENTO&estado=AGUARDANDO_ALUNO&estado=RESOLVIDO&estado=FECHADO"));
+        string[] Da(string numero) => Celulas(linhas.Single(x => x.StartsWith(numero + ";")));
+
+        Assert.Equal(["Aberto", "Em atendimento", "Aguardando aluno", "Resolvido", "Fechado"], porEstado.Values.Select(n => Da(n)[2]));
+        Assert.Equal("Confirmado pelo aluno", Da(porEstado[Fechado])[13]);
+        Assert.Equal("Cancelado pelo aluno", Da(cancelado)[13]);
+        Assert.Equal("Duplicado", Da(duplicado)[13]);
+        Assert.Equal("Fechado automaticamente", Da(automatico)[13]);
+    }
     [Fact]
     public async Task Primeira_resposta_da_equipe()
     {

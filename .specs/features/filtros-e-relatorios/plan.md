@@ -189,6 +189,7 @@ O administrador vê e lê todos os chamados da instituição, sem agir neles.
 | exportar os Indicadores e filtrar os Indicadores por setor na tela | a API já aceita `setorId`; é outra tela e outro recorte, fica para uma feature própria |
 | o filtro e a exportação no MCP (`listar_chamados`) | o AD-055 fixa a saída do MCP |
 | ações em lote na lista (assumir, encaminhar vários) | muda estado, não é filtro nem relatório |
+| atualização em tempo real da tela Chamados do administrador | o administrador não entra no grupo da fila do hub (só atendentes, `EntrarNaFila`); a lista se atualiza ao abrir a tela ou ao filtrar |
 | busca no texto das mensagens | expõe conteúdo de conversa a uma busca ampla; o título e o resumo cobrem a maior parte |
 
 ## Assumptions
@@ -203,6 +204,8 @@ O administrador vê e lê todos os chamados da instituição, sem agir neles.
 | quando aplicar | busca interativa (300 ms) e painel em lote com "Aplicar" | NN/g: lote quando a pessoa escolhe vários filtros, e no celular o painel cobre a lista | y |
 | onde guardar o recorte | na query string, nada no `localStorage` | volta com o botão Voltar, abre igual num link; nada autenticado fica no aparelho (prompt mobile-first, princípio 5) | y |
 | limite de exportação | 10 000 linhas, 5 por minuto por usuário | cerca de 2 MB de arquivo; protege o banco de exportações repetidas | y |
+
+| a ordem conta como filtro? | não: a ordem não ganha etiqueta nem entra no número de "Filtros (N)"; aparece na contagem ("N chamados · Mais antigos primeiro", como a linha "Mais antigos primeiro" que a Fila já tinha) e "Limpar filtros" a mantém | ordenar não tira chamado da lista, então não é um recorte; decidido no build depois da rodada 1 do Verify | n |
 
 **Open questions:** none - all resolved or logged above. O dono aprovou o plano com todos os padrões acima em 17/11 ("aprovo pode seguir").
 

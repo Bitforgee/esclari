@@ -3,7 +3,7 @@
 Profile: ui
 Plan: `.specs/features/filtros-e-relatorios/plan.md`
 
-62 checks em 6 slices · 4 one-way doors · 0 perguntas abertas (plano aprovado pelo dono em 17/11: "aprovo pode seguir"; AD-066)
+72 checks em 7 grupos (6 slices e a emenda E4) · 4 one-way doors · 0 perguntas abertas (plano aprovado pelo dono em 17/11: "aprovo pode seguir"; AD-066)
 
 **Como as provas rodam.** Na raiz `D:\esclari`, salvo `cd web &&`. API: `docker compose up -d postgres mailpit minio` e uma execução de `dotnet test` por vez. Vitest: `cd web && npx vitest run <arquivo> -t "<nome>"`. Playwright: `docker compose up -d --build` e `cd web && npx playwright test <spec> -g "<nome>"`. Um filtro que não seleciona teste sai com 0 (L-002): conferir a contagem de testes executados. Mutação suspensa (AD-025).
 
@@ -224,6 +224,42 @@ Proof: `cd web && dryer`
 Proof: `cd web && npx playwright test e2e/ux.spec.ts e2e/casca.spec.ts e2e/identidade.spec.ts e2e/filtros.spec.ts`
 Proof: `cd web && npx playwright test e2e/arranjo.spec.ts`
 
+### E4 - Emenda depois da rodada 1 do Verify · 6 arquivos · ~10k
+
+A rodada 1 (`verification.md`, `3f7a342`) não achou defeito e marcou FAIL por cobertura: arranjos das Telas do plano e membros de conjuntos sem prova. Estes checks são aditivos; nenhum check anterior muda. O C57 passou a usar a tecla Enter de verdade (`userEvent.type(..., '{Enter}')`) e espera a busca em menos de 200 ms, antes dos 300 ms do atraso.
+
+**C63** - `q=\` devolve `total` 0 quando nenhum título tem `\`, e depois de abrir "Arquivo em C:\temp\notas" `q=C:\temp` e `q=\` devolvem só esse chamado (AC 4, porta 3)
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~BuscaDeChamadosTests.Barra_invertida_e_texto_comum"`
+
+**C64** - `GET /api/chamados/exportar` responde `400` com o nome do campo em `errors` para `estado=PERDIDO`, `ordem=meio`, `responsavel=fulano`, `escopo=meus` e `q` de 101 caracteres (AC 13)
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~BuscaDeChamadosTests.Parametro_invalido_400_na_exportacao"`
+
+**C65** - No CSV a coluna Estado traz "Aberto", "Em atendimento", "Aguardando aluno", "Resolvido" e "Fechado", e "Motivo de fechamento" traz "Confirmado pelo aluno", "Cancelado pelo aluno", "Duplicado" e "Fechado automaticamente" (AC 32)
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ExportarChamadosTests.Rotulos_de_estado_e_motivo"`
+
+**C66** - Um administrador em `LEITURA` baixa o anexo de um chamado da instituição dele com `200` e os mesmos bytes; o administrador de outra instituição recebe `404` (porta 4, Impact `BaixarAnexo`)
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~LeituraDoAdministradorTests.Baixa_o_anexo_em_leitura"`
+
+**C67** - Na Fila a ordem é: a barra (busca, "Filtros", "Exportar CSV"), as etiquetas com "Limpar filtros", a contagem "1 chamado · Mais antigos primeiro" e a tabela; em 1280×800 o campo e os dois botões ficam numa linha só (Telas 1, AC 18, AC 23, AC 24)
+Proof: `cd web && npx vitest run src/chamados/filtros.test.tsx -t "ordem da tela"`
+Proof: `cd web && npx playwright test e2e/filtros.spec.ts -g "desktop painel à direita e barra numa linha"`
+
+**C68** - Com `ordem=recentes` a contagem diz "2 chamados · Mais recentes primeiro" (Telas 1, AC 24)
+Proof: `cd web && npx vitest run src/chamados/filtros.test.tsx -t "contagem diz a ordem"`
+
+**C69** - Os campos do painel vêm na ordem Estado, Setor, Categoria, Responsável, Período de abertura, Ordem (Telas 3, AC 20)
+Proof: `cd web && npx vitest run src/chamados/filtros.test.tsx -t "ordem dos campos do painel"`
+
+**C70** - Em 1280×800 o painel "Filtros" abre colado na borda direita (borda direita em 1280, começa depois de 640), com altura 800 a partir do topo (Telas 3)
+Proof: `cd web && npx playwright test e2e/filtros.spec.ts -g "desktop painel à direita e barra numa linha"`
+
+**C71** - A tela Chamados tem o campo de busca, "Filtros" e "Exportar CSV", e o painel lista no Setor "Todos" e os setores de `filtros?escopo=todos` ("Financeiro", "Secretaria"), com as 5 caixas de Estado (Telas 2, AC 47)
+Proof: `cd web && npx vitest run src/chamados/chamadosAdmin.test.tsx -t "tela chamados com a barra e o painel da fila"`
+
+**C72** - Um administrador em `LEITURA` entra no grupo do chamado no hub e recebe o aviso enviado a esse grupo (porta 4, E1)
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~TempoRealEntradaTests.EntrarNoChamado_entra_o_administrador_em_leitura"`
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~TempoRealEntradaTests.EntrarNoChamado_recusa_com_Chamado_nao_encontrado"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -251,7 +287,12 @@ Proof: `cd web && npx playwright test e2e/arranjo.spec.ts`
 | campos do painel (7) | Estado C25, C26 · Setor C26 · Categoria C26 · Responsável C26, C27 · Período C26 · Ordem C26, C27 · busca `q` C24, C27 | - |
 | estados da tela Fila/Chamados (6) | carregando C34 · recarregando C34 · erro C33 · vazio sem filtro C30, C52 · vazio com filtro C30 · com itens C29, C31 | - |
 | linhas do celular (4) | 360×780 C54, C55 · deitado 844×390 C56 · teclado C57 · toque C58 | - |
-| configuração de partida: política de limite `exportar` (1 montagem) | `Program` usado pelo `EsclariFactoryComLimites` C44 | - |
+| telas do plano (3) | Fila: ordem C67, C68 · Chamados: barra e painel C71, C52 · painel: lado C55, C70, campos C69 | - |
+| rótulos de estado no CSV (5) | `ABERTO` C65 · `EM_ATENDIMENTO` C65 · `AGUARDANDO_ALUNO` C65 · `RESOLVIDO` C65 · `FECHADO` C65 | - |
+| rótulos de motivo no CSV (4) | `CONFIRMADO` C65 · `CANCELADO` C65 · `DUPLICADO` C65 · `FECHADO_AUTOMATICAMENTE` C65 | - |
+| caracteres escapados na busca (3) | `%` C6 · `_` C6 · `\` C63 | - |
+| parâmetros recusados na exportação (5) | `estado` C64 · `ordem` C64 · `responsavel` C64 · `escopo` C64 · `q` C64 | - |
+| quem ramifica no papel `LEITURA` (5) | `DetalheChamado.Montar` C49 · `PermissoesChamado` C50 · `AgirNoChamado` C50 · `TempoRealHub.EntrarNoChamado` C72 · `BaixarAnexo` C66 | - || configuração de partida: política de limite `exportar` (1 montagem) | `Program` usado pelo `EsclariFactoryComLimites` C44 | - |
 
 - Afirmações de status, rota ou forma de resposta: C1, C9, C12, C14 a C22, C35, C42 a C44, C47 a C50 - cada uma tem prova que bate na rota HTTP.
 - Test policy: o `AGENTS.md` (seção Testes) já responde o nível - rota HTTP no teste de integração, regra de domínio em teste unitário na entidade - e esta feature segue isso; sem seção própria.

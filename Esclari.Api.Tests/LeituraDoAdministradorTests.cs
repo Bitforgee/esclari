@@ -83,6 +83,23 @@ public class LeituraDoAdministradorTests(EsclariFactory f) : IClassFixture<Escla
     }
 
     [Fact]
+    public async Task Baixa_o_anexo_em_leitura()
+    {
+        var b = await Balcao.Criar(f);
+        var numero = await b.Chamado();
+        var png = Balcao.Arquivo(Balcao.Png, 3000);
+        await Ok(await Balcao.ComAnexos(b.ClienteAluno, numero, "segue o comprovante", "PUBLICA", ("comprovante.png", png)));
+        var id = await f.Db(b.Instituicao.Id, db => db.Anexos.Where(a => db.MensagensChamado.Any(m => m.Id == a.MensagemChamadoId && db.Chamados.Any(c => c.Id == m.ChamadoId && c.Numero == numero))).Select(a => a.Id).SingleAsync());
+        var admin = await Administrador(b.Instituicao);
+        var deOutra = await Administrador((await Balcao.Criar(f)).Instituicao);
+
+        var r = await admin.GetAsync($"/api/anexos/{id}");
+
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        Assert.Equal(png, await r.Content.ReadAsByteArrayAsync());
+        Assert.Equal(HttpStatusCode.NotFound, (await deOutra.GetAsync($"/api/anexos/{id}")).StatusCode);
+    }
+    [Fact]
     public async Task Nenhuma_acao_em_leitura()
     {
         var b = await Balcao.Criar(f);

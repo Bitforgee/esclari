@@ -127,6 +127,18 @@ public class BuscaDeChamadosTests(EsclariFactory f) : IClassFixture<EsclariFacto
     }
 
     [Fact]
+    public async Task Barra_invertida_e_texto_comum()
+    {
+        var b = await Balcao.Criar(f);
+        await b.Chamado(descricao: "Boleto atrasado");
+
+        Assert.Equal(0, (await Buscar(b.A.Cliente, "&q=" + Uri.EscapeDataString("\\"))).GetProperty("total").GetInt32());
+
+        var pasta = await b.Chamado(descricao: @"Arquivo em C:\temp\notas");
+        Assert.Equal([pasta], await NumerosDe(b.A.Cliente, "&q=" + Uri.EscapeDataString(@"C:\temp")));
+        Assert.Equal([pasta], await NumerosDe(b.A.Cliente, "&q=" + Uri.EscapeDataString("\\")));
+    }
+    [Fact]
     public async Task Filtra_por_categoria_atual()
     {
         var b = await Balcao.Criar(f);
@@ -279,6 +291,21 @@ public class BuscaDeChamadosTests(EsclariFactory f) : IClassFixture<EsclariFacto
         Assert.True((await r.Json()).GetProperty("errors").TryGetProperty(campo, out _), campo);
     }
 
+    [Theory]
+    [InlineData("estado=PERDIDO", "estado")]
+    [InlineData("ordem=meio", "ordem")]
+    [InlineData("responsavel=fulano", "responsavel")]
+    [InlineData("escopo=meus", "escopo")]
+    [InlineData("q=" + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "q")]
+    public async Task Parametro_invalido_400_na_exportacao(string consulta, string campo)
+    {
+        var b = await Balcao.Criar(f);
+
+        var r = await b.A.Cliente.GetAsync("/api/chamados/exportar?" + consulta);
+
+        Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode);
+        Assert.True((await r.Json()).GetProperty("errors").TryGetProperty(campo, out _), campo);
+    }
     [Fact]
     public async Task Busca_de_100_caracteres_aparada_200()
     {

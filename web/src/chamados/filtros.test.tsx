@@ -56,6 +56,36 @@ describe('filtros da fila', () => {
     expect(params(roteador).get('q')).toBe('boleto')
   })
 
+  it('ordem da tela', async () => {
+    abrirFila('?estado=FECHADO', { [`GET ${FILA}&estado=FECHADO`]: () => [200, pagina([item(1)])] })
+    await screen.findByText('ESC-000001')
+    const barra = document.querySelector('[data-barra-da-busca]')!
+    const etiquetas = document.querySelector('[data-etiquetas]')!
+    const contagem = screen.getByText('1 chamado').closest('p')!
+    const tabela = screen.getByRole('table')
+    const ordem = [barra, etiquetas, contagem, tabela]
+    for (let i = 1; i < ordem.length; i++) expect(ordem[i - 1].compareDocumentPosition(ordem[i]) & Node.DOCUMENT_POSITION_FOLLOWING, String(i)).toBeTruthy()
+    expect(within(barra as HTMLElement).getByRole('searchbox')).toBeInTheDocument()
+    expect(within(barra as HTMLElement).getByRole('button', { name: /^Filtros/ })).toBeInTheDocument()
+    expect(within(barra as HTMLElement).getByRole('button', { name: 'Exportar CSV' })).toBeInTheDocument()
+    expect(within(etiquetas as HTMLElement).getByRole('button', { name: 'Limpar filtros' })).toBeInTheDocument()
+    expect(contagem).toHaveTextContent(/^1 chamado · Mais antigos primeiro$/)
+  })
+
+  it('contagem diz a ordem', async () => {
+    abrirFila('?ordem=recentes', { [`GET ${FILA}&ordem=recentes`]: () => [200, pagina([item(1), item(2)])] })
+    await screen.findByText('ESC-000002')
+    expect(screen.getByText('2 chamados').closest('p')).toHaveTextContent(/^2 chamados · Mais recentes primeiro$/)
+  })
+
+  it('ordem dos campos do painel', async () => {
+    abrirFila('', { [`GET ${FILA}`]: () => [200, pagina([item(1)])] })
+    await screen.findByText('ESC-000001')
+    const painel = await abrirPainel()
+    const corpo = painel.getByRole('group', { name: 'Estado' }).parentElement!
+    const titulos = [...corpo.children].map((c) => (c.tagName === 'FIELDSET' ? c.querySelector('legend')!.textContent : c.querySelector('label')!.textContent))
+    expect(titulos).toEqual(['Estado', 'Setor', 'Categoria', 'Responsável', 'Período de abertura', 'Ordem'])
+  })
   it('painel aplica em lote', async () => {
     const { chamadas } = abrirFila('', { [`GET ${FILA}`]: () => [200, pagina([item(1)])] })
     await screen.findByText('ESC-000001')
@@ -205,13 +235,8 @@ describe('filtros da fila', () => {
     await screen.findByText('ESC-000001')
     expect(busca).toHaveAttribute('type', 'search')
     expect(busca).toHaveAttribute('enterkeyhint', 'search')
-    busca.focus()
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    fireEvent.change(busca, { target: { value: 'boleto' } })
-    fireEvent.submit(busca.closest('form')!)
-    await act(async () => vi.advanceTimersByTimeAsync(50))
-    expect(buscas(chamadas, `${FILA}&q=boleto`)).toBe(1)
-    vi.useRealTimers()
+    await userEvent.type(busca, 'boleto{Enter}', { delay: null })
+    await waitFor(() => expect(buscas(chamadas, `${FILA}&q=boleto`)).toBe(1), { timeout: 200 })
     expect(document.activeElement).not.toBe(busca)
   })
 })

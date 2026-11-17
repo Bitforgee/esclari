@@ -28,6 +28,20 @@ async function rodapeVisivel(page: Page, altura: number) {
   }
 }
 
+test('desktop painel à direita e barra numa linha', async ({ page }) => {
+  await abrir(page, 1280, 800)
+  const campo = await caixa(busca(page))
+  for (const nome of [/^Filtros/, /^Exportar CSV$/]) {
+    const c = await caixa(page.getByRole('button', { name: nome }))
+    expect(c.y + c.height / 2).toBeCloseTo(campo.y + campo.height / 2, 0)
+  }
+  await abrirPainel(page)
+  const p = await caixa(painel(page))
+  expect(p.x + p.width).toBeCloseTo(1280, 0)
+  expect(p.x).toBeGreaterThan(640)
+  expect(p.y).toBeCloseTo(0, 0)
+  expect(p.height).toBeCloseTo(800, 0)
+})
 test.describe('filtros da fila no celular', () => {
   test.use({ hasTouch: true, isMobile: true })
 
