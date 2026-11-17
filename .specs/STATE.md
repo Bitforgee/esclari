@@ -73,7 +73,7 @@
 
 ## Handoff
 
-**Feature**: `filtros-e-relatorios` (AD-066, 17/11, base `7005230`): plano, checks e build commitados; falta o Verify independente sobre `7005230..HEAD`. Emendas E1-E3 em `checks.md` (E3 pede o "ok" do dono). Sem push.
+**Feature**: `filtros-e-relatorios` (AD-066, 17/11, base `7005230`): construída (`bc799c6`, `bb4bcb6`, `3ff7c50`, `67a7a67`). Verify rodada 1 (`3f7a342`) e rodada 2 (`5ffb768`) em FAIL só por cobertura e por decisões sem ok do dono, nenhum defeito. A lacuna de `de` > `ate` na exportação foi fechada em `67a7a67`. Esperando o dono decidir: (1) o sufixo "· Mais antigos primeiro" na contagem (Assumption `n`); (2) a emenda E3 do C62 (15 e2e que já falhavam na base); (3) a linha de Out of scope "tempo real na tela Chamados do administrador". Depois, rodada 3 do Verify (a última antes de escalar). Sem push.
 
 **Feature**: `interface-marca-esclari` (AD-063 a AD-065, `49cba64..ad370f8`) FECHADA com PASS na rodada 3 do Verify (24 checks, emendas E1-E5, 23 faltas mortas, `validate_verification.py` exit 0). `seletor-de-cor` (AD-065, `e695042`, verificação `d2bc258`) FECHADA com PASS (7 checks, 10 faltas mortas). Ressalvas abertas para o dono: as 4 capturas `aparencia-*.png` são de antes do seletor; a borda tracejada da amostra neutra é fraca; 4 testes antigos de `arranjo.spec.ts` seguem quebrados desde antes desta feature.
 
