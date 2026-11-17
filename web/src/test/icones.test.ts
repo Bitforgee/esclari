@@ -12,8 +12,7 @@ const lerBytes = (nome: string) => readFileSync(caminho(nome))
 const vite = readFileSync(resolve(raiz, 'vite.config.ts'), 'utf8')
 const themeColor = vite.match(/theme_color:\s*'#([0-9a-fA-F]{6})'/)![1]
 const corDoManifesto = [0, 2, 4].map((i) => parseInt(themeColor.slice(i, i + 2), 16))
-const corDaMarca = [0x24, 0x38, 0xd6]
-const marcaTexto = [0xff, 0xd4, 0x3b]
+const corDaMarca = [0xc8, 0x3a, 0x23]
 
 type Imagem = { largura: number; altura: number; pixel: (x: number, y: number) => number[]; alfa: (x: number, y: number) => number }
 
@@ -81,18 +80,15 @@ describe('icones do PWA', () => {
     const imagem = decodificar(lerBytes('icon-maskable-512.png'))
     const raio = 410 / 2
     let brancos = 0
-    let amarelos = 0
     for (let y = 0; y < 512; y++)
       for (let x = 0; x < 512; x++) {
         const p = imagem.pixel(x, y)
-        if (parecida(p, marcaTexto)) amarelos++
         if (ehBranco(p)) {
           brancos++
           expect(Math.hypot(x + 0.5 - 256, y + 0.5 - 256), `${x},${y}`).toBeLessThanOrEqual(raio)
         } else if (Math.hypot(x + 0.5 - 256, y + 0.5 - 256) > raio) expect(ehCorDaMarca(p), `${x},${y}`).toBe(true)
       }
     expect(brancos).toBeGreaterThan(0)
-    expect(amarelos).toBeGreaterThan(0)
     for (const [x, y] of [[0, 0], [511, 0], [0, 511], [511, 511]]) expect(ehCorDaMarca(imagem.pixel(x, y))).toBe(true)
   })
 
@@ -154,7 +150,7 @@ describe('icones do PWA', () => {
     for (const nome of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png']) expect(r.stdout).toContain(`icones: gravado ${nome}`)
   }, 120_000)
 
-  it('sem simbolo.svg', () => {
+  it('sem simbolo-pequeno.svg', () => {
     const nomes = ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png']
     const hash = (nome: string) => createHash('sha256').update(lerBytes(nome)).digest('hex')
     const antes = nomes.map(hash)
@@ -165,7 +161,7 @@ describe('icones do PWA', () => {
       copyFileSync(resolve(raiz, 'vite.config.ts'), join(copia, 'vite.config.ts'))
       const r = spawnSync(process.execPath, [join(copia, 'scripts/gerar-icones.mjs')], { cwd: copia, encoding: 'utf8' })
       expect(r.status).toBe(1)
-      expect(r.stderr).toContain('simbolo.svg')
+      expect(r.stderr).toContain('simbolo-pequeno.svg')
       expect(existsSync(join(copia, 'public/icons'))).toBe(false)
       expect(nomes.map(hash)).toEqual(antes)
     } finally {
@@ -180,4 +176,38 @@ describe('icones do PWA', () => {
       ['/icons/icon-maskable-512.png', 'maskable'],
     ])
   })
+
+  it('gera quatro icones deterministas com o fio pequeno', () => {
+    const nomes = ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png']
+    const hash = (nome: string) => createHash('sha256').update(lerBytes(nome)).digest('hex')
+    const primeira = spawnSync(process.execPath, ['scripts/gerar-icones.mjs'], { cwd: raiz, encoding: 'utf8' })
+    expect(primeira.status, primeira.stderr).toBe(0)
+    const hashes = nomes.map(hash)
+    const segunda = spawnSync(process.execPath, ['scripts/gerar-icones.mjs'], { cwd: raiz, encoding: 'utf8' })
+    expect(segunda.status, segunda.stderr).toBe(0)
+    expect(nomes.map(hash)).toEqual(hashes)
+    for (const [nome, lado] of [['icon-192.png', 192], ['icon-512.png', 512], ['icon-maskable-512.png', 512], ['apple-touch-icon.png', 180]] as const) {
+      const imagem = decodificar(lerBytes(nome))
+      expect([imagem.largura, imagem.altura], nome).toEqual([lado, lado])
+      const cantoEsperado = nome.startsWith('icon-') && !nome.includes('maskable') ? corDoManifesto : corDaMarca
+      expect(parecida(imagem.pixel(0, 0), cantoEsperado), nome).toBe(true)
+      expect(ehCorDaMarca(imagem.pixel(Math.floor(lado / 2), Math.floor(lado * 0.1))), nome).toBe(true)
+      let brancos = 0
+      for (let y = 0; y < lado; y++) for (let x = 0; x < lado; x++) if (ehBranco(imagem.pixel(x, y))) brancos++
+      expect(brancos, nome).toBeGreaterThan(0)
+    }
+  }, 120_000)
+
+  it('icone gerado fica opaco e dentro da zona segura', () => {
+    const r = spawnSync(process.execPath, ['scripts/gerar-icones.mjs'], { cwd: raiz, encoding: 'utf8' })
+    expect(r.status, r.stderr).toBe(0)
+    const maskable = decodificar(lerBytes('icon-maskable-512.png'))
+    for (let y = 0; y < 512; y++)
+      for (let x = 0; x < 512; x++) {
+        expect(maskable.alfa(x, y), `maskable ${x},${y}`).toBe(255)
+        if (ehBranco(maskable.pixel(x, y))) expect(Math.hypot(x + 0.5 - 256, y + 0.5 - 256), `${x},${y}`).toBeLessThanOrEqual(204.8)
+      }
+    const apple = decodificar(lerBytes('apple-touch-icon.png'))
+    for (let y = 0; y < 180; y++) for (let x = 0; x < 180; x++) expect(apple.alfa(x, y), `apple ${x},${y}`).toBe(255)
+  }, 120_000)
 })

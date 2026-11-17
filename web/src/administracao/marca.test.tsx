@@ -39,13 +39,14 @@ describe('marca Esclari nas telas de administração', () => {
     expect(document.body.textContent).not.toMatch(/http one |"one":/)
   })
 
-  it('azul esclari é o nome da cor padrão e fica na parada inicial', async () => {
+  it('azul é o nome da cor padrão e fica na parada inicial', async () => {
     const { nome: _, ...aparencia } = instituicao()
     api({ 'GET /api/auth/me': () => [200, admin], 'GET /api/admin/aparencia': () => [200, aparencia], 'GET /api/instituicoes/univag': () => [200, instituicao()] })
     abrir('/univag/aparencia')
     const grupo = within(await screen.findByRole('radiogroup', { name: 'Cores prontas' }))
-    const azul = grupo.getByRole('radio', { name: 'Azul Esclari' })
+    const azul = grupo.getByRole('radio', { name: 'Azul' })
     expect(grupo.getAllByRole('radio').filter((r) => r.tabIndex === 0)).toEqual([azul])
+    expect(grupo.queryByRole('radio', { name: 'Azul Esclari' })).toBeNull()
     expect(grupo.queryByRole('radio', { name: 'Azul One' })).toBeNull()
   })
 })

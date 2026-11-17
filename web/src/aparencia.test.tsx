@@ -68,7 +68,7 @@ describe('marca da instituição', () => {
     expect(contraste(hex('777777')).toFixed(2)).toBe('4.48')
   })
 
-  it('marca no html só com cor', async () => {
+  it('identidade da instituicao prevalece - cor', async () => {
     comSessao(comMarca)
     const { unmount } = abrir('/univag')
     await waitFor(() => expect(document.documentElement.style.getPropertyValue('--marca')).toBe(Cor))
@@ -103,7 +103,7 @@ describe('marca da instituição', () => {
     expect(declaracao(bloco('.dark'), '--primary-foreground')).toBe('ok' + 'lch(0.17 0 0)')
   })
 
-  it('logo no login e na barra', async () => {
+  it('identidade da instituicao prevalece - logo no login e na barra', async () => {
     comSessao(comMarca)
     let montada = abrir('/univag')
     await screen.findByLabelText('CPF')
@@ -131,7 +131,7 @@ describe('marca da instituição', () => {
     expect(document.querySelector('span.bg-primary')).toHaveTextContent('U')
   })
 
-  it('ícone na aba, na barra recolhida e no topo', async () => {
+  it('identidade da instituicao prevalece - icone na aba e na barra', async () => {
     const icone = '/api/instituicoes/univag/imagens/icone?v=2'
     comSessao(comMarca)
     let montada = abrir('/univag/assistente')

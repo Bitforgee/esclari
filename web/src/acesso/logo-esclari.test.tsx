@@ -47,7 +47,7 @@ describe('marca do Esclari', () => {
     localStorage.clear()
   })
 
-  it('marca do Esclari so aparece na raiz', async () => {
+  it('identidade da instituicao prevalece - marca Esclari so aparece na raiz', async () => {
     api({ 'GET /api/instituicoes/univag': () => [200, comIdentidade] })
     abrir('/univag')
     await screen.findByLabelText('CPF')
@@ -60,7 +60,7 @@ describe('marca do Esclari', () => {
     expect(api_.filter((a) => readFileSync(a, 'utf8').includes('/marca/'))).toEqual([])
   })
 
-  it('favicon da marca some com icone da instituicao e volta sem ele', async () => {
+  it('identidade da instituicao prevalece - favicon institucional', async () => {
     expect(noHead('link[rel="icon"][type="image/svg+xml"]')).not.toBeNull()
     api({ 'GET /api/instituicoes/univag': () => [200, comIdentidade], 'GET /api/auth/me': () => [200, me()] })
     const montada = abrir('/univag/assistente')

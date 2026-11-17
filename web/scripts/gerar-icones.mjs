@@ -5,23 +5,26 @@ import { chromium } from '@playwright/test'
 
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const destino = join(raiz, 'public', 'icons')
-const MARCA = '#2438d6'
+const MARCA = '#C83A23'
 const fundo = readFileSync(join(raiz, 'vite.config.ts'), 'utf8').match(/theme_color:\s*'(#[0-9a-fA-F]{6})'/)?.[1]
 if (!fundo) {
   console.error('icones: não achei theme_color em web/vite.config.ts.')
   process.exit(1)
 }
 
-const arquivoDoSimbolo = join(raiz, 'public', 'marca', 'simbolo.svg')
+const arquivoDoSimbolo = join(raiz, 'public', 'marca', 'simbolo-pequeno.svg')
 if (!existsSync(arquivoDoSimbolo)) {
-  console.error('icones: não achei web/public/marca/simbolo.svg. Os ícones atuais não foram alterados.')
+  console.error('icones: não achei web/public/marca/simbolo-pequeno.svg. Os ícones atuais não foram alterados.')
   process.exit(1)
 }
-const desenho = readFileSync(arquivoDoSimbolo, 'utf8').match(/<svg[^>]*>([\s\S]*)<\/svg>/)?.[1]
-if (!desenho?.includes('<path')) {
-  console.error('icones: web/public/marca/simbolo.svg não tem um <path d="...">. Os ícones atuais não foram alterados.')
+const fonteDoSimbolo = readFileSync(arquivoDoSimbolo, 'utf8')
+const desenho = fonteDoSimbolo.match(/<svg[^>]*>([\s\S]*)<\/svg>/)?.[1]
+const caixa = fonteDoSimbolo.match(/viewBox=["']([\d. -]+)["']/)?.[1].split(/\s+/).map(Number)
+if (!desenho?.includes('<path') || !caixa || caixa.length !== 4 || caixa[2] !== caixa[3]) {
+  console.error('icones: web/public/marca/simbolo-pequeno.svg não tem SVG quadrado com <path>. Os ícones atuais não foram alterados.')
   process.exit(1)
 }
+const [x, y, lado] = caixa
 
 const ICONES = [
   ['icon-192.png', 192, 'any'],
@@ -32,8 +35,9 @@ const ICONES = [
 const ESCALA = { any: 0.72, apple: 0.72, maskable: 0.68 }
 
 function svg(tamanho, modo) {
-  const u = tamanho / 64
-  const simbolo = `<g transform="translate(${32 * u} ${32 * u}) scale(${u * ESCALA[modo]}) translate(-32 -32)">${desenho.replaceAll('currentColor', '#ffffff')}</g>`
+  const u = tamanho / lado
+  const centro = lado / 2
+  const simbolo = `<g transform="translate(${tamanho / 2} ${tamanho / 2}) scale(${u * ESCALA[modo]}) translate(${-x - centro} ${-y - centro})">${desenho.replaceAll('currentColor', '#ffffff')}</g>`
   const margem = tamanho * 0.06
   const placa =
     modo === 'any'

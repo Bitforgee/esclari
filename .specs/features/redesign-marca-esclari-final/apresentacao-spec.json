@@ -1,0 +1,39 @@
+{
+  "brand": "Esclari",
+  "tagline": "Clareza com procedência",
+  "brief": "Helpdesk acadêmico multi-instituição que leva a dúvida do aluno a uma resposta baseada em fonte publicada ou a uma pessoa.",
+  "adjectives": ["claro", "confiável", "humano", "inteligente", "inesperado"],
+  "criteria": "Reconhecível a 16 px, próprio em uma cor, distante dos clichês de educação, atendimento e IA.",
+  "industry": "education",
+  "mockups": ["website", "app-icon", "badge", "business-card", "social", "favicon-tab"],
+  "nav": ["Atendimento", "Conhecimento", "Indicadores"],
+  "brand_color": "#C83A23",
+  "tile_color": "#15133A",
+  "greyscale": false,
+  "final": true,
+  "designer": "Esclari",
+  "round": 2,
+  "concepts": [
+    {
+      "name": "Fio de procedência",
+      "symbol": "kit/svg/simbolo.svg",
+      "lockup": "kit/svg/logo-horizontal.svg",
+      "stacked": "kit/svg/logo-vertical.svg",
+      "symbol_on_tile": "kit/svg/simbolo-pequeno.svg",
+      "lockup_on_dark": "kit/svg/logo-horizontal-escuro.svg",
+      "stacked_on_dark": "kit/svg/logo-horizontal-escuro.svg",
+      "idea": "Um fio contínuo parte da origem, percorre a resposta e permanece aberto para uma pessoa.",
+      "rationale": [
+        "A espiral funciona em 16 px e em uma cor",
+        "A abertura representa passagem humana sem desenhar um chatbot",
+        "A palavra-marca repete o peso e os terminais do símbolo"
+      ]
+    }
+  ],
+  "recommendation": "Fio de procedência — a direção escolhida, refinada e pronta para aplicação.",
+  "next_steps": [
+    "Busca nominativa e figurativa no INPI",
+    "Prova física antes de indicar Pantone",
+    "Usar a identidade da instituição dentro do ambiente dela"
+  ]
+}

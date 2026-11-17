@@ -2,13 +2,21 @@ import { expect, test } from '@playwright/test'
 
 const arquivos: [string, string][] = [
   ['/marca/simbolo.svg', 'image/svg+xml'],
+  ['/marca/simbolo-pequeno.svg', 'image/svg+xml'],
+  ['/marca/palavra-marca.svg', 'image/svg+xml'],
   ['/marca/logo-horizontal.svg', 'image/svg+xml'],
   ['/marca/logo-horizontal-escuro.svg', 'image/svg+xml'],
+  ['/marca/logo-vertical.svg', 'image/svg+xml'],
+  ['/marca/logo-preto.svg', 'image/svg+xml'],
+  ['/marca/logo-branco.svg', 'image/svg+xml'],
   ['/marca/favicon.svg', 'image/svg+xml'],
   ['/icons/apple-touch-icon.png', 'image/png'],
+  ['/icons/icon-192.png', 'image/png'],
+  ['/icons/icon-512.png', 'image/png'],
+  ['/icons/icon-maskable-512.png', 'image/png'],
 ]
 
-test('arquivos da marca respondem 200', async ({ request }) => {
+test('arquivos da marca final respondem 200', async ({ request }) => {
   for (const [caminho, tipo] of arquivos) {
     const resposta = await request.get(caminho)
     expect(resposta.status(), caminho).toBe(200)

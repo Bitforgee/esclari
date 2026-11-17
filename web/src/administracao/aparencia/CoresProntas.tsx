@@ -2,7 +2,7 @@ import { useRef, type KeyboardEvent } from 'react'
 import { CorValida } from '../../aparencia'
 
 const Prontas: [string, string][] = [
-  ['Azul Esclari', '224fa7'],
+  ['Azul', '224fa7'],
   ['Verde', '166534'],
   ['Vinho', '8a1538'],
   ['Roxo', '6b21a8'],

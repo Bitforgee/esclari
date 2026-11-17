@@ -21,7 +21,7 @@ const dimensoesDoPng = (arquivo: string) => {
   const b = readFileSync(arquivo)
   return [b.readUInt32BE(16), b.readUInt32BE(20)]
 }
-const Moldura = [34, 79, 167, 255]
+const Moldura = [200, 58, 35, 255]
 function pixelsDoPng(arquivo: string) {
   const b = readFileSync(arquivo)
   const [largura, altura] = [b.readUInt32BE(16), b.readUInt32BE(20)]
