@@ -4,7 +4,7 @@ Profile: ui
 Plan: `.specs/features/interface-marca-esclari/plan.md`
 Base: `49cba64`
 
-21 checks em 3 slices · 3 portas de mão única · 0 perguntas abertas.
+24 checks em 4 slices · 3 portas de mão única · 0 perguntas abertas.
 
 Plano aprovado pelo dono em 17/11/2026 ("aprovo o plano"), com as duas recomendações: neutros quentes para todas as instituições e Origem fora do item ativo da barra lateral.
 
@@ -121,7 +121,7 @@ Aprovadas pelo dono em 17/11/2026 ("siga as recomendações"), depois da rodada 
 | cores prontas (8) | Azul · Verde · Vinho · Roxo · Laranja · Grafite · Petróleo · Marrom: C8, table-driven sobre 8 × 11 × 3 = 264 | - |
 | lugares do fundo do app (8) | `index.html` claro C13 · `index.html` escuro C13 · `corDaBarra.json` C13 · troca de tema C14 · `vite.config.ts` theme_color C15 · `vite.config.ts` background_color C15 · `ManifestoInstituicao.FundoDoApp` C16 · margem dos ícones `any` C17 | - |
 | ícones do PWA (4) | `icon-192` C17 · `icon-512` C17 · `icon-maskable-512` C17 · `apple-touch-icon` C17 | - |
-| ação reconhecível sem cor própria (3) | regra de cor de ação C22 · botão Entrar por tema C23 · links sublinhados C24 |
+| ação reconhecível sem cor própria (3) | regra de cor de ação C22 · botão Entrar por tema C23 · links sublinhados C24 | - |
 | invariantes (4) | tipografia C10 · raios C10 · gráficos C10 · preset Azul C12 | - |
 | telas capturadas (28) | C18, table-driven sobre os 28 arquivos | - |
 | gates do AC 13 (6) | build web C21 · build .NET C21 · testes .NET tocados C16 · Vitest C21 · crapper C21 · dryer C21 | - |
