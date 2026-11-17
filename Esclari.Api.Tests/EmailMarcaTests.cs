@@ -79,7 +79,8 @@ public class EmailMarcaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 
         var (semMarca, _) = await InstituicaoComMarca(comLogo: false, cor: null);
         var simples = (await PrimeiroAcessoTests.EmailNoMailpit(await Enfileirar(semMarca)))!.Value.GetProperty("HTML").GetString()!;
-        Assert.Contains("background-color:#2438d6", simples);
+        Assert.Contains("background-color:#C83A23", simples);
+        Assert.Contains("color:#ffffff", simples);
         Assert.DoesNotContain("cid:", simples);
     }
 
