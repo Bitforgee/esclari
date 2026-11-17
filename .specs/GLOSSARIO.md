@@ -82,6 +82,12 @@ uma vez no código, num grupo de constantes de `Esclari.Api/Dados/Entidades.cs`;
 | `Aparência` | `instituicao.nome_curto`, `cor`, `login_*`, `assistente_*`, `contato_*` | o que a instituição personaliza: cor (contraste 4,5:1 com o branco), textos do login, nome e perguntas do assistente, contato do atendimento e as imagens; todo campo é opcional e nulo é o padrão do Esclari; vive em `Esclari.Api/Instituicoes/` |
 | `ImagemInstituicao` | `Armazenamento:*` | uma imagem da instituição por `tipo` (`logo`, `icone`, `login`, `assistente`), no máximo uma por tipo; trocar sobe a `versao` e grava objeto novo, remover só apaga a linha e o objeto fica no bucket |
 
+## Base de conhecimento (`Artigo`)
+
+| Termo | Coluna | Significado |
+| --- | --- | --- |
+| origem do artigo | `artigo.origem_chamado_id` | o chamado cuja resposta virou o rascunho do artigo; no máximo um artigo por chamado, só leitura depois de criado e nula nos artigos criados pelo administrador; a lista de artigos mostra "Origem: ESC-NNNNNN" (AD-070) |
+
 ## Papéis (`Papeis`, coluna `usuario_papel.papel`)
 
 | Valor gravado | Grupo | Significado |
