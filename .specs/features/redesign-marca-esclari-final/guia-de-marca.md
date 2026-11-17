@@ -75,7 +75,7 @@ A marca da instituição vem primeiro quando o material é dirigido aos alunos d
 
 ## Tipografia
 
-A palavra-marca parte da estrutura da Public Sans 650, sob licença OFL-1.1, mas foi redesenhada e convertida em contornos. O `e`, o `a`, o `r` e o `i` repetem a abertura e os terminais do Fio. O pingo do `i` é monocromático e o vão entre `r` e `i` permanece aberto em 24 px.
+A palavra-marca usa os contornos Sora SemiBold, sob licença OFL-1.1, com as mesmas proporções mostradas na direção C aprovada. O desenho não depende de fonte instalada. O único ajuste óptico é o afastamento de 2 unidades entre `r` e `i` antes da escala; o pingo permanece monocromático.
 
 No produto, Public Sans continua no texto e Source Serif 4 nos títulos definidos pela AD-034. Não use a palavra-marca como fonte de títulos.
 

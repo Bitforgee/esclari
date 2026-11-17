@@ -18,10 +18,10 @@ Proof: `npm --prefix web test -- src/test/logo.test.ts -t "simbolo final e um co
 **C2** - `simbolo-pequeno.svg` tem `viewBox="0 0 256 256"`, exatamente um `<path fill="currentColor">`, nenhum elemento proibido de C1, área preenchida maior que o master, caixa horizontal e vertical menor que a do master e nenhum segmento ou vão menor que 8 unidades (AC 2, door 1)
 Proof: `npm --prefix web test -- src/test/logo.test.ts -t "corte pequeno reforca peso e encurta pontas"`
 
-**C3** - `palavra-marca.svg` contém sete letras minúsculas em contornos, `e`, `a`, `r` e `i` com terminais derivados da abertura arredondada do Fio, pingo monocromático e um vão de pelo menos 1 pixel entre `r` e `i` quando renderizada a 24 px; não contém `<text>`, `font-family`, `<image>`, URL ou dependência externa (AC 3, door 2)
+**C3** - `palavra-marca.svg` reproduz em contornos a palavra “esclari” em Sora SemiBold e as proporções da direção C de `../redesign-marca-esclari/conceitos.png`; os sete glifos mantêm os mesmos desenhos, o `i` é afastado 2 unidades do `r` antes da escala, o pingo é monocromático e sobra ao menos 1 pixel entre `r` e `i` a 24 px; não há `<text>`, `font-family`, `<image>`, URL ou dependência externa (AC 3, door 5)
 Proof: `npm --prefix web test -- src/test/logo.test.ts -t "palavra-marca e propria e separa r de i"`
 
-**C4** - Os oito SVGs de marca obtêm pelo menos 95/100 no `svg_audit.py`, sem `FAIL` nem `WARN`, e os PNGs de inspeção mostram símbolo e palavra legíveis em 16, 24, 32, 64 e 256 px, preto sobre branco e branco sobre preto (AC 4)
+**C4** - Os oito SVGs de marca obtêm pelo menos 95/100 no `svg_audit.py`, sem `FAIL` nem `WARN`; o símbolo contém curvas Bézier vetoriais e no máximo 40 âncoras, sem sequência poligonal de `L`; os PNGs de inspeção mostram símbolo e palavra legíveis em 16, 24, 32, 64 e 256 px, preto sobre branco e branco sobre preto (AC 4, door 5)
 Proof: `python .specs/features/redesign-marca-esclari-final/provar_marca_final.py -k test_C04_auditoria_e_escala`
 
 ### S2 - Paleta e variantes · ~8 arquivos · ~50 KB · ~15k
@@ -29,7 +29,7 @@ Proof: `python .specs/features/redesign-marca-esclari-final/provar_marca_final.p
 **C5** - Os SVGs usam somente Origem `#C83A23`, Origem clara `#F16A4B`, Tinta `#15133A`, Papel `#F7F5EE`, preto, branco e `currentColor`, nos papéis da door 3 e sem gradient (AC 5, door 3)
 Proof: `npm --prefix web test -- src/test/logo.test.ts -t "marca usa somente a paleta e os papeis aprovados"`
 
-**C6** - `logo-horizontal.svg`, `logo-horizontal-escuro.svg` e `logo-vertical.svg` contêm o Fio e a palavra-marca, têm distância entre ambos igual à largura expandida do Fio com tolerância de 2 unidades e alinham o símbolo opticamente ao corpo da palavra (AC 6)
+**C6** - `logo-horizontal.svg`, `logo-horizontal-escuro.svg` e `logo-vertical.svg` contêm o Fio e a palavra-marca Sora da direção C, têm distância entre ambos igual à largura expandida do Fio com tolerância de 2 unidades e alinham o símbolo opticamente ao corpo da palavra (AC 6, door 5)
 Proof: `npm --prefix web test -- src/test/logo.test.ts -t "lockups compartilham simbolo palavra e espacamento"`
 
 **C7** - `logo-preto.svg` usa somente `#000000`, `logo-branco.svg` usa somente `#FFFFFF`, e ambos contêm exatamente os mesmos contornos do lockup horizontal, sem perder símbolo ou letra (AC 7)
@@ -148,3 +148,7 @@ Cost: 10 provas web focadas, 2 filtros .NET, 4 provas do kit, 3 E2E e os gates f
 - Base: `108f95e19455f5a7ac0cc92d94bc969aa8c7b8dc`
 - **Settled mid-build:** as provas C20-C22 usam o script existente `npm --prefix web run e2e -- ...`; `npm --prefix web exec playwright ...` executa fora de `web/`, não lê `playwright.config.ts` e deixa `page.goto('/')` sem `baseURL`. O valor e a asserção dos checks não mudaram. No C23, `crapper` lê a cobertura já produzida e limita a análise a `web/src`; sem `--source-root src`, ele inclui `e2e/`, fora do gate definido no `AGENTS.md`. O primeiro contorno da palavra partiu diretamente dos glifos Public Sans e recebeu 424 âncoras; para cumprir C4, as sete letras foram redesenhadas na mesma altura-x e peso, expandidas e reduzidas a 159 âncoras, com auditoria 99/100.
 - **Blocked:** C12, C13 e a parte .NET do C23 aguardam Postgres, Mailpit e MinIO. `docker compose up` falhou porque o Docker não está instalado/rodando; o filtro encontrou 11 testes, todos falharam no setup antes de executar asserções.
+
+## Amendment 1 — inspeção do dono em 17/11
+
+O dono comparou a primeira aplicação com `../redesign-marca-esclari/conceitos.png` e pediu a tipografia da proposta e curvas sem tremor. A door 5 e a Emenda 1 do plano supersedem somente a forma da palavra e o método de expansão. C3, C4 e C6 acima já trazem o valor corrigido; os demais checks e todas as provas mantêm número e força. A correção rejeita a palavra monoline e qualquer contorno rasterizado.

@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest'
 const raiz = process.cwd()
 const marca = (nome: string) => readFileSync(resolve(raiz, 'public/marca', nome), 'utf8')
 const indexHtml = readFileSync(resolve(raiz, 'index.html'), 'utf8')
+const conceito = readFileSync(resolve(raiz, '../.specs/features/redesign-marca-esclari/conceitos/fio-procedencia-lockup.svg'), 'utf8')
+const palavraConceito = conceito.match(/<path[^>]*d="([^"]+)" transform="translate\(14 0\) scale\(4\)"\/>/)![1]
 const Origem = '#' + 'C83A23'
 const OrigemClara = '#' + 'F16A4B'
 const Tinta = '#' + '15133A'
@@ -106,20 +108,25 @@ describe('marca final em SVG', () => {
   it('palavra-marca e propria e separa r de i', () => {
     const svg = marca('palavra-marca.svg')
     for (const proibido of proibidos) expect(svg.toLowerCase()).not.toContain(proibido.toLowerCase())
-    expect([...svg.matchAll(/id=["']letra-([esclari])["']/g)].map((m) => m[1])).toEqual(['e', 's', 'c', 'l', 'a', 'r', 'i'])
-    for (const letra of ['e', 'a', 'r', 'i']) expect(svg).toMatch(new RegExp(`id=["']letra-${letra}["'][^>]*data-custom=["']fio["']`))
-    expect(svg).toMatch(/id=["']pingo-i["'][^>]*fill=["']currentColor["']/)
+    const letras = [...svg.matchAll(/id=["']letra-([esclari])["'][^>]*d=["']([^"']+)["']/g)]
+    expect(letras.map((m) => m[1])).toEqual(['e', 's', 'c', 'l', 'a', 'r', 'i'])
+    expect(letras.map((m) => m[2]).join('')).toBe(palavraConceito)
+    expect(svg).toMatch(/id=["']letra-i["'][^>]*transform=["']translate\(2 0\)["']/)
+    expect(svg).toMatch(/id=["']pingo-i["'][^>]*transform=["']translate\(2 0\)["'][^>]*fill=["']currentColor["']/)
+    expect(svg).toContain('data-wordmark="sora-conceito-c"')
     const roteiro = `
       import { chromium } from '@playwright/test'
       const svg = process.argv[1]
       const navegador = await chromium.launch()
-      const pagina = await navegador.newPage()
+      const pagina = await navegador.newPage({ viewport: { width: 800, height: 256 } })
       const gap = await pagina.evaluate((svg) => {
         document.body.innerHTML = svg
-        const r = document.querySelector('#letra-r').getBBox()
-        const i = document.querySelector('#letra-i').getBBox()
-        const vb = document.querySelector('svg').viewBox.baseVal
-        return (i.x - r.x - r.width) * 24 / vb.height
+        const raiz = document.querySelector('svg')
+        raiz.style.height = '24px'
+        raiz.style.width = 'auto'
+        const r = document.querySelector('#letra-r').getBoundingClientRect()
+        const i = document.querySelector('#letra-i').getBoundingClientRect()
+        return i.left - r.right
       }, svg)
       await navegador.close()
       console.log(JSON.stringify(gap))
@@ -142,6 +149,7 @@ describe('marca final em SVG', () => {
       const svg = marca(arquivo)
       expect(svg, arquivo).toContain('data-componente="simbolo"')
       expect(svg, arquivo).toContain('data-componente="palavra-marca"')
+      expect(svg, arquivo).toContain('data-wordmark="sora-conceito-c"')
       expect(svg, arquivo).toContain('data-gap="28"')
       expect(svg, arquivo).toContain('data-alinhamento="optico"')
     }

@@ -46,6 +46,11 @@ class MarcaFinalTests(unittest.TestCase):
             nota = re.search(r"production-readiness score: (\d+)/100", saida)
             self.assertIsNotNone(nota, f"{nome}\n{saida}")
             self.assertGreaterEqual(int(nota.group(1)), 95, f"{nome}\n{saida}")
+        simbolo = (PUBLICA / "simbolo.svg").read_text(encoding="utf-8")
+        d = re.search(r'<path[^>]*d="([^"]+)"', simbolo).group(1)
+        self.assertGreaterEqual(d.lower().count("c"), 6)
+        self.assertNotIn("L", d)
+        self.assertLessEqual(len(re.findall(r"[MmLlHhVvCcSsQqTtAaZz]", d)), 40)
         folha = (FEATURE / "teste-tamanhos.svg").read_text(encoding="utf-8")
         self.assertTrue((FEATURE / "teste-tamanhos.png").is_file())
         for tamanho in ["16px", "24px", "32px", "64px", "256px"]:

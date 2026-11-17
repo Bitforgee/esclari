@@ -62,6 +62,12 @@ A [Zendesk](https://www.zendesk.com.br/company/brand-guidelines/) separa símbol
 - prancha com navegador, PWA, e-mail, slide, co-branding institucional e assinatura de suporte;
 - guia de uma página com medidas, cores, fundos, co-branding e usos proibidos.
 
+## Inspeção do dono depois da primeira aplicação
+
+Ao comparar a aplicação final com `../redesign-marca-esclari/conceitos.png`, o dono aprovou o símbolo, mas apontou dois desvios: a palavra “Esclari” ficou materialmente diferente da proposta e o contorno do Fio parecia tremido. A causa foi confirmada no build: a palavra havia sido redesenhada como monoline, e o traço havia sido expandido por rasterização e retraçado por `potrace`.
+
+Correção escolhida: restaurar os contornos Sora SemiBold usados na direção C, corrigindo apenas o vão entre `r` e `i`, e expandir o centro Bézier por offset vetorial com `paperjs-offset`, que preserva curvas e não passa por pixels. As ferramentas são apenas de construção em `.git/testagent`; nenhuma dependência entra no produto.
+
 ## Limites
 
 O kit não altera o logo ou a cor enviados por uma instituição. Não redesenha telas. Não registra a marca. Busca nominativa e figurativa no INPI e busca reversa continuam necessárias antes do lançamento público.
