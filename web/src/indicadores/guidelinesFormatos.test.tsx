@@ -8,7 +8,7 @@ const Anterior = 'GET /api/indicadores?de=2026-10-27&ate=2026-10-31'
 const NB = '\u00a0'
 const rotulos = [
   'Indicador principal', 'Alunos ativos', 'Conversas', 'Autoatendimento', 'Escalonamento', 'Abandono', 'Perguntas sem artigo',
-  'Chamados resolvidos', 'Tempo até a 1ª resposta', 'Tempo de resolução', 'Roteamento correto', 'Reabertura',
+  'Chamados resolvidos', 'Primeira resposta', 'Resolução', 'Tempo até a 1ª resposta', 'Tempo de resolução', 'Roteamento correto', 'Reabertura',
 ]
 
 const dados = (extra: object) => ({

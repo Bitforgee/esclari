@@ -21,5 +21,6 @@ export function prepararIndicadores(detalhe: object = {}, principal: object = {}
 export async function secaoDe(nome: string) {
   const regiao = await screen.findByRole('region', { name: nome })
   await vi.waitFor(() => expect(within(regiao).queryByText('Carregando…')).not.toBeInTheDocument())
+  await vi.waitFor(() => expect(regiao.querySelector('[data-esqueleto]')).toBeNull())
   return within(regiao)
 }

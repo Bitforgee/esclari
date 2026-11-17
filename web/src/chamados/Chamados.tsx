@@ -6,19 +6,20 @@ import { Estados } from '../chamado'
 import { ErroDe } from '../ErroDe'
 import { Badge } from '../ui/badge'
 import { TableCell, TableRow } from '../ui/table'
-import { Inbox, MessageSquare, SearchX } from 'lucide-react'
+import { AlarmClock, Inbox, MessageSquare, SearchX } from 'lucide-react'
 import { BotaoAcao } from '../acao'
 import { plural } from '../formatos'
 import { BotoesDaBusca, CampoDeBusca, consultaDaApi, Etiquetas, etiquetasDe, lerFiltros, PainelDeFiltros, paraUrl, rotuloDaOrdem, semAs, SemFiltros, type Escopo, type Filtros, type Opcoes } from './Busca'
 import { Button } from '../ui/button'
 import { abertoHa } from '../datas'
 import { Literal } from '../Literal'
+import { Marca } from '../Marca'
 import { useSessao } from '../sessao'
 import { CelulaLargo, Detalhe, Principal, Tabela, useEstreito, useMostrarMais, type Vazio } from '../Tabela'
 import { ChaveDaBusca, useFilaAberta } from '../tempo-real'
 
 type ItemMeu = { numero: string; titulo: string; estado: string; criadoEm: string }
-type ItemFila = ItemMeu & { categoria: string; responsavel: string | null; setor?: string }
+type ItemFila = ItemMeu & { categoria: string; responsavel: string | null; setor?: string; atraso?: string | null }
 
 const CoresDoEstado: Record<string, string> = {
   ABERTO: 'bg-accent text-foreground',
@@ -28,6 +29,20 @@ const CoresDoEstado: Record<string, string> = {
   FECHADO: 'bg-success/15 text-foreground',
 }
 export const SeloDoChamado = ({ estado }: { estado: string }) => <Badge className={CoresDoEstado[estado]}>{Estados[estado]}</Badge>
+
+const RotuloDoAtraso: Record<string, string> = { PRIMEIRA_RESPOSTA: 'Atrasado: 1ª resposta', RESOLUCAO: 'Atrasado: resolução' }
+
+export function SeloDoAtraso({ atraso, className }: { atraso?: string | null; className?: string }) {
+  if (!atraso) return null
+  return (
+    <div className={className} data-atraso={atraso}>
+      <Badge variant="outline">
+        <AlarmClock aria-hidden="true" />
+        {RotuloDoAtraso[atraso] ?? atraso}
+      </Badge>
+    </div>
+  )
+}
 
 export const ProximoPasso: Record<string, string> = {
   ABERTO: 'A equipe vai responder',
@@ -53,6 +68,7 @@ function LinhaCompacta({ c, caminho, meta }: { c: ItemMeu; caminho: string; meta
       </p>
       <div className="flex items-start gap-2 text-xs text-muted-foreground" data-linha="meta">
         <SeloDoChamado estado={c.estado} />
+        <SeloDoAtraso atraso={(c as ItemFila).atraso} />
         <span className="min-w-0 flex-1 leading-[22px]">{[meta.aberto, meta.categoria, meta.responsavel].filter(Boolean).join(' · ')}</span>
       </div>
       {meta.proximo && (
@@ -85,6 +101,7 @@ function LinhaDaTabela<T extends ItemMeu>({ c, caminho, aberto, largas, fila }: 
       ))}
       <TableCell data-celula="selo" className="whitespace-normal">
         <SeloDoChamado estado={c.estado} />
+        <SeloDoAtraso atraso={(c as ItemMeu & Partial<ItemFila>).atraso} className="mt-1" />
         {!fila && (
           <div className="mt-1 flex flex-col text-xs text-muted-foreground">
             <span>{aberto}</span>
@@ -177,6 +194,7 @@ function ListaBuscada({ escopo, oque, vazio, largas }: Lista) {
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-2 md:flex-row md:items-center" data-barra-da-busca="">
         <CampoDeBusca q={filtros.q} buscar={(q) => mudar({ ...filtros, q }, true)} />
+        <Marca id="filtro-atraso" rotulo="Só atrasados" marcado={filtros.atraso === 'true'} mudar={(v) => mudar({ ...filtros, atraso: v ? 'true' : '' })} />
         <BotoesDaBusca ativos={etiquetas.filter((e) => e.rotulo !== 'Busca').length} abrir={() => setPainel(true)} exportar={`/api/chamados/exportar?${consulta}`} />
       </div>
       <Etiquetas etiquetas={etiquetas} tirar={(e) => mudar(semAs(filtros, e.chaves))} limpar={limpar} />

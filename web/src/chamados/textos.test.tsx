@@ -193,6 +193,6 @@ describe('textos', () => {
       item(1, 'ABERTO', { categoria: 'Boleto', responsavel: null, dias: 1 }),
       item(2, 'EM_ATENDIMENTO', { categoria: 'Matrícula', responsavel: 'Carla', dias: 3 }),
     ]
-    await lista('/univag/fila', 'fila', ['Fila', 'Fila em dia', 'Nenhum chamado na fila dos seus setores.', 'Aberto', 'Em atendimento', 'Número', 'Título', 'Categoria', 'Responsável', 'Aberto', 'Estado', 'Mais antigos primeiro', 'Filtros', 'Exportar CSV', '0 chamados', '2 chamados', 'Boleto · sem responsável · aberto há 3 dias', 'Matrícula · Carla · aberto há 3 dias', 'sem responsável', 'aberto há 3 dias', 'há 3 dias', 'Carla'], itens, ['ESC-000001', 'ESC-000002', 'pedido', '1', '2', 'Boleto', 'Matrícula'])
+    await lista('/univag/fila', 'fila', ['Fila', 'Fila em dia', 'Nenhum chamado na fila dos seus setores.', 'Aberto', 'Em atendimento', 'Número', 'Título', 'Categoria', 'Responsável', 'Aberto', 'Estado', 'Mais antigos primeiro', 'Só atrasados', 'Filtros', 'Exportar CSV', '0 chamados', '2 chamados', 'Boleto · sem responsável · aberto há 3 dias', 'Matrícula · Carla · aberto há 3 dias', 'sem responsável', 'aberto há 3 dias', 'há 3 dias', 'Carla'], itens, ['ESC-000001', 'ESC-000002', 'pedido', '1', '2', 'Boleto', 'Matrícula'])
   })
 })

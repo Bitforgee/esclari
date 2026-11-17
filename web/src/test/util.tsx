@@ -16,6 +16,7 @@ export const detalheVazio = {
   chamadosPorEstado: { ABERTO: 0, EM_ATENDIMENTO: 0, AGUARDANDO_ALUNO: 0, RESOLVIDO: 0 },
   maisAntigoDias: null,
   tempos: { primeiraRespostaMedianaHoras: null, primeiraRespostaP90Horas: null, resolucaoMedianaHoras: null, resolucaoP90Horas: null },
+  prazos: { primeiraRespostaMetaHoras: 24, resolucaoMetaHoras: 120, primeiraRespostaNoPrazo: null, resolucaoNoPrazo: null, emAtrasoAgora: 0, maisAntigoEmAtrasoDias: null },
 }
 
 export const validadeVazia = { artigos: { vigentes: 0, venceEm30Dias: 0, vencidos: 0 }, documentos: { vigentes: 0, venceEm30Dias: 0, vencidos: 0 } }

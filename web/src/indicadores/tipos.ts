@@ -27,6 +27,14 @@ export type Tempos = {
   resolucaoMedianaHoras: number | null
   resolucaoP90Horas: number | null
 }
+export type Prazos = {
+  primeiraRespostaMetaHoras: number
+  resolucaoMetaHoras: number
+  primeiraRespostaNoPrazo: number | null
+  resolucaoNoPrazo: number | null
+  emAtrasoAgora: number
+  maisAntigoEmAtrasoDias: number | null
+}
 export type Detalhe = {
   granularidade: 'dia' | 'semana'
   pontos: Ponto[]
@@ -34,4 +42,5 @@ export type Detalhe = {
   chamadosPorEstado: Record<string, number>
   maisAntigoDias: number | null
   tempos: Tempos
+  prazos: Prazos
 }

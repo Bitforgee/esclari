@@ -33,6 +33,7 @@ export type Chamado = {
   setores?: { id: number; nome: string }[] | null
   categorias?: { id: number; nome: string }[] | null
   fluxo?: DoFluxo | null
+  prazoPrimeiraRespostaEm?: string | null
 }
 
 export const Estados: Record<string, string> = {

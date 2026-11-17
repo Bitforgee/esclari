@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { BaseDeConhecimento } from './BaseDeConhecimento'
 import { comDesfecho, DesfechosDoAssistente } from './Desfechos'
 import { FilaPorEstado, TemposDeAtendimento } from './Fila'
+import { EsqueletoDosPrazos, PrazosDaEquipe } from './Prazos'
 import { ChamadosPorPeriodo, ConversasPorPeriodo } from './Series'
 import type { Detalhe, Indicadores, Linha } from './tipos'
 import { DeAnterior, Medida, Taxas, variacaoDaTaxa } from './Variacao'
@@ -89,13 +90,13 @@ function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   )
 }
 
-function DoDetalhe({ consulta, children }: { consulta: UseQueryResult<Detalhe>; children: (d: Detalhe) => ReactNode }) {
+function DoDetalhe({ consulta, esqueleto, children }: { consulta: UseQueryResult<Detalhe>; esqueleto?: ReactNode; children: (d: Detalhe) => ReactNode }) {
   if (consulta.error) return <ErroDe erro={consulta.error} oque="os gráficos" tentar={() => void consulta.refetch()} />
-  if (!consulta.data) return <div className="min-h-40 text-sm text-muted-foreground">Carregando…</div>
+  if (!consulta.data) return esqueleto ?? <div className="min-h-40 text-sm text-muted-foreground">Carregando…</div>
   return children(consulta.data)
 }
 
-type Contexto = { dados: Indicadores; anterior?: Indicadores; detalhe: UseQueryResult<Detalhe> }
+type Contexto = { dados: Indicadores; anterior?: Indicadores; detalhe: UseQueryResult<Detalhe>; detalheAnterior?: Detalhe }
 
 const Notas: Record<string, string> = {
   Autoatendimento: 'Resolvidas pelo assistente, sobre as conversas com desfecho.',
@@ -162,9 +163,10 @@ function Painel({ c }: { c: Contexto }) {
         </DoDetalhe>
       </Secao>
       <Secao titulo="A equipe responde a tempo?">
-        <DoDetalhe consulta={c.detalhe}>
+        <DoDetalhe consulta={c.detalhe} esqueleto={<EsqueletoDosPrazos />}>
           {(d) => (
             <>
+              <PrazosDaEquipe p={d.prazos} anterior={c.detalheAnterior?.prazos} />
               <TemposDeAtendimento tempos={d.tempos} />
               <FilaPorEstado detalhe={d} />
             </>
@@ -198,11 +200,11 @@ export function periodoAnterior(de: string, ate: string) {
   return dias < 1 ? null : { de: antes(dias), ate: antes(1) }
 }
 
-function useAnterior(consulta: { de: string; ate: string }, provisorio: boolean) {
+function useAnterior<T>(consulta: { de: string; ate: string }, provisorio: boolean, rota: string) {
   const antes = periodoAnterior(consulta.de, consulta.ate)
   const { data } = useQuery({
-    queryKey: ['indicadores-anterior', consulta],
-    queryFn: () => api<Indicadores>(`/api/indicadores?de=${antes!.de}&ate=${antes!.ate}`),
+    queryKey: [rota, 'anterior', consulta],
+    queryFn: () => api<T>(`/api/${rota}?de=${antes!.de}&ate=${antes!.ate}`),
     enabled: !!antes,
   })
   return provisorio ? undefined : data
@@ -233,7 +235,8 @@ export function Indicadores() {
     queryFn: () => api<Detalhe>(`/api/indicadores/detalhe?de=${consulta.de}&ate=${consulta.ate}`),
     placeholderData: keepPreviousData,
   })
-  const anterior = useAnterior(consulta, isPlaceholderData)
+  const anterior = useAnterior<Indicadores>(consulta, isPlaceholderData, 'indicadores')
+  const detalheAnterior = useAnterior<Detalhe>(consulta, isPlaceholderData, 'indicadores/detalhe')
 
   return (
     <div className="flex flex-col gap-6">
@@ -259,7 +262,7 @@ export function Indicadores() {
       </form>
       <ErroDe erro={error} oque="os indicadores" tentar={() => void refetch()} />
       {dados?.semDados && <BlocoVazio Icone={ChartColumn} frase="Sem atendimentos neste período." />}
-      {dados && !dados.semDados && <Painel c={{ dados, anterior: anterior?.semDados ? undefined : anterior, detalhe }} />}
+      {dados && !dados.semDados && <Painel c={{ dados, anterior: anterior?.semDados ? undefined : anterior, detalhe, detalheAnterior }} />}
       {me.papeis.includes('ADMINISTRADOR') && (
         <Secao titulo="A base de conhecimento está em dia?">
           <BaseDeConhecimento />

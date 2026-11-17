@@ -30,14 +30,16 @@ describe('fila e tempos', () => {
   it('tempos sem chamados mostram traço e nenhuma frase de p90', async () => {
     const s = await fila()
 
-    expect(s.getAllByText('—')).toHaveLength(2)
+    const tempos = within(s.getByText('Tempo até a 1ª resposta', { selector: 'dt' }).closest('dl')!)
+    expect(tempos.getAllByText('—')).toHaveLength(2)
     expect(s.queryByText(/9 em 10/)).not.toBeInTheDocument()
   })
 
   it('fila por estado', async () => {
     const s = await fila({ chamadosPorEstado: { ABERTO: 3, EM_ATENDIMENTO: 6, AGUARDANDO_ALUNO: 2, RESOLVIDO: 4 }, maisAntigoDias: 9 })
 
-    expect(s.getAllByRole('listitem').map((i) => i.textContent)).toEqual([
+    const barra = s.getByRole('img', { name: /^Barra empilhada/ })
+    expect(within(barra.parentElement!).getAllByRole('listitem').map((i) => i.textContent)).toEqual([
       'Aberto · 3 · 20\u00a0%',
       'Em atendimento · 6 · 40\u00a0%',
       'Aguardando aluno · 2 · 13,3\u00a0%',
@@ -45,8 +47,8 @@ describe('fila e tempos', () => {
     ])
     expect(s.getByText('Chamados abertos agora: 15')).toBeInTheDocument()
     expect(s.getByText('O mais antigo espera há 9 dias')).toBeInTheDocument()
-    expect(s.getByRole('img').getAttribute('aria-label')).toContain('Em atendimento: 6. Aguardando aluno: 2. Resolvido: 4. Total 15.')
-    await userEvent.click(s.getByRole('button', { name: /Ver como tabela/ }))
+    expect(barra.getAttribute('aria-label')).toContain('Em atendimento: 6. Aguardando aluno: 2. Resolvido: 4. Total 15.')
+    await userEvent.click(s.getByRole('button', { name: 'Ver como tabela: Chamados abertos por estado' }))
     expect(s.getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Item', 'Quantidade', 'Percentual'])
     expect(s.getAllByRole('row').slice(1).map((l) => within(l).getAllByRole('cell').map((c) => c.textContent))).toEqual([
       ['Aberto', '3', '20\u00a0%'],
@@ -69,6 +71,6 @@ describe('fila e tempos', () => {
     const s = await fila()
 
     expect(s.getByText('Nenhum chamado aberto agora.')).toBeInTheDocument()
-    expect(s.queryByRole('img')).not.toBeInTheDocument()
+    expect(s.queryByRole('img', { name: /^Barra empilhada/ })).not.toBeInTheDocument()
   })
 })

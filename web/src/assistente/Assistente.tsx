@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router'
 import { api, type Matricula } from '../api'
 import { Contato, temContato, urlDaImagem, useAparencia, type InstituicaoPublica } from '../aparencia'
 import { Estados, useChamado, type Anexo } from '../chamado'
+import { plural } from '../formatos'
 import { ProximoPasso } from '../chamados/Chamados'
 import { LinkDeAnexo } from '../LinkDeAnexo'
 import { Literal } from '../Literal'
@@ -24,7 +25,7 @@ import { AjudaDosAnexos, BotaoAnexar, Selos, useAnexos, type Anexos } from './An
 type Tipo = 'resposta' | 'pergunta' | 'sem_base' | 'transferir'
 type Mensagem = { autor: 'ALUNO' | 'ASSISTENTE'; texto: string; tipo?: Tipo; em: string; anexos?: Anexo[] }
 type Resposta = { tipo: Tipo; texto: string }
-type Transferencia = { numero: string; estado: string; setor: string }
+type Transferencia = { numero: string; estado: string; setor: string; prazoPrimeiraRespostaHoras?: number }
 type Confirmar = 'atendente' | 'encerrar'
 
 const AvisoExterno =
@@ -216,6 +217,11 @@ function BoasVindas({ ap, foto, perguntar, pendente }: { ap: InstituicaoPublica;
   )
 }
 
+function PrazoDaEquipe({ horas }: { horas?: number }) {
+  if (!horas) return null
+  return <p className="m-0 text-sm font-medium">{`A equipe responde em até ${plural(horas, 'hora', 'horas')}`}</p>
+}
+
 function Transferido({ transferido, fuso, contato }: { transferido: Transferencia; fuso: string; contato: InstituicaoPublica['contato'] }) {
   const { slug } = useParams()
   const { chamado } = useChamado(transferido.numero)
@@ -223,6 +229,7 @@ function Transferido({ transferido, fuso, contato }: { transferido: Transferenci
     <>
       <section className="my-2 flex flex-col gap-2 rounded-md border p-4">
         <h2 className="m-0 text-base font-semibold">Sua solicitação <Literal>{transferido.numero}</Literal> foi para {transferido.setor}</h2>
+        <PrazoDaEquipe horas={transferido.prazoPrimeiraRespostaHoras} />
         <p className="m-0 text-sm">A resposta chega em Solicitações e no seu e-mail.</p>
         {temContato(contato) && (
           <section className="flex flex-col gap-1">

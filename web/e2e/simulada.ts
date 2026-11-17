@@ -77,7 +77,7 @@ export async function simularApi(page: Page, papeis = ['ALUNO', 'ATENDENTE', 'AD
       return json(201, { conversaId: 1, resposta: { tipo: 'resposta', texto: 'O boleto do semestre fica no Portal do Aluno: https://portal.univag.edu.br/financeiro/boletos/segunda-via' } })
     if (caminho === '/api/chamados/busca')
       {
-      const fila = { numero: 'ESC-000123', titulo: longo, setor: 'Coordenação de Análise e Desenvolvimento de Sistemas', categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: 'Carla Regina de Souza', criadoEm: '2026-11-02T12:00:00Z', dias: 12 }
+      const fila = { numero: 'ESC-000123', titulo: longo, setor: 'Coordenação de Análise e Desenvolvimento de Sistemas', categoria: 'Financeiro > Boletos e mensalidades', estado: 'AGUARDANDO_ALUNO', responsavel: 'Carla Regina de Souza', criadoEm: '2026-11-02T12:00:00Z', dias: 12, atraso: null }
       const itens = mais([fila], { ...fila, numero: 'ESC-000124', titulo: TituloLongo })
       return json(200, { itens, total: itens.length, pagina: 1, porPagina: 50 })
     }
@@ -115,6 +115,7 @@ export async function simularApi(page: Page, papeis = ['ALUNO', 'ATENDENTE', 'AD
         chamadosPorEstado: { ABERTO: 41, EM_ATENDIMENTO: 180, AGUARDANDO_ALUNO: 70, RESOLVIDO: 30 },
         maisAntigoDias: 17,
         tempos: { primeiraRespostaMedianaHoras: 3.5, primeiraRespostaP90Horas: 28.25, resolucaoMedianaHoras: 40.5, resolucaoP90Horas: 190.75 },
+        prazos: { primeiraRespostaMetaHoras: 24, resolucaoMetaHoras: 120, primeiraRespostaNoPrazo: 0.8234, resolucaoNoPrazo: 0.7412, emAtrasoAgora: 3, maisAntigoEmAtrasoDias: 5 },
       })
     if (caminho === '/api/indicadores')
       return json(200, {

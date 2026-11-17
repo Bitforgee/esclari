@@ -83,6 +83,17 @@ describe('contraste dos gráficos', () => {
     }
   })
 
+  it('prazos nos 4 temas', () => {
+    const fonte = readFileSync('src/indicadores/Prazos.tsx', 'utf8')
+    const tokens = [...new Set([...fonte.matchAll(/var\((--[\w-]+)\)/g)].map((m) => m[1]))]
+    expect(tokens.sort()).toEqual(['--grafico-1', '--grafico-2'])
+    expect(cenarios).toHaveLength(4)
+    for (const { nome, tema: valor, marca } of cenarios) {
+      const fundo = ler(valor('--background'), marca)
+      for (const token of tokens) expect(contraste(ler(valor(token), marca), fundo), `${nome} ${token}`).toBeGreaterThanOrEqual(3)
+    }
+  })
+
   it('tons de cinza distintos', () => {
     for (const nome of ['claro', 'escuro'] as const) {
       const luz = ['--grafico-1', '--grafico-2', '--grafico-3', '--grafico-4'].map((t) => ler(tema(nome)(t), marcaPadrao)[0] * 100).sort((a, b) => a - b)

@@ -2,7 +2,7 @@ import { BookText, ChevronRight, FileText } from 'lucide-react'
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { Balao, Quebravel } from '../Balao'
 import { frase, type Chamado, type Evento, type Fonte, type MensagemChamado } from '../chamado'
-import { formatarData } from '../datas'
+import { diaEHora, formatarData } from '../datas'
 import { LinkDeAnexo } from '../LinkDeAnexo'
 import { Literal } from '../Literal'
 import { Links, separarLinks } from '../LinksDaResposta'
@@ -10,7 +10,13 @@ import { Marca } from '../Marca'
 import { Button } from '../ui/button'
 import { responsavel, SeloDoChamado } from './Chamados'
 
-export function Cabecalho({ c }: { c: Chamado }) {
+function PrevisaoDaResposta({ em, fuso }: { em?: string | null; fuso: string }) {
+  if (!em) return null
+  const { dia, hora } = diaEHora(em, fuso)
+  return <p className="m-0 text-sm" data-linha="previsao">{`Resposta prevista até ${dia} às ${hora}`}</p>
+}
+
+export function Cabecalho({ c, fuso }: { c: Chamado; fuso: string }) {
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -21,6 +27,7 @@ export function Cabecalho({ c }: { c: Chamado }) {
             {c.setor} · {c.categoria} · {responsavel(c.responsavel)}
           </span>
         </p>
+        <PrevisaoDaResposta em={c.prazoPrimeiraRespostaEm} fuso={fuso} />
       </div>
       {c.eventos && (
         <section className="flex flex-col gap-2 text-sm">

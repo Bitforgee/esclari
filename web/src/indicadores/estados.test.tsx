@@ -36,10 +36,13 @@ describe('estados da tela', () => {
     abrirCom(dados, () => new Promise(() => {}))
 
     await screen.findByRole('region', { name: 'Resumo' })
-    for (const titulo of ['O assistente está resolvendo?', 'Quanto chega e como evolui?', 'A equipe responde a tempo?']) {
+    for (const titulo of ['O assistente está resolvendo?', 'Quanto chega e como evolui?']) {
       const carregando = within(screen.getByRole('region', { name: titulo })).getByText('Carregando…')
       expect(carregando, titulo).toHaveClass('min-h-40')
     }
+    const prazos = screen.getByRole('region', { name: 'A equipe responde a tempo?' })
+    expect(prazos.querySelector('[data-esqueleto="prazos"]')).toBeInTheDocument()
+    expect(within(prazos).getByRole('status', { name: 'Carregando' })).toBeInTheDocument()
   })
 
   it('erro so no detalhe', async () => {

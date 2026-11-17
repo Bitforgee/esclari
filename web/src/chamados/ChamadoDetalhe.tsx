@@ -472,7 +472,7 @@ function Detalhe({ c, fuso, carregar, setChamado }: { c: Chamado; fuso: string; 
   return (
     <div className={gradeDoDetalhe(equipe, !!barra)}>
       <div className="flex min-w-0 flex-col gap-8">
-        <Cabecalho c={c} />
+        <Cabecalho c={c} fuso={fuso} />
         <Transcricao c={c} fuso={fuso} />
         <LinhaDoTempo mensagens={c.mensagens} eventos={c.eventos} fuso={fuso} />
         <AcoesDoAluno lugar={lugar} aqui="antes" erro={erro} painel={painel} />

@@ -14,7 +14,8 @@ const Indicadores = [
   'Conversas por dia', 'Maior volume: 4 em 02/11', 'Chamados abertos e resolvidos por dia', 'Abertos · 2', 'Resolvidos · 1',
   'No período: 3 abertos e 1 resolvidos. Se a linha tracejada fica acima da contínua, a fila cresce.',
   '01/11', '02/11', 'Ver como tabela',
-  'A equipe responde a tempo?', 'Tempo até a 1ª resposta', 'Tempo de resolução', 'mediana 1,5\u00a0h', '9 em 10 foram atendidos em até 4\u00a0h', '—',
+  'A equipe responde a tempo?', 'Meta: primeira resposta em 24\u00a0h; resolução em 120\u00a0h', 'Nenhum chamado em atraso', 'Primeira resposta', 'Resolução',
+  'Dentro da meta, por período', 'Período anterior', 'Este período', 'Tempo até a 1ª resposta', 'Tempo de resolução', 'mediana 1,5\u00a0h', '9 em 10 foram atendidos em até 4\u00a0h', '—',
   'Chamados abertos agora: 4', 'Aberto · 1 · 25\u00a0%', 'Em atendimento · 1 · 25\u00a0%', 'Aguardando aluno · 1 · 25\u00a0%', 'Resolvido · 1 · 25\u00a0%', 'O mais antigo espera há 9 dias',
   'Qualidade do atendimento', 'Roteamento correto', 'Reabertura', 'Resolvidos sem encaminhamento entre setores.', 'Resolvidos que o aluno reabriu.',
   'O que mais pesa', 'Categorias por conversas', 'Categorias por chamados', 'Categoria', 'Total', 'Boleto3',
@@ -39,6 +40,7 @@ const detalhe = {
   chamadosPorEstado: { ABERTO: 1, EM_ATENDIMENTO: 1, AGUARDANDO_ALUNO: 1, RESOLVIDO: 1 },
   maisAntigoDias: 9,
   tempos: { primeiraRespostaMedianaHoras: 1.5, primeiraRespostaP90Horas: 4, resolucaoMedianaHoras: null, resolucaoP90Horas: null },
+  prazos: { primeiraRespostaMetaHoras: 24, resolucaoMetaHoras: 120, primeiraRespostaNoPrazo: null, resolucaoNoPrazo: null, emAtrasoAgora: 0, maisAntigoEmAtrasoDias: null },
 }
 const tela = () => screen.getByRole('main')
 

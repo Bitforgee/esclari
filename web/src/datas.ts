@@ -1,18 +1,15 @@
 export function formatarData(iso: string, fuso: string): string {
+  const { dia, hora } = diaEHora(iso, fuso)
+  return `${dia}/${new Intl.DateTimeFormat('pt-BR', { timeZone: fuso, year: 'numeric' }).format(new Date(iso))} ${hora}`
+}
+
+export function diaEHora(iso: string, fuso: string) {
   const partes = Object.fromEntries(
-    new Intl.DateTimeFormat('pt-BR', {
-      timeZone: fuso,
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23',
-    })
+    new Intl.DateTimeFormat('pt-BR', { timeZone: fuso, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
       .formatToParts(new Date(iso))
       .map((p) => [p.type, p.value]),
   )
-  return `${partes.day}/${partes.month}/${partes.year} ${partes.hour}:${partes.minute}`
+  return { dia: `${partes.day}/${partes.month}`, hora: `${partes.hour}:${partes.minute}` }
 }
 
 const diaNoFuso = (instante: Date, fuso: string) => {

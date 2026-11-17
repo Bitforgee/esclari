@@ -82,7 +82,7 @@ describe('indicadores', () => {
     const porChamados = screen.getByText('Categorias por chamados').closest('section') as HTMLElement
     expect(Array.from(porChamados.querySelectorAll('tbody tr')).map((li) => li.textContent)).toEqual(['—'])
     expect(screen.queryByText('Sem atendimentos neste período.')).not.toBeInTheDocument()
-    expect(chamadas.filter((c) => c.url.startsWith('/api/indicadores')).map((c) => c.url.split('?')[0]).sort()).toEqual(['/api/indicadores', '/api/indicadores', '/api/indicadores/detalhe'])
+    expect(chamadas.filter((c) => c.url.startsWith('/api/indicadores')).map((c) => c.url.split('?')[0]).sort()).toEqual(['/api/indicadores', '/api/indicadores', '/api/indicadores/detalhe', '/api/indicadores/detalhe'])
     expect(conversas.parentElement).toHaveClass('grid-cols-1', '@4xl/main:grid-cols-2')
   })
 
@@ -105,7 +105,7 @@ describe('indicadores', () => {
       ['Resumo', ['Indicador principal']],
       ['O assistente está resolvendo?', ['Autoatendimento', 'Escalonamento', 'Abandono', 'Perguntas sem artigo']],
       ['Quanto chega e como evolui?', ['Alunos ativos', 'Conversas', 'Chamados resolvidos']],
-      ['A equipe responde a tempo?', ['Tempo até a 1ª resposta', 'Tempo de resolução']],
+      ['A equipe responde a tempo?', ['Primeira resposta', 'Resolução', 'Tempo até a 1ª resposta', 'Tempo de resolução']],
       ['Qualidade do atendimento', ['Roteamento correto', 'Reabertura']],
       ['O que mais pesa', []],
       ['A base de conhecimento está em dia?', []],

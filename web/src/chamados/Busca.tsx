@@ -14,11 +14,11 @@ import { NativeSelect, NativeSelectOption } from '../ui/native-select'
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '../ui/sheet'
 
 export type Escopo = 'fila' | 'todos'
-export type Filtros = { q: string; estado: string[]; setor: string; categoria: string; responsavel: string; de: string; ate: string; ordem: string }
+export type Filtros = { q: string; estado: string[]; setor: string; categoria: string; responsavel: string; de: string; ate: string; ordem: string; atraso: string }
 export type Opcao = { id: number; nome: string }
 export type Opcoes = { setores: Opcao[]; categorias: Opcao[] }
 
-export const SemFiltros: Filtros = { q: '', estado: [], setor: '', categoria: '', responsavel: '', de: '', ate: '', ordem: '' }
+export const SemFiltros: Filtros = { q: '', estado: [], setor: '', categoria: '', responsavel: '', de: '', ate: '', ordem: '', atraso: '' }
 
 const NaApi: [keyof Filtros, string][] = [
   ['q', 'q'],
@@ -29,11 +29,12 @@ const NaApi: [keyof Filtros, string][] = [
   ['de', 'de'],
   ['ate', 'ate'],
   ['ordem', 'ordem'],
+  ['atraso', 'atraso'],
 ]
 
 export function lerFiltros(p: URLSearchParams): Filtros {
   const um = (k: string) => p.get(k) ?? ''
-  return { q: um('q'), estado: p.getAll('estado'), setor: um('setor'), categoria: um('categoria'), responsavel: um('responsavel'), de: um('de'), ate: um('ate'), ordem: um('ordem') }
+  return { q: um('q'), estado: p.getAll('estado'), setor: um('setor'), categoria: um('categoria'), responsavel: um('responsavel'), de: um('de'), ate: um('ate'), ordem: um('ordem'), atraso: um('atraso') === 'true' ? 'true' : '' }
 }
 
 const pares = (f: Filtros, naApi: boolean) => NaApi.flatMap(([k, api]) => [f[k]].flat().filter(Boolean).map((v) => [naApi ? api : k, v]))
@@ -60,6 +61,7 @@ const Definicoes: Definicao[] = [
   { rotulo: 'Categoria', chaves: ['categoria'], valor: (f, o) => nomeDe(o?.categorias, f.categoria) },
   { rotulo: 'Responsável', chaves: ['responsavel'], valor: (f) => Responsaveis[f.responsavel] ?? f.responsavel },
   { rotulo: 'Período', chaves: ['de', 'ate'], valor: (f) => periodo(f.de, f.ate) },
+  { rotulo: 'Atraso', chaves: ['atraso'], valor: () => 'só atrasados' },
 ]
 
 export type Etiqueta = { rotulo: string; valor: string; chaves: (keyof Filtros)[] }
