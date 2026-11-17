@@ -8,5 +8,6 @@ public static class IndicadoresExtensoes
     {
         ConsultarIndicadores.Mapear(api);
         ConsultarIndicadoresDetalhe.Mapear(api);
+        ConsultarValidade.Mapear(api);
     }
 }

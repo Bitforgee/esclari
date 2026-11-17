@@ -69,6 +69,28 @@ public class PrazosTests(EsclariFactoryPrazos f, EsclariFactory padrao) : IClass
     }
 
     [Fact]
+    public async Task Validade_do_conhecimento_aceita_de_1_a_60()
+    {
+        static Prazos Com(string? meses) => Prazos.Ler(new ConfigurationBuilder()
+            .AddInMemoryCollection(meses is null ? [] : new Dictionary<string, string?> { ["Prazos:ValidadeConhecimentoMeses"] = meses }).Build());
+
+        Assert.Equal(12, Com(null).ValidadeConhecimentoMeses);
+        Assert.Equal(1, Com("1").ValidadeConhecimentoMeses);
+        Assert.Equal(60, Com("60").ValidadeConhecimentoMeses);
+        foreach (var fora in new[] { "0", "61" })
+            Assert.Contains("Prazos:ValidadeConhecimentoMeses", Assert.Throws<InvalidOperationException>(() => Com(fora)).Message);
+
+        foreach (var fora in new[] { "0", "61" })
+        {
+            await using var recusada = new EsclariFactoryValidadeConfigurada(fora);
+            Assert.Contains("Prazos:ValidadeConhecimentoMeses", Assert.ThrowsAny<Exception>(() => recusada.Services).ToString());
+        }
+        await using (var aceita = new EsclariFactoryValidadeConfigurada("60"))
+            Assert.Equal(60, aceita.Services.GetRequiredService<Prazos>().ValidadeConhecimentoMeses);
+        Assert.Equal(12, padrao.Services.GetRequiredService<Prazos>().ValidadeConhecimentoMeses);
+    }
+
+    [Fact]
     public async Task Padroes_sem_configuracao()
     {
         var prazos = Prazos.Ler(new ConfigurationBuilder().Build());

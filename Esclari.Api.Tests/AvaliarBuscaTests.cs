@@ -86,7 +86,7 @@ public class AvaliarBuscaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         await f.Db(i.Id, async db =>
         {
             var d = Documento.Criar("Regulamento de estagio", (await db.Categorias.FirstAsync()).Id,
-                new VersaoDocumento { Numero = 1, NomeArquivo = "r.pdf", Chave = $"1/documentos/{Guid.NewGuid():N}", Hash = new string('a', 64), Tamanho = 1, Texto = "t", Paginas = 1, CriadaEm = DateTime.UtcNow });
+                new VersaoDocumento { Numero = 1, NomeArquivo = "r.pdf", Chave = $"1/documentos/{Guid.NewGuid():N}", Hash = new string('a', 64), Tamanho = 1, Texto = "t", Paginas = 1, CriadaEm = DateTime.UtcNow }, f.Validade());
             db.Documentos.Add(d);
             await db.SaveChangesAsync();
         });

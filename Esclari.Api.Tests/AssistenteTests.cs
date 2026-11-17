@@ -37,6 +37,24 @@ public class AssistenteTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     }
 
     [Fact]
+    public async Task Fonte_vencida_conta_como_sem_base()
+    {
+        var c = await Cenario.Criar(f);
+        var hoje = Validade.HojeNoFuso(c.Instituicao.Fuso, f.Relogio.GetUtcNow().UtcDateTime);
+        await f.Db(c.Instituicao.Id, db => db.Artigos.Where(a => a.Id == c.Boleto.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.ValidoAte, hoje.AddDays(-1))));
+        f.Llm.Devolver(c.RespostaBoletoValida());
+
+        var (id, resposta) = await c.Primeira();
+
+        Assert.Equal(("sem_base", SemBase), (resposta.GetProperty("tipo").GetString(), resposta.GetProperty("texto").GetString()));
+        var mensagem = await f.Db(c.Instituicao.Id, db => db.MensagensConversa.Where(m => m.ConversaId == id && m.Autor == MensagemConversa.AutorAssistente).SingleAsync());
+        Assert.Equal(Tipos.SemBase, mensagem.TipoFinal);
+        Assert.DoesNotContain(Semente.Fonte(c.Boleto.Id), mensagem.TrechosBuscados);
+        Assert.Contains(Semente.Fonte(c.Faltas.Id), mensagem.TrechosBuscados);
+        Assert.Contains("atendente", resposta.GetProperty("texto").GetString());
+    }
+
+    [Fact]
     public async Task Mensagem_seguinte_200()
     {
         var c = await Cenario.Criar(f);

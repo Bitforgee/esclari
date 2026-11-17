@@ -37,6 +37,7 @@
     <Using Include="Esclari.Api.Dados.Fluxos" />
     <Using Include="Esclari.Api.Dados.Moodle" />
     <Using Include="Esclari.Api.Dados.Mcp" />
+    <Using Include="Esclari.Api.Dados.Avisos" />
   </ItemGroup>
 
 </Project>

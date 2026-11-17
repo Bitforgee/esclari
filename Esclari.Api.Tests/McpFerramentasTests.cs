@@ -188,11 +188,33 @@ public class McpFerramentasTests(EsclariFactory f) : IClassFixture<EsclariFactor
         await f.Db(i.Id, async db =>
         {
             var versao = new VersaoDocumento { Numero = 1, NomeArquivo = "d.pdf", Chave = $"{i.Id}/documentos/{Guid.NewGuid():N}", Hash = new string('a', 64), Tamanho = 1, Texto = texto, Paginas = 1, CriadaEm = f.Relogio.GetUtcNow().UtcDateTime };
-            db.Documentos.Add(Documento.Criar(titulo, (await db.Categorias.FirstAsync()).Id, versao));
+            db.Documentos.Add(Documento.Criar(titulo, (await db.Categorias.FirstAsync()).Id, versao, f.Validade()));
             await db.SaveChangesAsync();
             db.TrechosFonte.Add(TrechoFonte.DoDocumento(versao, 0, texto, f.Relogio.GetUtcNow().UtcDateTime, new Pgvector.Vector(LlmFalso.Vetor(texto))));
             await db.SaveChangesAsync();
         });
+
+    [Fact]
+    public async Task Buscar_ignora_conteudo_vencido()
+    {
+        var i = await f.Instituicao();
+        var token = await f.NovoTokenMcp(i, await f.Usuario(i, [Papeis.Atendente]));
+        var hoje = Validade.HojeNoFuso(i.Fuso, f.Relogio.GetUtcNow().UtcDateTime);
+        await f.Artigo(i, "Boleto vencido em dia", "Como pagar o boleto vencido pelo portal.", links: ["https://univag.test/boleto"]);
+        var vencido = await f.Artigo(i, "Boleto vencido antigo", "Como pagar o boleto vencido pelo portal antigo.");
+        await f.Db(i.Id, db => db.Artigos.Where(a => a.Id == vencido.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.ValidoAte, hoje.AddDays(-1))));
+        await SemearDocumento(i, "Boleto vencido no regulamento", "Regulamento do boleto vencido e da multa.");
+        await f.Db(i.Id, db => db.Documentos.ExecuteUpdateAsync(s => s.SetProperty(d => d.ValidoAte, hoje.AddDays(-1))));
+
+        var r = await f.Chamar(i.Slug, token, "buscar_conhecimento", new { consulta = "boleto vencido", limite = 5 });
+
+        Assert.False(r.Erro, r.Texto);
+        var fontes = r.Json().GetProperty("fontes").EnumerateArray().ToList();
+        Assert.Equal(["Boleto vencido em dia"], fontes.Select(x => x.GetProperty("titulo").GetString()));
+        Assert.Equal(["fontes"], r.Json().EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["tipo", "titulo", "texto", "links"], fontes[0].EnumerateObject().Select(p => p.Name));
+        Assert.Equal("ARTIGO", fontes[0].GetProperty("tipo").GetString());
+    }
 
     [Fact]
     public async Task Buscar_conhecimento_so_ativos_da_instituicao()

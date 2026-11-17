@@ -26,16 +26,23 @@ public static class BuscarFontes
     static IQueryable<long?> ArtigosBuscaveis(EsclariDb db, DateOnly hoje) =>
         db.VersoesAtuais().Where(v => v.Artigo!.Estado == EstadosArtigo.Ativo
                 && (v.Artigo.VisivelDe == null || v.Artigo.VisivelDe <= hoje)
-                && (v.Artigo.VisivelAte == null || v.Artigo.VisivelAte >= hoje))
+                && (v.Artigo.VisivelAte == null || v.Artigo.VisivelAte >= hoje)
+                && v.Artigo.ValidoAte >= hoje)
             .Select(v => (long?)v.Id);
 
-    static IQueryable<long?> DocumentosBuscaveis(EsclariDb db) =>
-        db.VersoesDocumentoAtuais().Where(v => v.Documento!.Estado == EstadosDocumento.Ativo).Select(v => (long?)v.Id);
+    static IQueryable<long?> DocumentosBuscaveis(EsclariDb db, DateOnly hoje) =>
+        db.VersoesDocumentoAtuais().Where(v => v.Documento!.Estado == EstadosDocumento.Ativo && v.Documento.ValidoAte >= hoje).Select(v => (long?)v.Id);
+
+    public static async Task<DateOnly> Hoje(this EsclariDb db, TimeProvider relogio) =>
+        Validade.HojeNoFuso(await db.Instituicoes.Where(i => i.Id == db.InstituicaoAtual).Select(i => i.Fuso).SingleAsync(), relogio.GetUtcNow().UtcDateTime);
+
+    public static async Task<Validade> NovaValidade(this EsclariDb db, TimeProvider relogio, Prazos prazos) =>
+        new(await db.Hoje(relogio), prazos.ValidadeConhecimentoMeses);
 
     public static async Task<List<Fonte>> Buscar(EsclariDb db, float[] vetor, DateOnly hoje, int k)
     {
         var consulta = new Vector(vetor);
-        var (artigos, documentos) = (ArtigosBuscaveis(db, hoje), DocumentosBuscaveis(db));
+        var (artigos, documentos) = (ArtigosBuscaveis(db, hoje), DocumentosBuscaveis(db, hoje));
         var achados = await db.TrechosFonte
             .Where(t => t.Embedding != null && (artigos.Contains(t.VersaoArtigoId) || documentos.Contains(t.VersaoDocumentoId)))
             .OrderBy(t => t.Embedding!.CosineDistance(consulta)).ThenBy(t => t.Id)

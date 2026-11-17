@@ -12,7 +12,7 @@ public sealed record CriarDocumento(IFormCollection Form) : IRequest<IResult>
             await m.Send(new CriarDocumento(req.HasFormContentType ? await req.ReadFormAsync() : FormCollection.Empty)));
 }
 
-public sealed class CriarDocumentoHandler(EsclariDb db, TimeProvider relogio, Armazenamento armazenamento) : IRequestHandler<CriarDocumento, IResult>
+public sealed class CriarDocumentoHandler(EsclariDb db, TimeProvider relogio, Armazenamento armazenamento, Prazos prazos) : IRequestHandler<CriarDocumento, IResult>
 {
     public async ValueTask<IResult> Handle(CriarDocumento m, CancellationToken ct)
     {
@@ -27,10 +27,11 @@ public sealed class CriarDocumentoHandler(EsclariDb db, TimeProvider relogio, Ar
         var agora = relogio.GetUtcNow().UtcDateTime;
         var primeira = Versao(db.InstituicaoAtual!.Value, pdf!, 1, agora);
         await armazenamento.Gravar(primeira.Chave, pdf!.Conteudo);
-        var d = Documento.Criar(titulo, categoriaId, primeira);
+        var validade = await db.NovaValidade(relogio, prazos);
+        var d = Documento.Criar(titulo, categoriaId, primeira, validade);
         Trechos(db, d.Versoes.Single(), agora);
         db.Documentos.Add(d);
         await db.SaveChangesAsync();
-        return Results.Created($"/api/admin/documentos/{d.Id}", await DocumentoResposta.De(db, d));
+        return Results.Created($"/api/admin/documentos/{d.Id}", await DocumentoResposta.De(db, d, validade.Hoje));
     }
 }

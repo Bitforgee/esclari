@@ -25,7 +25,9 @@ public class EsclariFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     const string Servidor = "Host=localhost;Port=5432;Username=postgres;Password=postgres";
     public string Banco { get; } = "esclari_teste_" + Guid.NewGuid().ToString("N")[..12];
-    public FakeTimeProvider Relogio { get; } = new(new DateTimeOffset(2026, 11, 2, 12, 0, 0, TimeSpan.Zero));
+    public FakeTimeProvider Relogio => relogio ??= new(Inicio);
+    FakeTimeProvider? relogio;
+    protected virtual DateTimeOffset Inicio => new(2026, 11, 2, 12, 0, 0, TimeSpan.Zero);
     public LlmFalso Llm { get; } = new();
     public LogCapturado Logs { get; } = new();
     public HasherEspiao Hasher { get; } = new();
@@ -333,5 +335,25 @@ public class EsclariFactoryPrazos : EsclariFactory
         base.ConfigureWebHost(builder);
         builder.UseSetting("Prazos:ConfirmacaoDias", "10");
         builder.UseSetting("Prazos:LembreteAguardandoDias", "4");
+    }
+}
+
+public class EsclariFactoryValidade : EsclariFactory
+{
+    public static readonly DateOnly Hoje = new(2026, 11, 17);
+    protected override DateTimeOffset Inicio => new(2026, 11, 17, 12, 0, 0, TimeSpan.Zero);
+}
+
+public class EsclariFactoryMadrugada : EsclariFactory
+{
+    protected override DateTimeOffset Inicio => new(2026, 11, 18, 1, 0, 0, TimeSpan.Zero);
+}
+
+public class EsclariFactoryValidadeConfigurada(string meses) : EsclariFactory
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        base.ConfigureWebHost(builder);
+        builder.UseSetting(Prazos.ChaveValidade, meses);
     }
 }

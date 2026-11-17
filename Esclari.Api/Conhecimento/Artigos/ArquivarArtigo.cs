@@ -9,7 +9,7 @@ public sealed record ArquivarArtigo(long Id) : IRequest<IResult>
         g.MapPost("/artigos/{id:long}/arquivar", (long id, IMediator m) => m.Send(new ArquivarArtigo(id)));
 }
 
-public sealed class ArquivarArtigoHandler(EsclariDb db) : IRequestHandler<ArquivarArtigo, IResult>
+public sealed class ArquivarArtigoHandler(EsclariDb db, TimeProvider relogio) : IRequestHandler<ArquivarArtigo, IResult>
 {
     public async ValueTask<IResult> Handle(ArquivarArtigo m, CancellationToken ct)
     {
@@ -17,6 +17,6 @@ public sealed class ArquivarArtigoHandler(EsclariDb db) : IRequestHandler<Arquiv
         if (a is null) return Problemas.Erro(404, "Artigo não encontrado.");
         if (a.Arquivar() is { } recusa) return Problemas.Erro(409, recusa.Motivo);
         await db.SaveChangesAsync();
-        return Results.Ok(await ArtigoResposta.De(db, a));
+        return Results.Ok(await ArtigoResposta.De(db, a, await db.Hoje(relogio)));
     }
 }

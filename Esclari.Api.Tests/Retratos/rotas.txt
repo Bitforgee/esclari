@@ -95,3 +95,6 @@ GET,HEAD {*path:nonfile} anonimo=False autorizacao=False limite=-
 GET /api/chamados/busca anonimo=False autorizacao=True limite=-
 GET /api/chamados/exportar anonimo=False autorizacao=True limite=exportar
 GET /api/chamados/filtros anonimo=False autorizacao=True limite=-
+POST /api/admin/artigos/{id:long}/renovar anonimo=False autorizacao=True limite=-
+POST /api/admin/documentos/{id:long}/renovar anonimo=False autorizacao=True limite=-
+GET /api/conhecimento/validade anonimo=False autorizacao=True limite=-

@@ -34,13 +34,13 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var viva = endpoints.Select(Linha).ToList();
         File.WriteAllLines(Path.Combine(AppContext.BaseDirectory, "rotas.viva.txt"), viva);
 
-        Assert.Equal(97, viva.Count);
+        Assert.Equal(100, viva.Count);
         var fallbacks = endpoints.Where(e => e.Order == int.MaxValue).Select(e => e.RoutePattern.RawText).ToList();
         Assert.Equal(["/api/{**resto}", "{*path:nonfile}"], fallbacks);
-        Assert.Equal(93, endpoints.Count(e => e.Order != int.MaxValue && e.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods.Count == 1));
+        Assert.Equal(96, endpoints.Count(e => e.Order != int.MaxValue && e.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods.Count == 1));
         Assert.Equal(["/api/auth/login", "/api/auth/primeiro-acesso", "/api/auth/definir-senha", "/api/auth/logout", "/api/moodle/{slug}/login", "/api/moodle/{slug}/lancamento", "/api/moodle/{slug}/jwks", "/api/instituicoes/{slug}", "/api/instituicoes/{slug}/imagens/{tipo}", "/api/instituicoes/{slug}/manifest.webmanifest"],
             endpoints.Where(e => e.Metadata.GetMetadata<IAllowAnonymous>() is not null).Select(e => e.RoutePattern.RawText));
-        Assert.Equal(95, endpoints.Count(e => e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any()));
+        Assert.Equal(98, endpoints.Count(e => e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any()));
         string[] Com(string politica) => [.. endpoints.Where(e => e.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName == politica).Select(e => e.RoutePattern.RawText!)];
         Assert.Equal(["/api/auth/login", "/api/auth/primeiro-acesso", "/api/moodle/{slug}/login", "/api/moodle/{slug}/lancamento"], Com("auth"));
         Assert.Equal(["/api/conversas", "/api/conversas/{id:long}/mensagens", "/api/atendimento-direto"], Com("mensagens"));
@@ -59,7 +59,7 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var rotas = Endpoints(f).Where(e => e.RoutePattern.RawText!.StartsWith("/api/admin/"))
             .SelectMany(e => e.Metadata.GetMetadata<HttpMethodMetadata>()!.HttpMethods.Select(m => (m, e.RoutePattern.RawText!)))
             .ToList();
-        Assert.Equal(41, rotas.Count);
+        Assert.Equal(43, rotas.Count);
 
         foreach (var c in clientes)
             foreach (var (metodo, padrao) in rotas)
@@ -228,9 +228,11 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var artigoId = Id(await R("POST", "/api/admin/artigos", "admin", 201, admin.PostAsJsonAsync("/api/admin/artigos", artigo)));
         await R("PUT", "/api/admin/artigos/{id}", "admin", 200, admin.PutAsJsonAsync($"/api/admin/artigos/{artigoId}", artigo with { resposta = "Peça o trancamento na secretaria até o dia 30." }));
         await R("POST", "/api/admin/artigos/{id}/ativar", "admin", 200, admin.PostAsync($"/api/admin/artigos/{artigoId}/ativar", null));
+        await R("POST", "/api/admin/artigos/{id}/renovar", "admin", 200, admin.PostAsync($"/api/admin/artigos/{artigoId}/renovar", null));
         await R("POST", "/api/admin/artigos/{id}/arquivar", "admin", 200, admin.PostAsync($"/api/admin/artigos/{artigoId}/arquivar", null));
         var documento = Id(await R("POST", "/api/admin/documentos", "admin", 201, admin.Subir("Regulamento acadêmico", categoria, Pdfs.Criar("Regulamento academico, pagina um."))));
         await R("POST", "/api/admin/documentos/{id}/versoes", "admin", 201, admin.NovaVersao(documento, Pdfs.Criar("Regulamento academico, versao dois.", "Pagina dois.")));
+        await R("POST", "/api/admin/documentos/{id}/renovar", "admin", 200, admin.PostAsync($"/api/admin/documentos/{documento}/renovar", null));
         await R("GET", "/api/admin/documentos", "admin", 200, admin.GetAsync("/api/admin/documentos"));
         await R("POST", "/api/admin/documentos/{id}/arquivar", "admin", 200, admin.PostAsync($"/api/admin/documentos/{documento}/arquivar", null));
 
@@ -272,6 +274,7 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         await R("POST", "/api/chamados/{numero}/duplicado", "atendente", 200, atendente.PostAsJsonAsync($"/api/chamados/{t4}/duplicado", new { numeroOriginal = t3 }));
         await R("GET", "/api/chamados", "aluno", 200, aluno.GetAsync("/api/chamados"));
         await R("GET", "/api/indicadores?de={de}&ate={ate}", "admin", 200, admin.GetAsync("/api/indicadores?de=2026-11-01&ate=2026-11-30"));
+        await R("GET", "/api/conhecimento/validade", "admin", 200, admin.GetAsync("/api/conhecimento/validade"));
         return linhas;
     }
 
@@ -283,7 +286,7 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         File.WriteAllLines(Path.Combine(AppContext.BaseDirectory, "sucessos.vivos.txt"), vivos);
 
         var gravados = File.ReadAllLines(Retrato("sucessos.txt"));
-        Assert.Equal(56, gravados.Length);
+        Assert.Equal(59, gravados.Length);
         Assert.Equal(gravados.Select(Normalizar), vivos);
     }
 

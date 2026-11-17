@@ -31,6 +31,24 @@ public class AgendadorLogsTests(EsclariFactory f) : IClassFixture<EsclariFactory
     }
 
     [Fact]
+    public async Task Avisar_validade_registra_contagem_por_marco()
+    {
+        var (i, _) = await Admin.Criar(f);
+        var hoje = f.Hoje(i);
+        await f.ArtigoQueVence(i, "Abono de faltas", hoje.AddDays(-1));
+        await f.DocumentoQueVence(i, "Calendário acadêmico", hoje.AddDays(-3));
+        await f.ArtigoQueVence(i, "Trancamento", hoje.AddDays(5));
+        await f.DocumentoQueVence(i, "Regulamento", hoje.AddDays(20));
+
+        await Agendador.Executar();
+
+        var log = Assert.Single(Do("Avisos de validade da instituição {InstituicaoId}: vencidos={Vencidos} em7Dias={Em7Dias} em30Dias={Em30Dias}"), l => Equals(l.Campos["InstituicaoId"], i.Id));
+        Assert.Equal((CategoriaDaBase, LogLevel.Information), (log.Categoria, log.Nivel));
+        Assert.Equal((2, 1, 1), ((int)log.Campos["Vencidos"]!, (int)log.Campos["Em7Dias"]!, (int)log.Campos["Em30Dias"]!));
+        Assert.All(new[] { "Abono", "Calendário", "Trancamento", "Regulamento" }, t => Assert.DoesNotContain(t, log.Mensagem));
+    }
+
+    [Fact]
     public async Task Fechamento_automatico_loga_na_categoria_do_agendador()
     {
         var b = await Balcao.Criar(f);

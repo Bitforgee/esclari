@@ -48,6 +48,10 @@ namespace Esclari.Api.Dados.Migracoes
                         .HasColumnType("bigint")
                         .HasColumnName("instituicao_id");
 
+                    b.Property<DateOnly>("ValidoAte")
+                        .HasColumnType("date")
+                        .HasColumnName("valido_ate");
+
                     b.Property<DateOnly?>("VisivelAte")
                         .HasColumnType("date")
                         .HasColumnName("visivel_ate");
@@ -124,6 +128,51 @@ namespace Esclari.Api.Dados.Migracoes
                         .HasDatabaseName("ix_versao_artigo_artigo_id_numero");
 
                     b.ToTable("versao_artigo");
+                });
+
+            modelBuilder.Entity("Esclari.Api.Dados.Avisos.AvisoValidade", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("criado_em");
+
+                    b.Property<long>("InstituicaoId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("instituicao_id");
+
+                    b.Property<long>("ItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("Marco")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("marco");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("tipo");
+
+                    b.Property<DateOnly>("ValidoAte")
+                        .HasColumnType("date")
+                        .HasColumnName("valido_ate");
+
+                    b.HasKey("Id")
+                        .HasName("pk_aviso_validade");
+
+                    b.HasIndex("InstituicaoId", "Tipo", "ItemId", "ValidoAte", "Marco")
+                        .IsUnique()
+                        .HasDatabaseName("ix_aviso_validade_instituicao_id_tipo_item_id_valido_ate_marco");
+
+                    b.ToTable("aviso_validade");
                 });
 
             modelBuilder.Entity("Esclari.Api.Dados.Cadastros.Categoria", b =>
@@ -870,6 +919,10 @@ namespace Esclari.Api.Dados.Migracoes
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("titulo");
+
+                    b.Property<DateOnly>("ValidoAte")
+                        .HasColumnType("date")
+                        .HasColumnName("valido_ate");
 
                     b.HasKey("Id")
                         .HasName("pk_documento");
@@ -1948,6 +2001,16 @@ namespace Esclari.Api.Dados.Migracoes
                         .HasConstraintName("fk_versao_artigo_instituicao_instituicao_id");
 
                     b.Navigation("Artigo");
+                });
+
+            modelBuilder.Entity("Esclari.Api.Dados.Avisos.AvisoValidade", b =>
+                {
+                    b.HasOne("Esclari.Api.Dados.Instituicao", null)
+                        .WithMany()
+                        .HasForeignKey("InstituicaoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_aviso_validade_instituicoes_instituicao_id");
                 });
 
             modelBuilder.Entity("Esclari.Api.Dados.Cadastros.Categoria", b =>

@@ -49,6 +49,7 @@ public class Program
             .AddAssistente().AddChamados().AddIndexacaoDeTrechos().AddEnvioDePush().AddConhecimento()
             .AddIndicadores().AddInstituicoes().AddAdministracao().AddMcp().AddAcesso();
         var app = builder.Build();
+        _ = app.Services.GetRequiredService<Prazos>();
         app.Services.MigrarBanco();
         return app;
     }

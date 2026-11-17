@@ -5,21 +5,22 @@ namespace Esclari.Api.Tests;
 public class ArtigoDominioTests
 {
     static readonly DateTime Agora = new(2026, 11, 2, 12, 0, 0, DateTimeKind.Utc);
+    static readonly Validade Ano = new(new DateOnly(2026, 11, 2), 12);
 
     static VersaoArtigo Versao(int numero) => new() { Numero = numero, Titulo = $"t{numero}", Perguntas = ["p?"], Resposta = "r", Links = [], CriadaEm = Agora };
 
-    static Artigo Rascunho() => Artigo.Criar(10, null, null, Versao(1));
+    static Artigo Rascunho() => Artigo.Criar(10, null, null, Versao(1), Ano);
 
     [Fact]
     public void Cada_transicao_como_a_base()
     {
-        var a = Artigo.Criar(10, new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), Versao(1));
+        var a = Artigo.Criar(10, new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31), Versao(1), Ano);
         Assert.Equal(EstadosArtigo.Rascunho, a.Estado);
         Assert.Equal(10, a.CategoriaId);
         Assert.Equal((new DateOnly(2026, 1, 1), new DateOnly(2026, 12, 31)), (a.VisivelDe, a.VisivelAte));
         Assert.Equal(1, Assert.Single(a.Versoes).Numero);
 
-        a.NovaVersao(Versao(2), 11, null, new DateOnly(2027, 1, 1));
+        a.NovaVersao(Versao(2), 11, null, new DateOnly(2027, 1, 1), Ano);
         Assert.Equal([1, 2], a.Versoes.Select(v => v.Numero));
         Assert.Equal(11, a.CategoriaId);
         Assert.Equal((null, new DateOnly(2027, 1, 1)), (a.VisivelDe, a.VisivelAte));
@@ -56,15 +57,31 @@ public class ArtigoDominioTests
     public void Versao_sem_numero_maior_lanca()
     {
         var a = Rascunho();
-        a.NovaVersao(Versao(2), 10, null, null);
+        a.NovaVersao(Versao(2), 10, null, null, Ano);
         foreach (var numero in new[] { 2, 1 })
         {
-            Assert.Throws<InvalidOperationException>(() => a.NovaVersao(Versao(numero), 99, null, null));
+            Assert.Throws<InvalidOperationException>(() => a.NovaVersao(Versao(numero), 99, null, null, Ano));
             Assert.Equal([1, 2], a.Versoes.Select(v => v.Numero));
             Assert.Equal(10, a.CategoriaId);
         }
-        a.NovaVersao(Versao(3), 10, null, null);
+        a.NovaVersao(Versao(3), 10, null, null, Ano);
         Assert.Equal([1, 2, 3], a.Versoes.Select(v => v.Numero));
-        Assert.Throws<InvalidOperationException>(() => Artigo.Criar(10, null, null, Versao(2)));
+        Assert.Throws<InvalidOperationException>(() => Artigo.Criar(10, null, null, Versao(2), Ano));
+    }
+
+    [Fact]
+    public void Nova_versao_refaz_a_validade()
+    {
+        var a = Artigo.Criar(10, null, null, Versao(1), new Validade(new DateOnly(2026, 1, 10), 12));
+        Assert.Equal(new DateOnly(2027, 1, 10), a.ValidoAte);
+
+        a.NovaVersao(Versao(2), 10, null, null, new Validade(new DateOnly(2026, 11, 17), 12));
+
+        Assert.Equal(new DateOnly(2027, 11, 17), a.ValidoAte);
+        Assert.Null(a.Renovar(new Validade(new DateOnly(2027, 2, 1), 12)));
+        Assert.Equal(new DateOnly(2028, 2, 1), a.ValidoAte);
+        a.Arquivar();
+        Assert.Equal("Item arquivado não pode ser renovado.", a.Renovar(new Validade(new DateOnly(2027, 3, 1), 12))?.Motivo);
+        Assert.Equal(new DateOnly(2028, 2, 1), a.ValidoAte);
     }
 }

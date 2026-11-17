@@ -9,7 +9,7 @@ public static class CargaInicial
         new(await db.Setores.ToDictionaryAsync(s => s.Nome), await db.Categorias.ToDictionaryAsync(c => c.Nome),
             (await db.Cursos.Select(c => c.Nome).ToListAsync()).ToHashSet(), (await db.Categorias.Where(c => db.Fluxos.Any(f => f.CategoriaId == c.Id && f.CursoId == null && f.Semestre == null)).Select(c => c.Nome).ToListAsync()).ToHashSet());
 
-    public static async Task<(int, int)> Gravar(EsclariDb db, ArquivoCarga arq, Existentes existentes, Plano plano, DateTime agora)
+    public static async Task<(int, int)> Gravar(EsclariDb db, ArquivoCarga arq, Existentes existentes, Plano plano, DateTime agora, string fuso, int mesesDeValidade)
     {
         await using var tx = await db.Database.BeginTransactionAsync();
         var novosSetores = plano.Setores.Values.Except(existentes.Setores.Values).ToList();
@@ -30,7 +30,7 @@ public static class CargaInicial
         foreach (var (a, categoria) in plano.Artigos)
         {
             var versao = VersaoArtigo.Criar(new(a.Titulo!, a.Perguntas!, a.Resposta!, a.Links), 1, agora);
-            var artigo = Artigo.Criar(categoria.Id, null, null, versao);
+            var artigo = Artigo.Criar(categoria.Id, null, null, versao, new Validade(Validade.HojeNoFuso(fuso, agora), mesesDeValidade));
             artigo.Ativar();
             db.Artigos.Add(artigo);
             db.TrechosFonte.Add(TrechoFonte.DoArtigo(versao, agora));

@@ -17,7 +17,7 @@ public sealed record ImportarCargaInstituicao(string Slug, IFormCollection Form)
             await m.Send(new ImportarCargaInstituicao(slug, req.HasFormContentType ? await req.ReadFormAsync() : FormCollection.Empty)));
 }
 
-public sealed class ImportarCargaInstituicaoHandler(EsclariDb db, TimeProvider relogio) : IRequestHandler<ImportarCargaInstituicao, IResult>
+public sealed class ImportarCargaInstituicaoHandler(EsclariDb db, TimeProvider relogio, Prazos prazos) : IRequestHandler<ImportarCargaInstituicao, IResult>
 {
     static IResult Recusa(IEnumerable<string> erros) =>
         Results.ValidationProblem(new Dictionary<string, string[]> { ["arquivo"] = [.. erros] }, detail: "O arquivo de carga tem erros.", title: Problemas.Titulo(400));
@@ -43,7 +43,7 @@ public sealed class ImportarCargaInstituicaoHandler(EsclariDb db, TimeProvider r
         var (erros, plano) = CargaValidacao.Validar(arq, existentes);
         if (erros.Count > 0) return Recusa(erros);
 
-        var (setores, categorias) = await CargaInicial.Gravar(db, arq, existentes, plano, relogio.GetUtcNow().UtcDateTime);
+        var (setores, categorias) = await CargaInicial.Gravar(db, arq, existentes, plano, relogio.GetUtcNow().UtcDateTime, instituicao.Fuso, prazos.ValidadeConhecimentoMeses);
         return Results.Ok(new ImportarCargaInstituicao.Resposta(setores, plano.Cursos.Count, categorias, plano.Regras.Count, plano.Artigos.Count));
     }
 }

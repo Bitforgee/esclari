@@ -11,7 +11,7 @@ public sealed record NovaVersaoDocumento(long Id, IFormCollection Form) : IReque
             await m.Send(new NovaVersaoDocumento(id, req.HasFormContentType ? await req.ReadFormAsync() : FormCollection.Empty)));
 }
 
-public sealed class NovaVersaoDocumentoHandler(EsclariDb db, TimeProvider relogio, Armazenamento armazenamento) : IRequestHandler<NovaVersaoDocumento, IResult>
+public sealed class NovaVersaoDocumentoHandler(EsclariDb db, TimeProvider relogio, Armazenamento armazenamento, Prazos prazos) : IRequestHandler<NovaVersaoDocumento, IResult>
 {
     public async ValueTask<IResult> Handle(NovaVersaoDocumento m, CancellationToken ct)
     {
@@ -21,11 +21,12 @@ public sealed class NovaVersaoDocumentoHandler(EsclariDb db, TimeProvider relogi
         if (erro is not null) return erro;
 
         var agora = relogio.GetUtcNow().UtcDateTime;
+        var validade = await db.NovaValidade(relogio, prazos);
         var versao = Versao(db.InstituicaoAtual!.Value, pdf!, d.UltimaVersao.Numero + 1, agora);
-        if (d.NovaVersao(versao) is { } recusa) return Problemas.Erro(409, recusa.Motivo);
+        if (d.NovaVersao(versao, validade) is { } recusa) return Problemas.Erro(409, recusa.Motivo);
         await armazenamento.Gravar(versao.Chave, pdf!.Conteudo);
         Trechos(db, versao, agora);
         await db.SaveChangesAsync();
-        return Results.Created($"/api/admin/documentos/{d.Id}", await DocumentoResposta.De(db, await Ler(db, m.Id) ?? d));
+        return Results.Created($"/api/admin/documentos/{d.Id}", await DocumentoResposta.De(db, await Ler(db, m.Id) ?? d, validade.Hoje));
     }
 }

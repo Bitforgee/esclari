@@ -5,7 +5,7 @@ namespace Esclari.Api.Conhecimento;
 
 public static class ConhecimentoExtensoes
 {
-    public static IServiceCollection AddConhecimento(this IServiceCollection s) => s;
+    public static IServiceCollection AddConhecimento(this IServiceCollection s) => s.AddSingleton<ITarefaAgendada, AvisarValidade>();
 
     public static void MapConhecimento(this RouteGroupBuilder api)
     {
@@ -17,9 +17,11 @@ public static class ConhecimentoExtensoes
         AlterarArtigo.Mapear(admin);
         AtivarArtigo.Mapear(admin);
         ArquivarArtigo.Mapear(admin);
+        RenovarArtigo.Mapear(admin);
         ListarDocumentos.Mapear(admin);
         CriarDocumento.Mapear(admin);
         NovaVersaoDocumento.Mapear(admin);
         ArquivarDocumento.Mapear(admin);
+        RenovarDocumento.Mapear(admin);
     }
 }

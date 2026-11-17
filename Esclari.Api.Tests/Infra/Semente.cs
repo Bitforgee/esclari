@@ -96,12 +96,14 @@ public static class Semente
 
     public static long Fonte(long artigoId) => 1_000_000 + artigoId;
 
+    public static Validade Validade(this EsclariFactory f) => new(DateOnly.FromDateTime(f.Relogio.GetUtcNow().UtcDateTime), 12);
+
     public static Task<Artigo> Artigo(this EsclariFactory f, Instituicao i, string titulo, string resposta, string[]? links = null,
         string estado = EstadosArtigo.Ativo, long? categoriaId = null) =>
         f.Db(i.Id, async db =>
         {
             var versao = new VersaoArtigo { Numero = 1, Titulo = titulo, Perguntas = [titulo + "?"], Resposta = resposta, Links = [.. links ?? []], CriadaEm = f.Relogio.GetUtcNow().UtcDateTime };
-            var a = Esclari.Api.Dados.Artigos.Artigo.Criar(categoriaId ?? (await db.Categorias.FirstAsync()).Id, null, null, versao);
+            var a = Esclari.Api.Dados.Artigos.Artigo.Criar(categoriaId ?? (await db.Categorias.FirstAsync()).Id, null, null, versao, f.Validade());
             if (estado == EstadosArtigo.Ativo) a.Ativar();
             else if (estado == EstadosArtigo.Arquivado) a.Arquivar();
             db.Artigos.Add(a);

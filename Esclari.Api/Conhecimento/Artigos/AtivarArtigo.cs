@@ -21,6 +21,6 @@ public sealed class AtivarArtigoHandler(EsclariDb db, TimeProvider relogio) : IR
         if (!await db.TrechosFonte.AnyAsync(t => t.VersaoArtigoId == atual.Id))
             db.TrechosFonte.Add(TrechoFonte.DoArtigo(atual, relogio.GetUtcNow().UtcDateTime));
         await db.SaveChangesAsync();
-        return Results.Ok(await ArtigoResposta.De(db, a));
+        return Results.Ok(await ArtigoResposta.De(db, a, await db.Hoje(relogio)));
     }
 }
