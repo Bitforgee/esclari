@@ -14,7 +14,7 @@ const Artigos = [
   'Válido de (opcional)', 'Válido até (opcional)', 'Cancelar', 'Salvar artigo', 'Escolher validade no calendário',
   'Ativar o artigo?', 'O assistente passa a usar este artigo nas respostas aos alunos.', 'Ativar artigo', 'Arquivar o artigo?', '“', '” sai da base do assistente. As conversas que já o citaram continuam como estão.', 'Voltar',
   'Artigo salvo.', 'Artigo ativado.', 'Artigo arquivado.',
-  'Todos', 'Vencem em 30 dias', 'Vencidos',
+  'Todos', 'Vencem em 30 dias', 'Vencidos', 'Rascunhos', 'Ativos', 'Arquivados',
 ]
 const Documentos = [
   'Documentos', 'Novo documento', 'PDFs da instituição (regulamentos, calendários, editais) que o assistente consulta. O aluno nunca vê o documento, só a resposta.',

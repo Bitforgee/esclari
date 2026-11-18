@@ -38,4 +38,35 @@ describe('origem do artigo', () => {
     await userEvent.click(within(doChamado).getByRole('button', { name: 'Ações de Segunda via do boleto' }))
     expect(await screen.findByRole('menuitem', { name: 'Ativar' })).toBeInTheDocument()
   })
+
+  it('filtro de situacao mostra os rascunhos', async () => {
+    api({
+      'GET /api/auth/me': () => [200, admin],
+      'GET /api/admin/artigos': () => [200, [artigo(1, 'Segunda via do boleto', 'RASCUNHO', 'ESC-000123'), artigo(2, 'Abono de faltas', 'ATIVO', null), artigo(3, 'Antigo', 'ARQUIVADO', null)]],
+      'GET /api/admin/categorias': () => [200, [{ id: 3, nome: 'Financeiro', ativa: true }]],
+    })
+    const montada = abrir('/univag/artigos')
+    await screen.findByText('Segunda via do boleto')
+    const filtro = screen.getByLabelText('Situação', { selector: 'select' })
+    expect([...filtro.querySelectorAll('option')].map((o) => o.textContent)).toEqual(['Todos', 'Rascunhos', 'Ativos', 'Arquivados'])
+
+    await userEvent.selectOptions(filtro, 'rascunho')
+    expect(screen.getByText('Segunda via do boleto')).toBeInTheDocument()
+    expect(screen.queryByText('Abono de faltas')).toBeNull()
+    expect(screen.queryByText('Antigo')).toBeNull()
+
+    await userEvent.selectOptions(screen.getByLabelText('Validade', { selector: 'select' }), 'vencidos')
+    expect(screen.getByText('Nenhum artigo neste filtro de validade.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Situação', { selector: 'select' })).toHaveValue('rascunho')
+
+    await userEvent.selectOptions(screen.getByLabelText('Validade', { selector: 'select' }), '')
+    await userEvent.selectOptions(screen.getByLabelText('Situação', { selector: 'select' }), 'arquivado')
+    expect(screen.getByText('Antigo')).toBeInTheDocument()
+    expect(screen.queryByText('Segunda via do boleto')).toBeNull()
+    montada.unmount()
+
+    abrir('/univag/artigos?estado=rascunho')
+    await screen.findByText('Segunda via do boleto')
+    expect(screen.queryByText('Abono de faltas')).toBeNull()
+  })
 })

@@ -1,11 +1,9 @@
 import { CalendarCheck, CircleAlert, Clock } from 'lucide-react'
-import { useSearchParams } from 'react-router'
 import { plural } from '../formatos'
 import type { Vazio } from '../Tabela'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
-import { Label } from '../ui/label'
-import { NativeSelect } from '../ui/native-select'
+import { useFiltroNaUrl, type Opcao } from './FiltroNaUrl'
 
 export type Situacao = 'VIGENTE' | 'VENCE_EM_BREVE' | 'VENCIDO'
 export type ComValidade = { validoAte?: string; validade?: Situacao }
@@ -47,40 +45,15 @@ export function EtiquetaValidade({ validoAte, validade }: ComValidade) {
   )
 }
 
-const Filtros = { 'em-30-dias': 'VENCE_EM_BREVE', vencidos: 'VENCIDO' } as const
-type Filtro = keyof typeof Filtros
+const OpcoesValidade: Opcao<ComValidade>[] = [
+  { valor: 'em-30-dias', rotulo: 'Vencem em 30 dias', aceita: (i) => i.validade === 'VENCE_EM_BREVE' },
+  { valor: 'vencidos', rotulo: 'Vencidos', aceita: (i) => i.validade === 'VENCIDO' },
+]
 
-export function useFiltroValidade<T extends ComValidade>(itens: T[] | undefined, tipo: string) {
-  const [params, setParams] = useSearchParams()
-  const pedido = params.get('validade')
-  const filtro: Filtro | '' = pedido && pedido in Filtros ? (pedido as Filtro) : ''
-  const escolher = (valor: string) =>
-    setParams(
-      (anterior) => {
-        const proximo = new URLSearchParams(anterior)
-        if (valor) proximo.set('validade', valor)
-        else proximo.delete('validade')
-        return proximo
-      },
-      { replace: true },
-    )
-  const filtrados = filtro ? itens?.filter((i) => i.validade === Filtros[filtro]) : itens
-  const seletor = itens?.length ? <FiltroValidade filtro={filtro} escolher={escolher} /> : null
-  const vazio = (padrao: Vazio): Vazio => (filtro ? { Icone: CalendarCheck, frase: `Nenhum ${tipo} neste filtro de validade.` } : padrao)
+export function useFiltroValidade<T extends ComValidade>(itens: T[] | undefined, tipo: string, visivel = !!itens?.length) {
+  const { filtrados, seletor, ativo } = useFiltroNaUrl<T>(itens, 'validade', 'Validade', OpcoesValidade, visivel)
+  const vazio = (padrao: Vazio): Vazio => (ativo ? { Icone: CalendarCheck, frase: `Nenhum ${tipo} neste filtro de validade.` } : padrao)
   return { filtrados, seletor, vazio }
-}
-
-function FiltroValidade({ filtro, escolher }: { filtro: string; escolher: (valor: string) => void }) {
-  return (
-    <div className="flex flex-col gap-2 self-start">
-      <Label htmlFor="filtro-validade">Validade</Label>
-      <NativeSelect id="filtro-validade" value={filtro} onChange={(e) => escolher(e.target.value)}>
-        <option value="">Todos</option>
-        <option value="em-30-dias">Vencem em 30 dias</option>
-        <option value="vencidos">Vencidos</option>
-      </NativeSelect>
-    </div>
-  )
 }
 
 export const precisaRenovar = (i: ComValidade) => i.validade === 'VENCE_EM_BREVE' || i.validade === 'VENCIDO'

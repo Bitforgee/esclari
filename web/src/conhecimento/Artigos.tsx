@@ -10,7 +10,7 @@ import { ErroDe, errosDeCampo } from '../ErroDe'
 import { Opcoes } from '../Opcoes'
 import { Periodo } from '../Periodo'
 import { Button } from '../ui/button'
-import { CelulaLargo, Detalhe, MenuAcoes, Principal, Tabela, useMostrarMais } from '../Tabela'
+import { CelulaLargo, Detalhe, MenuAcoes, Principal, Tabela, useMostrarMais, type Vazio } from '../Tabela'
 import { DropdownMenuItem } from '../ui/dropdown-menu'
 import { Label } from '../ui/label'
 import { NativeSelect } from '../ui/native-select'
@@ -19,6 +19,7 @@ import { Textarea } from '../ui/textarea'
 import { useEditarNaUrl } from '../urlDaTela'
 import { ConfirmarArquivar, IconeIndexacao, SeloEstado, useCatalogo, type Categoria, type Indexacao } from './comum'
 import { Resposta } from './Resposta'
+import { useFiltroNaUrl, type Opcao } from './FiltroNaUrl'
 import { avisoRenovado, dataBr, useFiltroValidade, ValidadeDaLinha, type ComValidade } from './Validade'
 
 type Versao = { id: number; numero: number; titulo: string; perguntas: string[]; resposta: string; links: string[] }
@@ -122,6 +123,29 @@ function CamposDoArtigo({ editando, setEditando, categorias, erros }: { editando
   )
 }
 
+const OpcoesDeEstado: Opcao<Artigo>[] = [
+  { valor: 'rascunho', rotulo: 'Rascunhos', aceita: (a) => a.estado === 'RASCUNHO' },
+  { valor: 'ativo', rotulo: 'Ativos', aceita: (a) => a.estado === 'ATIVO' },
+  { valor: 'arquivado', rotulo: 'Arquivados', aceita: (a) => a.estado === 'ARQUIVADO' },
+]
+
+function useFiltrosDeArtigo(artigos?: Artigo[]) {
+  const visivel = !!artigos?.length
+  const porEstado = useFiltroNaUrl(artigos, 'estado', 'Situação', OpcoesDeEstado, visivel)
+  const porValidade = useFiltroValidade(porEstado.filtrados, 'artigo', visivel)
+  const vazio = (padrao: Vazio): Vazio => {
+    const daValidade = porValidade.vazio(padrao)
+    return daValidade === padrao && porEstado.ativo ? { Icone: BookText, frase: 'Nenhum artigo nesta situação.' } : daValidade
+  }
+  const seletores = visivel && (
+    <div className="flex flex-wrap items-end gap-2">
+      {porEstado.seletor}
+      {porValidade.seletor}
+    </div>
+  )
+  return { filtrados: porValidade.filtrados, seletores, vazio }
+}
+
 const CamposComErro = ['titulo', 'perguntas', 'categoriaId', 'links', 'visivelDe', 'visivelAte']
 const Avisos = { ativar: 'Artigo ativado.', arquivar: 'Artigo arquivado.' }
 const tituloDaJanela = (r?: Rascunho) => (r?.id ? 'Editar artigo' : 'Novo artigo')
@@ -129,7 +153,7 @@ const tituloDaJanela = (r?: Rascunho) => (r?.id ? 'Editar artigo' : 'Novo artigo
 export function Artigos() {
   const { itens: artigos, categorias, erro, recarregar } = useCatalogo<Artigo>('/api/admin/artigos')
   const vazia = artigos?.length === 0
-  const { filtrados, seletor, vazio: comFiltro } = useFiltroValidade(artigos, 'artigo')
+  const { filtrados, seletores, vazio: comFiltro } = useFiltrosDeArtigo(artigos)
   const { visiveis, mais } = useMostrarMais(filtrados)
   const achar = (id: number) => artigos?.filter((a) => a.id === id).map(rascunho)[0]
   const { editando, setEditando, abrir, fechar } = useEditarNaUrl(achar, Novo, !!artigos)
@@ -156,7 +180,7 @@ export function Artigos() {
       </Cabecalho>
       <ErroDe erro={erro} oque="os artigos" tentar={recarregar} />
       <ErroDe erro={acao.error} oculto={!!editando} />
-      {seletor}
+      {seletores}
       <Tabela
         colunas={Colunas}
         itens={filtrados}
