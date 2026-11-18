@@ -2,7 +2,7 @@
 
 ## Problem
 
-Uma instituição que ainda não enviou logo, ícone, cor nem foto do assistente aparece sem identidade: um selo com as iniciais do nome no cabeçalho e na tela de entrada, o avatar do assistente sem imagem, o e-mail com o nome em texto sobre um cabeçalho branco, e o `manifest.webmanifest` com `theme_color` `#C83A23`, o vermelho de antes da marca. A identidade do Esclari (símbolo "Fio de procedência", logo horizontal em duas versões, Tinta `#0e1330`, Papel `#f7f5ee`, ícones do app) existe pronta em `web/public/marca/` e `web/public/icons/`, mas o AD-032 a limitou à raiz `/` e à reserva do ícone do app. Quem paga é o aluno de uma instituição recém-criada, que vê um produto sem rosto, e a equipe do Esclari, que entrega um cliente "em branco" até a gestão dele enviar os arquivos. Evidência no código: `Sigla` em `web/src/aparencia.tsx`, `Identidade` em `web/src/acesso/Acesso.tsx`, `CabecalhoDaBarra` em `web/src/Autenticado.tsx`, `fotoDoAssistente` em `web/src/assistente/Assistente.tsx`, `ManifestoInstituicao.CorPadrao` e `LayoutEmail.Cabecalho`. O pedido é do dono, em 18/11/2026. A fonte não traz números.
+Uma instituição que ainda não enviou logo, ícone, cor nem foto do assistente aparece sem identidade: um selo com as iniciais do nome no cabeçalho e na tela de entrada, o avatar do assistente sem imagem, o e-mail com o nome em texto sobre um cabeçalho branco, e o `manifest.webmanifest` com `theme_color` `#C83A23`, o vermelho do traço da marca, que não é a cor da interface (Tinta e Papel, AD-063) e destoa do manifest estático do app, `#f7f5ee`. A identidade do Esclari (símbolo "Fio de procedência", logo horizontal em duas versões, Tinta `#0e1330`, Papel `#f7f5ee`, ícones do app) existe pronta em `web/public/marca/` e `web/public/icons/`, mas o AD-032 a limitou à raiz `/` e à reserva do ícone do app. Quem paga é o aluno de uma instituição recém-criada, que vê um produto sem rosto, e a equipe do Esclari, que entrega um cliente "em branco" até a gestão dele enviar os arquivos. Evidência no código: `Sigla` em `web/src/aparencia.tsx`, `Identidade` em `web/src/acesso/Acesso.tsx`, `CabecalhoDaBarra` em `web/src/Autenticado.tsx`, `fotoDoAssistente` em `web/src/assistente/Assistente.tsx`, `ManifestoInstituicao.CorPadrao` e `LayoutEmail.Cabecalho`. O pedido é do dono, em 18/11/2026. A fonte não traz números.
 
 Depois desta feature, toda instituição nasce com a marca do Esclari em todos esses lugares, e a gestão troca cada parte quando quiser (logo, ícone, cor, foto do assistente) pela tela Aparência que já existe. Cada parte volta ao padrão sozinha quando o campo é limpo, e uma melhoria futura da marca do Esclari chega a quem nunca personalizou.
 
@@ -51,12 +51,12 @@ None - nothing consumed outside. O manifest e a rota de instituição mantêm a 
 
 **Acceptance Criteria**
 
-1. WHEN a instituição não tem ícone THEN the system SHALL mostrar o símbolo `/marca/simbolo.svg` no lugar do selo de iniciais no cabeçalho da barra lateral e no cabeçalho do celular, ao lado do nome da instituição, com `alt` vazio
+1. WHEN a instituição não tem ícone THEN the system SHALL mostrar o símbolo do Esclari, `/marca/favicon.svg` (o mesmo desenho do ícone do app), no lugar do selo de iniciais no cabeçalho da barra lateral e no cabeçalho do celular, ao lado do nome da instituição, com `alt` vazio
 2. WHEN a instituição tem ícone THEN the system SHALL mostrar o ícone dela, como hoje
 3. WHEN a instituição não tem logo THEN the system SHALL mostrar na tela de entrada a logo horizontal do Esclari, `/marca/logo-horizontal.svg` no tema claro e `/marca/logo-horizontal-escuro.svg` nos temas Escuro e Preto, com `alt` "Esclari", e o nome da instituição como título da página abaixo
 4. WHEN a instituição tem logo THEN the system SHALL mostrar a logo dela na tela de entrada e no cabeçalho da barra lateral, como hoje
 5. WHILE o tema é Escuro ou Preto, WHEN a instituição tem logo própria THEN the system SHALL mostrá-la sobre uma placa branca de cantos de 6 px e 4 px de respiro, para a logo não sumir sobre o fundo escuro
-6. WHEN o assistente não tem foto THEN the system SHALL mostrar o símbolo do Esclari como avatar dele, nas mensagens e no cabeçalho da conversa
+6. WHEN o assistente não tem foto THEN the system SHALL mostrar o símbolo `/marca/favicon.svg` como avatar dele, no cabeçalho da conversa e na pré-visualização da Aparência
 7. WHERE a instituição tem cor própria e não tem logo, the system SHALL mostrar a logo do Esclari com a cor própria só nos elementos de ação (botão, link, foco), nunca no símbolo ou na logo
 8. The system SHALL manter o selo de iniciais só para o avatar da pessoa logada, nunca para a instituição
 
@@ -82,9 +82,9 @@ None - nothing consumed outside. O manifest e a rota de instituição mantêm a 
 
 **Acceptance Criteria**
 
-17. WHEN a gestão abre a tela Aparência de uma instituição sem imagens THEN the system SHALL mostrar na pré-visualização a marca do Esclari e, ao lado de cada item (logo, ícone, foto do assistente, imagem de entrada), a frase "Marca do Esclari (padrão)"
+17. WHEN a gestão abre a tela Aparência de uma instituição sem imagens THEN the system SHALL mostrar na pré-visualização a marca do Esclari e, ao lado da logo, do ícone e da foto do assistente, a frase "Marca do Esclari (padrão)" e, ao lado da imagem do login, "Imagem padrão do Esclari"
 18. WHEN a gestão envia uma imagem THEN the system SHALL mostrar a imagem nova na pré-visualização e trocar a frase por "Enviada por você", sem salvar até ela confirmar
-19. WHEN a gestão aperta "Usar a marca do Esclari" ao lado de um item, ou "Usar a cor padrão" ao lado da cor, e confirma THEN the system SHALL remover a imagem ou limpar a cor e mostrar o padrão do Esclari na pré-visualização
+19. WHEN a gestão aperta "Usar a marca do Esclari" ao lado de uma imagem (o botão que hoje se chama "Remover"), ou "Usar a cor padrão" ao lado da cor, e confirma THEN the system SHALL remover a imagem ou limpar a cor e mostrar o padrão do Esclari na pré-visualização
 20. IF a gestão envia um ícone que não é PNG quadrado de 512 px ou mais, ou uma cor com contraste abaixo de 4,5 para 1 contra o branco, THEN the system SHALL recusar como hoje, sem mudar a marca atual
 
 ## Out of scope
