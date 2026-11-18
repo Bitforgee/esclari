@@ -89,5 +89,6 @@ public class Usuario : IDaInstituicao
     }
 
     public void Desativar() => Ativo = false;
+    public void Reativar() => Ativo = true;
 }
 

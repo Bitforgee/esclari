@@ -105,5 +105,13 @@ POST /api/plataforma/instituicoes/{slug}/desativar anonimo=False autorizacao=Tru
 POST /api/plataforma/instituicoes/{slug}/reativar anonimo=False autorizacao=True limite=-
 POST /api/plataforma/instituicoes/{slug}/reenviar-acesso anonimo=False autorizacao=True limite=-
 GET /api/plataforma/auditoria anonimo=False autorizacao=True limite=-
+GET /api/plataforma/modelos-de-carga anonimo=False autorizacao=True limite=-
+POST /api/plataforma/instituicoes/{slug}/carga/modelo/{id} anonimo=False autorizacao=True limite=-
+GET /api/plataforma/instituicoes/{slug}/setores anonimo=False autorizacao=True limite=-
+GET /api/plataforma/instituicoes/{slug}/equipe anonimo=False autorizacao=True limite=-
+POST /api/plataforma/instituicoes/{slug}/equipe anonimo=False autorizacao=True limite=-
+POST /api/plataforma/instituicoes/{slug}/equipe/{id:long}/convite anonimo=False autorizacao=True limite=-
+POST /api/plataforma/instituicoes/{slug}/equipe/{id:long}/desativar anonimo=False autorizacao=True limite=-
+POST /api/plataforma/instituicoes/{slug}/equipe/{id:long}/reativar anonimo=False autorizacao=True limite=-
 * /api/{**resto} anonimo=False autorizacao=False limite=-
 GET,HEAD {*path:nonfile} anonimo=False autorizacao=False limite=-

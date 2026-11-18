@@ -31,5 +31,13 @@ public static class PlataformaExtensoes
         ReativarInstituicao.Mapear(restrita);
         ReenviarAcesso.Mapear(restrita);
         ListarAuditoria.Mapear(restrita);
+        ListarModelosDeCarga.Mapear(restrita);
+        AplicarModeloDeCarga.Mapear(restrita);
+        ListarSetoresDaInstituicao.Mapear(restrita);
+        ListarEquipe.Mapear(restrita);
+        CriarMembro.Mapear(restrita);
+        ConvidarMembro.Mapear(restrita);
+        DesativarMembro.Mapear(restrita);
+        ReativarMembro.Mapear(restrita);
     }
 }

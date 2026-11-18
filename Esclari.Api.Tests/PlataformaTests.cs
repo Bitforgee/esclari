@@ -138,7 +138,7 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var minhas = new[] { a.Slug, b.Slug, op.Instituicao.Slug, c.Slug };
         var itens = (await r.Json()).EnumerateArray().Where(x => minhas.Contains(x.GetProperty("slug").GetString())).ToList();
         Assert.Equal(minhas, itens.Select(x => x.GetProperty("slug").GetString()));
-        Assert.All(itens, x => Assert.Equal(["slug", "nome", "fuso", "ativa", "criadaEm", "administradores", "situacao", "saude", "atencao"], x.EnumerateObject().Select(p => p.Name)));
+        Assert.All(itens, x => Assert.Equal(["slug", "nome", "fuso", "ativa", "criadaEm", "administradores", "situacao", "saude", "atencao", "prontidao"], x.EnumerateObject().Select(p => p.Name)));
         Assert.Equal([true, true, true, false], itens.Select(x => x.GetProperty("ativa").GetBoolean()));
         Assert.Equal([2, 0, 0, 0], itens.Select(x => x.GetProperty("administradores").GetInt32()));
         Assert.Equal("America/Cuiaba", itens[0].GetProperty("fuso").GetString());
@@ -446,7 +446,7 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             .Where(p => !p.Contains($"{sep}bin{sep}") && !p.Contains($"{sep}obj{sep}"))
             .Select(p => Path.GetRelativePath(api, p).Replace(sep, '/'))
             .OrderBy(p => p, StringComparer.Ordinal)
-            .Where(p => !p.StartsWith("Acesso/") && p is not ("Sessao.cs" or "Agendador.cs" or "Plataforma/Criacao.cs" or "Plataforma/ReenviarAcesso.cs" or "Plataforma/ImportarCargaInstituicao.cs" or "Instituicoes/Aparencia/BaixarImagemInstituicao.cs" or "Instituicoes/Carga/ManifestoInstituicao.cs" or "Instituicoes/Carga/ComandoCarga.cs" or "Assistente/Busca/ComandoAvaliarBusca.cs"))
+            .Where(p => !p.StartsWith("Acesso/") && !p.StartsWith("Plataforma/") && p is not ("Sessao.cs" or "Agendador.cs" or "Instituicoes/Aparencia/BaixarImagemInstituicao.cs" or "Instituicoes/Carga/ManifestoInstituicao.cs" or "Instituicoes/Carga/ComandoCarga.cs" or "Assistente/Busca/ComandoAvaliarBusca.cs"))
             .Where(p => atribui.IsMatch(File.ReadAllText(Path.Combine(api, p))));
         Assert.Equal(["Chamados/TempoReal/TempoRealHub.cs", "Mcp/AutenticacaoMcp.cs", "Mcp/ContextoMcp.cs"], fora);
     }

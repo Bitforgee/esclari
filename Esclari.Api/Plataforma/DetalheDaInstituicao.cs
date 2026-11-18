@@ -10,15 +10,10 @@ public sealed record DetalheDaInstituicao(string Slug) : IRequest<IResult>
 
     public sealed record Resposta(
         string Slug, string Nome, string Fuso, bool Ativa, DateTime CriadaEm, int Administradores, string Situacao, Saude Saude, IReadOnlyList<string> Atencao,
-        IReadOnlyList<Administrador> AdministradoresDaInstituicao);
+        IReadOnlyList<Administrador> AdministradoresDaInstituicao, Prontidao Prontidao);
 
     public static void Mapear(RouteGroupBuilder g) => g.MapGet("/instituicoes/{slug}", (string slug, IMediator m) => m.Send(new DetalheDaInstituicao(slug)));
 
-    public static string Mascarar(string email)
-    {
-        var arroba = email.IndexOf('@');
-        return arroba <= 0 ? "***" : email[..1] + "***" + email[arroba..];
-    }
 }
 
 public sealed class DetalheDaInstituicaoHandler(EsclariDb db, TimeProvider relogio, Prazos prazos) : IRequestHandler<DetalheDaInstituicao, IResult>
@@ -41,6 +36,6 @@ public sealed class DetalheDaInstituicaoHandler(EsclariDb db, TimeProvider relog
             ORDER BY u.nome
             """).ToListAsync(ct);
         return Results.Ok(new DetalheDaInstituicao.Resposta(item.Slug, item.Nome, item.Fuso, item.Ativa, item.CriadaEm, item.Administradores, item.Situacao, item.Saude, item.Atencao,
-            [.. administradores.Select(a => new DetalheDaInstituicao.Administrador(a.Nome, DetalheDaInstituicao.Mascarar(a.Email), a.SemSenha))]));
+            [.. administradores.Select(a => new DetalheDaInstituicao.Administrador(a.Nome, EquipeDaInstituicao.MascararEmail(a.Email), a.SemSenha))], item.Prontidao));
     }
 }

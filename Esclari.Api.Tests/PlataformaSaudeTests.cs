@@ -185,8 +185,8 @@ public class PlataformaSaudeTests(EsclariFactory f) : IClassFixture<EsclariFacto
         Task<string?> Situacao(Instituicao i) => Item(i).ContinueWith(t => t.Result.GetProperty("situacao").GetString());
 
         Assert.Equal("AGUARDANDO_PRIMEIRO_ACESSO", await Situacao(aguardando));
-        Assert.Equal("ATIVA", await Situacao(ativa));
-        Assert.Equal("ATIVA", await Situacao(semAdmin));
+        Assert.Equal("CONFIGURANDO", await Situacao(ativa));
+        Assert.Equal("CONFIGURANDO", await Situacao(semAdmin));
         Assert.Equal("DESATIVADA", await Situacao(desativada));
     }
 }

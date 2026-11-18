@@ -10,7 +10,9 @@ public static class AcoesDaPlataforma
     public const string AcessoReenviado = "ACESSO_REENVIADO";
     public const string CargaImportada = "CARGA_IMPORTADA";
     public const string OperadorAlterado = "OPERADOR_ALTERADO";
+    public const string UsuarioCriado = "USUARIO_CRIADO";
+    public const string UsuarioAlterado = "USUARIO_ALTERADO";
 
     public static readonly IReadOnlyList<string> Todas =
-        [OperadorEntrou, InstituicaoCriada, InstituicaoAlterada, InstituicaoDesativada, InstituicaoReativada, AcessoReenviado, CargaImportada, OperadorAlterado];
+        [OperadorEntrou, InstituicaoCriada, InstituicaoAlterada, InstituicaoDesativada, InstituicaoReativada, AcessoReenviado, CargaImportada, OperadorAlterado, UsuarioCriado, UsuarioAlterado];
 }

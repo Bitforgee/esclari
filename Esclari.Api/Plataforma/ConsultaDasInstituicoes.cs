@@ -7,8 +7,25 @@ public sealed record Saude(
     DateTime? UltimaAtividadeEm, int ChamadosAbertos, int? ChamadoMaisAntigoAbertoDias, int Conversas30Dias, int Respostas30Dias,
     double? SemBaseTaxa30Dias, int AlunosAtivos, int EquipeAtiva, int EmailsComFalha, int ConteudoVencido);
 
+public sealed record ItemDeProntidao(string Codigo, bool Ok);
+
+public sealed record Prontidao(IReadOnlyList<ItemDeProntidao> Itens, bool Pronta)
+{
+    public static Prontidao De(LinhaDeSaude l)
+    {
+        var itens = new ItemDeProntidao[]
+        {
+            new("ADMINISTRADOR_COM_SENHA", l.AdministradoresComSenha > 0),
+            new("ATENDENTE_NO_SETOR", l.AtendenteNoSetor),
+            new("CATEGORIA_COM_REGRA", l.CategoriaComRegra),
+            new("ARTIGO_ATIVO", l.ArtigoAtivo),
+        };
+        return new(itens, itens.All(i => i.Ok));
+    }
+}
+
 public sealed record ItemDaInstituicao(
-    string Slug, string Nome, string Fuso, bool Ativa, DateTime CriadaEm, int Administradores, string Situacao, Saude Saude, IReadOnlyList<string> Atencao);
+    string Slug, string Nome, string Fuso, bool Ativa, DateTime CriadaEm, int Administradores, string Situacao, Saude Saude, IReadOnlyList<string> Atencao, Prontidao Prontidao);
 
 public sealed class LinhaDeSaude
 {
@@ -25,6 +42,9 @@ public sealed class LinhaDeSaude
     public int ConteudoVencido { get; set; }
     public int AdministradoresAtivos { get; set; }
     public int AdministradoresComSenha { get; set; }
+    public bool AtendenteNoSetor { get; set; }
+    public bool CategoriaComRegra { get; set; }
+    public bool ArtigoAtivo { get; set; }
 }
 
 public static class ConsultaDasInstituicoes
@@ -50,7 +70,10 @@ public static class ConsultaDasInstituicoes
               ((SELECT count(*) FROM artigo a WHERE a.instituicao_id = i.id AND a.estado = 'ATIVO' AND a.valido_ate < {hoje})
                + (SELECT count(*) FROM documento d WHERE d.instituicao_id = i.id AND d.estado = 'ATIVO' AND d.valido_ate < {hoje}))::int AS "ConteudoVencido",
               (SELECT count(*) FROM usuario u WHERE u.instituicao_id = i.id AND u.ativo AND EXISTS (SELECT 1 FROM usuario_papel p WHERE p.usuario_id = u.id AND p.papel = 'ADMINISTRADOR'))::int AS "AdministradoresAtivos",
-              (SELECT count(*) FROM usuario u WHERE u.instituicao_id = i.id AND u.ativo AND u.senha_hash IS NOT NULL AND EXISTS (SELECT 1 FROM usuario_papel p WHERE p.usuario_id = u.id AND p.papel = 'ADMINISTRADOR'))::int AS "AdministradoresComSenha"
+              (SELECT count(*) FROM usuario u WHERE u.instituicao_id = i.id AND u.ativo AND u.senha_hash IS NOT NULL AND EXISTS (SELECT 1 FROM usuario_papel p WHERE p.usuario_id = u.id AND p.papel = 'ADMINISTRADOR'))::int AS "AdministradoresComSenha",
+              EXISTS (SELECT 1 FROM usuario u JOIN atendente_setor s ON s.usuario_id = u.id WHERE u.instituicao_id = i.id AND u.ativo AND EXISTS (SELECT 1 FROM usuario_papel p WHERE p.usuario_id = u.id AND p.papel = 'ATENDENTE')) AS "AtendenteNoSetor",
+              EXISTS (SELECT 1 FROM categoria c WHERE c.instituicao_id = i.id AND NOT c.padrao AND EXISTS (SELECT 1 FROM fluxo f WHERE f.categoria_id = c.id AND f.curso_id IS NULL AND f.semestre IS NULL)) AS "CategoriaComRegra",
+              EXISTS (SELECT 1 FROM artigo a WHERE a.instituicao_id = i.id AND a.estado = 'ATIVO' AND a.valido_ate >= {hoje}) AS "ArtigoAtivo"
             FROM instituicao i
             """).ToListAsync()).ToDictionary(l => l.InstituicaoId);
         var instituicoes = await db.Instituicoes.AsNoTracking().Where(i => slug == null || i.Slug == slug).ToListAsync();
@@ -64,11 +87,11 @@ public static class ConsultaDasInstituicoes
         var dias = l.MaisAntigoAbertoEm is { } antigo ? (int?)Math.Floor((agora - antigo).TotalDays) : null;
         var saude = new Saude(l.UltimaAtividadeEm, l.ChamadosAbertos, dias, l.Conversas30Dias, l.Respostas30Dias,
             l.Respostas30Dias == 0 ? null : (double)l.SemBase30Dias / l.Respostas30Dias, l.AlunosAtivos, l.EquipeAtiva, l.EmailsComFalha, l.ConteudoVencido);
-        return new(i.Slug, i.Nome, i.Fuso, i.Ativa, i.CriadaEm, l.AdministradoresAtivos, Situacao(i, l), saude, i.Ativa ? Atencao(i, saude, agora, prazos) : []);
+        return new(i.Slug, i.Nome, i.Fuso, i.Ativa, i.CriadaEm, l.AdministradoresAtivos, Situacao(i, l), saude, i.Ativa ? Atencao(i, saude, agora, prazos) : [], Prontidao.De(l));
     }
 
     static string Situacao(Instituicao i, LinhaDeSaude l) =>
-        !i.Ativa ? "DESATIVADA" : l.AdministradoresAtivos > 0 && l.AdministradoresComSenha == 0 ? "AGUARDANDO_PRIMEIRO_ACESSO" : "ATIVA";
+        !i.Ativa ? "DESATIVADA" : l.AdministradoresAtivos > 0 && l.AdministradoresComSenha == 0 ? "AGUARDANDO_PRIMEIRO_ACESSO" : Prontidao.De(l).Pronta ? "ATIVA" : "CONFIGURANDO";
 
     static List<string> Atencao(Instituicao i, Saude s, DateTime agora, Prazos prazos)
     {
