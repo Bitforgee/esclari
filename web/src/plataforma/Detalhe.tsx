@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { AvisoDeCriacao, type Criada, ImportarCarga } from './Carga'
 import { Equipe } from './Equipe'
 import { Implantacao, type Prontidao } from './Implantacao'
+import { AbaDeParametros } from './Parametros'
 
 type Detalhe = { slug: string; nome: string; situacao: string; prontidao: Prontidao }
 
@@ -31,10 +32,14 @@ function Abas({ slug, d, recarregar }: { slug: string; d?: Detalhe; recarregar: 
     <Tabs defaultValue="implantacao">
       <TabsList>
         <TabsTrigger value="implantacao">Implantação</TabsTrigger>
+        <TabsTrigger value="parametros">Parâmetros</TabsTrigger>
       </TabsList>
       <TabsContent value="implantacao" className="flex flex-col gap-6 pt-2">
         {d && <Implantacao slug={slug} prontidao={d.prontidao} recarregar={recarregar} />}
         {d && <Equipe slug={slug} nome={d.nome} recarregar={recarregar} />}
+      </TabsContent>
+      <TabsContent value="parametros" className="pt-2">
+        <AbaDeParametros slug={slug} />
       </TabsContent>
     </Tabs>
   )

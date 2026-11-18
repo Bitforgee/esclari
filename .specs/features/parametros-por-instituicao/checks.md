@@ -98,4 +98,5 @@ Proof: `npm --prefix web test -- src/plataforma/parametros.test.tsx -t "erro no 
 
 - Mechanism: one builder
 - Verificação enxuta por decisão do dono (18/11): Verifier independente, perfil `standard`, uma rodada, no máximo 3 falhas injetadas
-- Base da verificação: o commit que leva `checks.md`
+- Base da verificação: `2b1f6b0` (commit de `checks.md`)
+- `ParametrosDaInstituicao` é um record com sete propriedades `init` (e não posicional) porque `ArquiteturaTests.Dados_ate_5_parametros` limita construtores de `Dados` a 5 parâmetros
