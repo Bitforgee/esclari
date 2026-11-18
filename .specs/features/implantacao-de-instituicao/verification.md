@@ -1,9 +1,9 @@
 # Implantação de instituição verification
 
-**Verdict**: FAIL
+**Verdict**: PASS
 **Profile**: standard
-**Diff range**: f2c6391..3ed7386
-**Round**: 1 - full
+**Diff range**: f2c6391..cc1a912
+**Round**: 2 - scoped (round 1 FAIL kept below as history)
 **Verifier**: independent sub-agent (author != verifier)
 
 Os 24 checks têm prova que roda e passa em `HEAD`, mas uma falha injetada sobreviveu: `ARTIGO_ATIVO` ignorando a validade (AC 23, C20) não derruba nenhum teste. Por isso o veredito é FAIL. Verificação enxuta por decisão do dono (18/11): uma rodada, 3 falhas injetadas no máximo, sem Playwright e sem `mutator` (AD-025).
@@ -25,13 +25,13 @@ Os 24 checks têm prova que roda e passa em `HEAD`, mas uma falha injetada sobre
 | C11 | atendente sem setor ou com setor de outra instituição responde 400 em `setores` | `Aprovado ...Atendente_exige_setor_da_propria_instituicao` | `ImplantacaoEquipeTests.cs:98-99` - 400 e `errors.setores` para vazio, setor de outra e id inexistente | PASS |
 | C12 | CPF ou e-mail repetido 409; CPF ou e-mail inválido 400 | `Aprovado ...Repetido_409_e_invalido_400` | `ImplantacaoEquipeTests.cs:112-113` - `Conflict` por CPF e por e-mail; `:114-115` - `BadRequest` | PASS |
 | C13 | `GET /equipe` só equipe, e-mail e CPF mascarados, sem aluno | `Aprovado ...Lista_so_equipe_mascarada` | `ImplantacaoEquipeTests.cs:129` - `Assert.Single(...)` com um aluno semeado; `:130` - `"***.456.789-**"`; `:131` - `^.\*\*\*@` | PASS |
-| C14 | convite novo invalida o anterior e responde 204; quem já tem senha 409 | `Aprovado ...Convite_novo_invalida_o_anterior` | `ImplantacaoEquipeTests.cs:146` - `NoContent`; `:149-150` - token 0 inválido, token 1 válido; `:153` - `Conflict` | PASS (lacuna de precisão: ver Findings 2) |
+| C14 | convite novo invalida o anterior e responde 204; quem já tem senha 409 | `Aprovado ...Convite_novo_invalida_o_anterior` | `ImplantacaoEquipeTests.cs:146` - `NoContent`; `:149-150` - token 0 inválido, token 1 válido; `:153` - `Conflict` | PASS (round 2: o teste agora conta os 2 e-mails; ver Round 2) |
 | C15 | desativar marca inativo, `USUARIO_ALTERADO`, 204; último administrador 409 | `Aprovado ...Desativar_protege_o_ultimo_administrador` | `ImplantacaoEquipeTests.cs:163` - `Conflict` para o único; `:165` - `NoContent`; `:167` - `Assert.False(...Ativo)`; `:168` auditoria 1 | PASS |
 | C16 | reativar marca ativo, `USUARIO_ALTERADO`, 204 | `Aprovado ...Reativar_volta_a_ativo` | `ImplantacaoEquipeTests.cs:182` - `NoContent`; `:183` - `Assert.True(...Ativo)`; `:184` auditoria 2 (desativar + reativar) | PASS |
 | C17 | convite, desativar, reativar de aluno, de outra instituição e de id inexistente respondem 404 | `Aprovado ...Aluno_e_outra_instituicao_404` | `ImplantacaoEquipeTests.cs:196-198` - `NotFound` para 3 ids x 3 ações; `:199` aluno segue ativo | PASS |
 | C18 | `resumo` tem `id` e papéis, nunca CPF nem e-mail | `Aprovado ...Resumo_sem_cpf_nem_email` | `ImplantacaoEquipeTests.cs:216` - 3 linhas; `:219-222` - contém `usuário {id}` e `ADMINISTRADOR, ATENDENTE`, não contém e-mail nem CPF; `:223` - sem padrão de CPF | PASS |
 | C19 | sem sessão, todas as rotas novas respondem 401 | `Aprovado ...Sem_sessao_401_em_toda_rota_nova` | `ImplantacaoEquipeTests.cs:235` - as 9 rotas; `:238` - `Assert.Equal(HttpStatusCode.Unauthorized, ...)` | PASS |
-| C20 | `prontidao` com os 4 itens conforme AC 23; `pronta` só com os 4 `ok` | `Aprovado ImplantacaoProntidaoTests.Quatro_itens_e_pronta` | `Esclari.Api.Tests/ImplantacaoProntidaoTests.cs:28` - ordem dos 4 códigos; `:29-30` todos falsos e `pronta` falso; `:33,46,50,56` cada item vira `true`; `:58-59` todos `ok` e `pronta` | PASS (lacuna de nível: ver Findings 1; o item `ARTIGO_ATIVO` não prova a validade) |
+| C20 | `prontidao` com os 4 itens conforme AC 23; `pronta` só com os 4 `ok` | `Aprovado ImplantacaoProntidaoTests.Quatro_itens_e_pronta` | `Esclari.Api.Tests/ImplantacaoProntidaoTests.cs:28` - ordem dos 4 códigos; `:29-30` todos falsos e `pronta` falso; `:33,46,50,56` cada item vira `true`; `:58-59` todos `ok` e `pronta` | PASS (round 2: casos negativos dos 4 itens; ver Round 2) |
 | C21 | `CONFIGURANDO`, `ATIVA`, `DESATIVADA` | `Aprovado ...Situacao_configurando_ativa_desativada` | `ImplantacaoProntidaoTests.cs:78` - `"CONFIGURANDO"`; `:83` - `"ATIVA"`; `:85` - `"DESATIVADA"` | PASS |
 | C22 | depois de criar, abre o detalhe na aba "Implantação" com 4 itens, estado e botão do passo | `npm --prefix web test -- src/plataforma/implantacao.test.tsx -t "criar leva a implantacao com os quatro itens"` 1 passed, 3 skipped | `web/src/plataforma/implantacao.test.tsx:52` - `findByRole('tab', { name: 'Implantação', selected: true })`; `:56-61` - os 4 textos com `Feito`/`Pendente` e botões "Ir para a equipe inicial" e "Ir para a carga inicial" | PASS |
 | C23 | passos "Carga inicial" e "Equipe inicial"; "Simular" antes de "Importar" com contagens ou erros | `... -t "carga inicial simula antes de importar"` 1 passed, 3 skipped | `implantacao.test.tsx:77` - `compareDocumentPosition(...) & DOCUMENT_POSITION_FOLLOWING`; `:83` - texto das contagens; `:84` - `expect(gravacoes(chamadas)).toEqual([])`; `:93-94` - os dois erros em linhas diferentes | PASS |
@@ -45,7 +45,7 @@ Os 24 checks têm prova que roda e passa em `HEAD`, mas uma falha injetada sobre
 | status `POST .../equipe` (5) | `CriarMembro.cs`, `EquipeDaInstituicao.cs:39-58` | 201 C8 · 400 C9 C11 C12 · 401 C19 · 404 C17 (rota alvo desconhecida: `EquipeDaInstituicao.Alvo`, sem teste direto no POST) · 409 C12 | - |
 | status convite, desativar, reativar (4) | `ConvidarMembro.cs`, `DesativarMembro.cs:18-22`, `ReativarMembro.cs` | 204 C14 C15 C16 · 401 C19 · 404 C17 · 409 C14 C15 | - |
 | ações novas da auditoria (2) | `Esclari.Api/Dados/Operadores/AcoesDaPlataforma.cs` | `USUARIO_CRIADO` C8 C18 · `USUARIO_ALTERADO` C15 C16 C18 | - |
-| itens da prontidão (4) | `ConsultaDasInstituicoes.cs` `Prontidao.De` | `ADMINISTRADOR_COM_SENHA` C20 · `ATENDENTE_NO_SETOR` C20 · `CATEGORIA_COM_REGRA` C20 · `ARTIGO_ATIVO` C20 só no caso feliz | `ARTIGO_ATIVO` dentro da validade: nenhum teste o prova (falha 3) |
+| itens da prontidão (4) | `ConsultaDasInstituicoes.cs` `Prontidao.De` | `ADMINISTRADOR_COM_SENHA` C20 · `ATENDENTE_NO_SETOR` C20 · `CATEGORIA_COM_REGRA` C20 · `ARTIGO_ATIVO` C20 (feliz e vencido, round 2) | - |
 | `situacao` (3) | `ConsultaDasInstituicoes.cs` `Situacao` | `CONFIGURANDO` C21 · `ATIVA` C21 · `DESATIVADA` C21 · precedência de `AGUARDANDO_PRIMEIRO_ACESSO` em `PlataformaSaudeTests.Situacao_nos_tres_valores` (diff `PlataformaSaudeTests.cs:188-190`) | - |
 
 ## Test policy rows
@@ -84,3 +84,34 @@ A primeira rodada rodou as três falhas juntas e a segunda falha mascarou a terc
 `cd web; npx vitest run` - 1142 passed, 0 failed
 `npm --prefix web test -- src/plataforma/implantacao.test.tsx -t "<nome>"` (3 provas) - 1 passed, 3 skipped cada
 `npm --prefix web test -- src/plataforma/instituicoes.test.tsx -t "criar leva a importar a carga na mesma tela"` - 1 passed, 11 skipped
+
+## Round 2
+
+**Diff range**: f2c6391..cc1a912. Rodada escopada, enxuta por decisão do dono (18/11): 3 falhas, um worktree descartável (`git worktree add ..\esclari-verify-impl2 HEAD`, removido com `git worktree remove --force`), sem Playwright, sem `mutator` (AD-025).
+
+**Commit `cc1a912`** (`git diff cc1a912~1 cc1a912`): só testes mudam (`ImplantacaoEquipeTests.cs` +2 linhas, `ImplantacaoProntidaoTests.cs` +20/-3) mais este `verification.md`; `checks.md` não foi tocado. Nenhuma asserção foi enfraquecida. Em `Quatro_itens_e_pronta` saíram 3 linhas: o `desativar` do administrador e o `Assert.Equal(Conflict, ...)` do último administrador. Isso não era prova de C20 (a prova do 409 está em C15, `Desativar_protege_o_ultimo_administrador`, que continua passando e já matava a falha 2 da rodada 1). O administrador agora é criado sem senha (esperado `false`) e depois com senha (`true`); entraram casos negativos para atendente inativo, categoria padrão com fluxo publicado e artigo vencido.
+
+### Faults injected
+
+| Mutation | Location | Killed |
+| --- | --- | --- |
+| `ARTIGO_ATIVO` ignora a validade (remove `AND a.valido_ate >= {hoje}`) | `Esclari.Api/Plataforma/ConsultaDasInstituicoes.cs:76` | yes - `ImplantacaoProntidaoTests.Quatro_itens_e_pronta` falha (`Assert.False() Failure, Expected: False, Actual: True`) |
+| `CATEGORIA_COM_REGRA` conta a categoria padrão (remove `AND NOT c.padrao`) | `Esclari.Api/Plataforma/ConsultaDasInstituicoes.cs:75` | yes - `ImplantacaoProntidaoTests.Quatro_itens_e_pronta` falha (`Assert.False() Failure, Expected: False, Actual: True`) |
+| `ConvidarMembro` não enfileira o e-mail (remove `db.EmailsSaida.Add(...)`) | `Esclari.Api/Plataforma/ConvidarMembro.cs:26` | yes - `ImplantacaoEquipeTests.Convite_novo_invalida_o_anterior` falha (`Assert.Equal() Failure, Expected: 2, Actual: 1`) |
+
+Cada falha foi injetada sozinha, compilada e testada com `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~<Classe>"`; o arquivo foi restaurado depois de cada uma e o worktree foi removido. O repositório real ficou igual (`git status --short`: só `?? .tmp-capturas/`, anterior).
+
+### Proofs re-run (árvore principal, HEAD `cc1a912`)
+
+| Check | Proof run | Result |
+| --- | --- | --- |
+| C14 | `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ImplantacaoEquipeTests.Convite_novo_invalida_o_anterior"` | 1 passed, 0 failed - PASS |
+| C20 | `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ImplantacaoProntidaoTests.Quatro_itens_e_pronta"` | 1 passed, 0 failed - PASS |
+| Suíte | `dotnet test Esclari.Api.Tests` | 1291 passed, 0 failed |
+
+### Findings
+
+1. Findings 1 e 2 da rodada 1 estão resolvidos: as falhas 3 (validade), `NOT c.padrao` e o e-mail do convite agora derrubam teste.
+2. Finding 3 (transação do C8 não observável por HTTP) segue aceito.
+
+Os 24 checks têm PASS em `HEAD`; C1 a C19 e C21 a C24 mantêm a evidência da rodada 1, inalterada pelo `cc1a912` (que só toca `ImplantacaoEquipeTests`/`ImplantacaoProntidaoTests`, e a suíte inteira passa).
