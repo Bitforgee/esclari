@@ -101,11 +101,13 @@ public class ArtigoDoChamadoTests(EsclariFactoryValidade f) : IClassFixture<Escl
         Assert.True((await t.Lider!.Cliente.PostAsync($"/api/chamados/{numero}/assumir", null)).IsSuccessStatusCode);
         Assert.True((await t.Lider.Cliente.PostAsJsonAsync($"/api/chamados/{numero}/resolver", new { texto = "Nota revisada pela coordenação." })).IsSuccessStatusCode);
         Assert.Equal(EstadosChamado.Resolvido, (await t.Ler(numero)).Estado);
+        Assert.Equal("PODE_CRIAR", (await t.Detalhe(t.Lider.Cliente, numero)).GetProperty("artigoDaResposta").GetString());
 
         var r = await Criar(t.Lider.Cliente, numero, Corpo(resposta: "Nota revisada pela coordenação."));
 
         Assert.Equal(HttpStatusCode.Created, r.StatusCode);
         Assert.Equal(numero, (await r.Json()).GetProperty("origemChamado").GetString());
+        Assert.Equal("CRIADO", (await t.Detalhe(t.Lider.Cliente, numero)).GetProperty("artigoDaResposta").GetString());
     }
 
     [Fact]
@@ -181,12 +183,18 @@ public class ArtigoDoChamadoTests(EsclariFactoryValidade f) : IClassFixture<Escl
     {
         var b = await Balcao.Criar(f);
         var numero = await b.Chamado(EstadosChamado.Resolvido);
+        var chamadoId = (await b.Ler(numero)).Id;
+        var segunda = new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
+        f.Gravacoes.AntesDeGravar(
+            db => db.ChangeTracker.Entries<Artigo>().Any(e => e.State == EntityState.Added && e.Entity.OrigemChamadoId == chamadoId),
+            async () => segunda.SetResult(await Criar(b.B.Cliente, numero)));
 
-        var respostas = await Task.WhenAll(Criar(b.A.Cliente, numero), Criar(b.B.Cliente, numero));
+        var respostas = await Task.WhenAll(Criar(b.A.Cliente, numero), segunda.Task.WaitAsync(TimeSpan.FromSeconds(30)));
 
+        Assert.Equal(HttpStatusCode.Created, respostas[1].StatusCode);
+        await Problema(respostas[0], HttpStatusCode.Conflict, "Este chamado já originou o artigo “Segunda via do boleto”.");
         Assert.Equal([HttpStatusCode.Created, HttpStatusCode.Conflict], respostas.Select(r => r.StatusCode).Order());
-        await Problema(respostas.Single(r => r.StatusCode == HttpStatusCode.Conflict), HttpStatusCode.Conflict, "Este chamado já originou o artigo “Segunda via do boleto”.");
-        Assert.Equal(1, await DaOrigem(b, (await b.Ler(numero)).Id));
+        Assert.Equal(1, await DaOrigem(b, chamadoId));
     }
 
     [Fact]
@@ -256,6 +264,9 @@ public class ArtigoDoChamadoTests(EsclariFactoryValidade f) : IClassFixture<Escl
 
         Assert.Equal(HttpStatusCode.Forbidden, (await Criar(b.ClienteAluno, aberto, Corpo(titulo: ""))).StatusCode);
         await Campo(await Criar(b.A.Cliente, aberto, Corpo(titulo: "")), "titulo");
+        var camposECpf = await Criar(b.A.Cliente, aberto, Corpo(titulo: "", resposta: "CPF 11144477735"));
+        await Campo(camposECpf, "titulo");
+        Assert.False(JsonDocument.Parse(await camposECpf.Content.ReadAsStringAsync()).RootElement.GetProperty("errors").TryGetProperty("resposta", out _));
         await Campo(await Criar(b.A.Cliente, aberto, Corpo(resposta: "CPF 11144477735")), "resposta", ComCpf);
         await Problema(await Criar(b.A.Cliente, aberto), HttpStatusCode.Conflict, NaoResolvido);
         await Campo(await Criar(b.A.Cliente, resolvido, Corpo(titulo: "")), "titulo");
@@ -307,6 +318,14 @@ public class ArtigoDoChamadoTests(EsclariFactoryValidade f) : IClassFixture<Escl
         Assert.Equal(PostgresErrorCodes.UniqueViolation, Assert.IsType<PostgresException>(e.InnerException).SqlState);
         Assert.Equal(3, await Artigos(b));
         Assert.Equal(1, await DaOrigem(b, chamado.Id));
+    }
+
+    [Fact]
+    public async Task Fk_da_origem_anula_ao_apagar_o_chamado()
+    {
+        var acao = await f.Db(null, db => db.Database.SqlQueryRaw<string>("SELECT confdeltype::text AS \"Value\" FROM pg_constraint WHERE conname = 'fk_artigo_chamados_origem_chamado_id'").SingleAsync());
+
+        Assert.Equal("n", acao);
     }
 
     [Fact]

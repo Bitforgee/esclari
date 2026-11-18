@@ -190,6 +190,11 @@ public class ContadorDeGravacoes : SaveChangesInterceptor
     public bool FalharAoGravarEmail { get; set; }
     public TimeSpan Atraso { get; set; }
 
+    sealed record Gancho(Func<DbContext, bool> Quando, Func<Task> Acao);
+    Gancho? antesDeGravar;
+
+    public void AntesDeGravar(Func<DbContext, bool> quando, Func<Task> acao) => antesDeGravar = new(quando, acao);
+
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         Interlocked.Increment(ref total);
@@ -201,6 +206,8 @@ public class ContadorDeGravacoes : SaveChangesInterceptor
         Interlocked.Increment(ref total);
         if (FalharAoGravarEmail && eventData.Context!.ChangeTracker.Entries<EmailSaida>().Any(e => e.State == EntityState.Added)) throw new InvalidOperationException("gravação do e-mail simulada");
         if (Atraso > TimeSpan.Zero) await Task.Delay(Atraso, cancellationToken);
+        if (antesDeGravar is { } gancho && gancho.Quando(eventData.Context!) && Interlocked.CompareExchange(ref antesDeGravar, null, gancho) == gancho)
+            await gancho.Acao();
         return await base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 }

@@ -65,8 +65,19 @@ describe('origem do artigo', () => {
     expect(screen.queryByText('Segunda via do boleto')).toBeNull()
     montada.unmount()
 
-    abrir('/univag/artigos?estado=rascunho')
+    const comRascunho = abrir('/univag/artigos?estado=rascunho')
     await screen.findByText('Segunda via do boleto')
     expect(screen.queryByText('Abono de faltas')).toBeNull()
+    comRascunho.unmount()
+
+    api({
+      'GET /api/auth/me': () => [200, admin],
+      'GET /api/admin/artigos': () => [200, [artigo(1, 'Segunda via do boleto', 'RASCUNHO', 'ESC-000123'), artigo(2, 'Abono de faltas', 'ATIVO', null)]],
+      'GET /api/admin/categorias': () => [200, [{ id: 3, nome: 'Financeiro', ativa: true }]],
+    })
+    abrir('/univag/artigos?estado=arquivado')
+    expect(await screen.findByText('Nenhum artigo nesta situação.')).toBeInTheDocument()
+    expect(screen.queryByText('Segunda via do boleto')).toBeNull()
+    expect(screen.getByLabelText('Situação', { selector: 'select' })).toHaveValue('arquivado')
   })
 })
