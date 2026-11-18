@@ -1,6 +1,6 @@
 # Artigo a partir da resposta de um chamado - verificação
 
-**Verdict**: FAIL (1 check reprovado: C14; 2 checks aprovados com gap: C9, C20)
+**Verdict**: PASS (rodada 2 escopada: C14, C9 e C20 aprovados; ver `## Rodada 2`)
 **Profile**: ui
 **Diff range**: 1cef2ea..6ddc5c2 (commits da feature: `5d2224b` checks, `cd7e95f` API, `9243ee4` web, `d38a243` handoff, `02b9e5b` emendas, `b57541a` filtro "Situação"; os commits de `validade-do-conhecimento` e `prazos-de-atendimento` no meio do range rodaram junto nas suítes inteiras)
 **Round**: 1
@@ -189,3 +189,18 @@ Sem peso no veredito:
    - (a) um teste de concorrência com `Task.WhenAll` de duas requisições pode deixar de correr junto quando a suíte aquece; a prova do check rodada sozinha mata a falta e a suíte inteira não. Force a corrida com uma barreira (interceptor ou inserção no meio) em vez de contar com o tempo.
    - (b) quando um check afirma uma ordem de N recusas, cada par vizinho precisa de um caso com as duas condições juntas; listar só alguns pares deixa as trocas entre os outros sem prova.
    - (c) um campo calculado por papel (`ATENDENTE` ou `LIDER`) precisa de um caso por papel na rota que o devolve, não só na rota que age.
+
+## Rodada 2 (escopada, fechamento)
+
+Correções de teste em 061f8d5. Comandos (`--no-build`, sem alterar produto):
+- `dotnet test Esclari.Api.Tests --no-build --filter "FullyQualifiedName~ArtigoDoChamadoTests"`: 20 passaram, 0 falharam.
+- Filtro nos três testes (`Duas_chamadas_simultaneas`, `Recusas_na_ordem`, `Detalhe_diz`): 3 passaram, 0 falharam.
+- `npx vitest run src/conhecimento/origem.test.tsx` (em `web/`): 2 passaram, 0 falharam.
+
+| Check | Resultado | Leitura |
+|---|---|---|
+| C14 | PASS | `Recusas_na_ordem_acesso_campos_estado` ganhou o caso título vazio + CPF na resposta: exige erro em `titulo` e ausência de `resposta` em `errors`. Com CPF checado antes dos campos, o erro seria `resposta` e a asserção falharia. Com isso os 5 pares mais o par campos/CPF fixam a ordem. |
+| C9 | PASS | A corrida agora é forçada por gancho `AntesDeGravar` (`EsclariFactory`): a segunda requisição entra antes da gravação da primeira. Exige `201` na segunda, `409` com o detail do C8 na primeira e 1 artigo; o `409` vem do índice único e não depende de rodar frio. |
+| C20 | PASS | O teste do líder agora afirma `PODE_CRIAR` e depois `CRIADO` via `Detalhe` com o cliente `LIDER`; remover `LIDER` do campo (F34) faria o teste falhar. |
+
+Sem verificar (rodada escopada): nenhuma falta injetada (exigiria rebuild, vetado por haver outros verificadores no mesmo build); a asserção do C14 e do C9 foi avaliada só por raciocínio sobre o código. Suíte inteira, e2e/Playwright, build e gates `crapper`/`dryer` não rodados; vale a rodada 1 para o restante.

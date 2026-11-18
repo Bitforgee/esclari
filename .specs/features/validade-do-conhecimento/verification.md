@@ -1,6 +1,6 @@
 # Validade de um ano para artigos e documentos - verificação
 
-**Verdict**: FAIL (rodada 2, em `061f8d5`: 1 check reprovado, C23. Na rodada 1, em `b57541a`, o reprovado era o C42, e os gaps eram C4, C5 e C32; os quatro fecharam na rodada 2. Detalhes em `## Rodada 2`)
+**Verdict**: PASS (rodada 3 escopada: C23 fechou. Rodada 2 em `061f8d5` reprovou só o C23; rodada 1 reprovou C42, C4, C5 e C32, que fecharam na rodada 2)
 **Profile**: ui
 **Diff range**: rodada 2 em 39cdc29..061f8d5; rodada 1 em 39cdc29..b57541a (commits da feature: `7c4141b`, `1f725c0`, `1431bf6`, `99d99fe`, e `b57541a`, que moveu o filtro de `web/src/conhecimento/Validade.tsx` para o genérico `FiltroNaUrl.tsx`; os commits de `prazos-de-atendimento` e `artigo-a-partir-do-chamado` no meio do range rodaram junto nas suítes inteiras)
 **Round**: 2 (a rodada 1 segue abaixo sem mudança; a rodada 2 está em `## Rodada 2`, no fim do arquivo)
@@ -296,3 +296,13 @@ Sem peso no veredito:
 1. **R2-1.** O código de produto não mudou entre `b57541a` e `061f8d5` nesta feature. A rodada 2 só confirma que os testes de `c45ac55` fecham os 4 achados da rodada 1: F5, F6, F22, W7 e W8 morreram.
 2. **R2-2.** Com E2a, uma linha da lista mais larga que a coluna fica cortada sem rolagem. O C46 afirma "sem rolagem horizontal", não "nada cortado", então a falta não contradiz o check. Se o dono quiser essa garantia, o e2e pode conferir que nenhuma linha da tabela tem `scrollWidth` maior que `clientWidth`.
 3. **R2-3.** Lição candidata para quem tiver a skill registrar com `lessons.py`: um teste de marco que avança (30 dias, depois 7 dias) precisa partir do estado anterior real (o aviso de 30 dias já gravado). Do contrário, a regra de "já avisado" fica sem prova.
+
+## Rodada 3 (escopada, fechamento)
+
+**C23: PASS.** Correção só de teste em `c06eaa2` (`Esclari.Api.Tests/AvisarValidadeTests.cs`, 4 linhas).
+
+- `dotnet test Esclari.Api.Tests --no-build --filter "FullyQualifiedName~AvisarValidadeTests.Marco_de_7_dias"`: Aprovado 1, Falha 0, Total 1. A DLL (18/11 06:50) é posterior ao arquivo de teste (01:41), então o build contém a correção.
+- Leitura: o teste grava `EM_30_DIAS` para o item a 7 dias e para o a 8 dias, roda a tarefa e exige exatamente `EM_30_DIAS` (8d), `EM_30_DIAS` (7d) e `EM_7_DIAS` (7d), com um só e-mail que cita Trancamento e não Rematrícula. Isso decide a afirmação do C23 pelo caminho real (30 dias antes de 7) que a falta N11 escapava.
+- `git diff --stat 061f8d5..HEAD -- Esclari.Api web/src`: só `Esclari.Api.Tests/AvisarValidadeTests.cs` (fora desses caminhos, só docs/specs). Nenhum código de produto mudou.
+
+**Sem verificar (rodada escopada):** não injetei falta (N11 não foi reaplicada, exigiria rebuild); não rodei a suíte inteira, web nem e2e; a prova de que o teste novo pega N11 vem da leitura, não de execução.

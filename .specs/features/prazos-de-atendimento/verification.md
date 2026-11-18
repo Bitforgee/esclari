@@ -1,6 +1,6 @@
 # Prazos de atendimento, estouro e acompanhamento da gestão - verificação
 
-**Verdict**: FAIL (1 check reprovado: C22; 5 checks aprovados com gap: C2, C13, C23, C30, C35)
+**Verdict**: PASS (rodada 2, escopada: C22 corrigido; C2, C13, C23, C35 com a prova agora decisiva; C30 segue PASS com a nota de que a prova citada só afirma o registro)
 **Profile**: ui
 **Diff range**: 99d99fe..c45ac55 (commits da feature: `761f988` API, `dcce2cf` web, `1cef2ea` handoff; os commits de `artigo-a-partir-do-chamado` e as correções de `validade-do-conhecimento` no meio do range rodaram junto nas suítes inteiras)
 **Round**: 1
@@ -217,3 +217,22 @@ Sem peso no veredito:
    - (a) um teste de tempo que avança o relógio pela constante do código (`Repeticao - 1 min`) não prova o valor da constante. Use o valor literal do check.
    - (b) quando a regra é provada só na entidade e há outras leituras que montam os dados dela com consultas próprias (lote, painel), cada leitura precisa de um caso com o dado que muda a regra (aqui, pausa e nota interna). A mesma lição (b) da verificação de `validade-do-conhecimento` aparece de novo.
    - (c) um teste de tela que usa o valor padrão (24) não distingue o valor vindo da API de um texto fixo. Use um valor diferente do padrão.
+
+## Rodada 2 (escopada, fechamento)
+
+Verificador independente, sobre `6ddc5c2` (só testes e emenda E4 do checks.md). Sem build, sem suíte inteira, sem e-2-e, sem Playwright; **não injetei faltas** (exigiria rebuild); F21, F15, F16, F43, F44 e W6 foram só reavaliadas por leitura.
+
+| Check | Veredito | Leitura |
+|---|---|---|
+| C22 | PASS | `AvisarAtrasosTests.cs:124` avança `TimeSpan.FromHours(24) - TimeSpan.FromMinutes(1)` (23 h 59 min de fato): com `Repeticao` em 12 h o teste repetiria e reprovaria |
+| C23 | PASS | `:141` avança `TimeSpan.FromHours(24)` literal; o gap da rodada 1 fechou |
+| C13 | PASS | `Filtro_atraso` ganhou chamado com 30 h em `AGUARDANDO_ALUNO` (atraso null), só nota interna (`PRIMEIRA_RESPOSTA`) e respondido em dia (null), conferidos no campo `atraso` de `busca`, em `atraso=true` e `atraso=false`: pegam F15 e F16 |
+| C35 | PASS | `Prazos_traz_metas_e_atraso_agora` ganhou os mesmos três (pausa, nota, resposta pública) e afirma `emAtrasoAgora` 4 e mais antigo 5 dias: pegam F43 e F44 |
+| C2 | PASS | caso novo com `prazoPrimeiraRespostaHoras: 8` espera "até 8 horas" e nega "até 24 horas": pega W6 |
+| C30 | PASS (nota) | a prova citada (`AgendadorTarefasTests`) segue afirmando só registro e ordem; os resultados das regras passam nas classes `AgendadorTests`, `ExtrasTests`, `ChamadoAgendadorDominioTests` e `AgendadorConcorrenciaTests` (rodadas abaixo). Check aprovado não muda |
+
+Comandos:
+- `dotnet test Esclari.Api.Tests --no-build --filter "FullyQualifiedName~PrazosAtendimentoTests|~AvisarAtrasosTests|~AgendadorTarefasTests|~BuscaDeChamadosTests|~IndicadoresDetalheTests|~AgendadorTests|~ExtrasTests|~ChamadoAgendadorDominioTests|~AgendadorConcorrenciaTests"`: 126 passed, 0 failed, 0 skipped (126).
+- `cd web; npx vitest run src/assistente/prazo.test.tsx`: 1 file, 2 passed (2) (`confirmacao com prazo` e `... de 8 horas`).
+
+Não verificado por ser escopada: suíte inteira da API e do Vitest, e2e, `crapper`, `dryer`, os demais 47 checks e as faltas injetadas (as asserções novas foram conferidas só por leitura, sem rebuild).
