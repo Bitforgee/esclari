@@ -5,6 +5,12 @@ Plan: `.specs/features/artigo-a-partir-do-chamado/plan.md`
 
 34 checks em 3 slices · 1 one-way door · 0 perguntas abertas (plano aprovado pelo dono em 17/11/2026: "aprovo o plano artigo-a-partir-do-chamado pode iniciar a construção"; AD-070)
 
+**Emenda de construção E1 (C31; aceita no AD-071).** "O formulário ocupa a largura da tela" vale em 360×780, como o Observable do plano diz. Em 844×390 o `Editor` existente abre a janela de 512 px (o corte dele é `max-width: 767px`), com rolagem vertical e "Salvar rascunho" no fim, visível ao rolar.
+
+**Emenda de construção E2 (C21; aceita no AD-071).** `artigoDaResposta` também entra na linha `POST /api/chamados/{numero}/duplicado` do `sucessos.txt`, porque o chamado marcado como duplicado fica `FECHADO` e `FECHADO` pode originar artigo (AC 1). O retrato só acrescenta `origemChamado` nas rotas de artigo, `artigoDaResposta` em `resolver` e `duplicado` e a linha da rota nova.
+
+**Emenda de construção E3 (AC 12, C30; aceita no AD-071).** A tela `Artigos` não tem filtro de estado. O rascunho aparece pelo selo "Rascunho" da linha, que o C30 prova; filtro de estado novo fica fora desta feature.
+
 **Como as provas rodam.** Na raiz `D:\esclari`, salvo `cd web &&`. API: `docker compose up -d postgres mailpit minio` e uma execução de `dotnet test` por vez. Vitest: `cd web && npx vitest run <arquivo> -t "<nome>"`. E2E: `docker compose up -d --build` e depois `cd web && npx playwright test <spec> --workers=1`. Um filtro que não seleciona teste sai com 0 (L-002): conferir a contagem de testes executados. `mutator` está suspenso (AD-025). Os nomes de teste abaixo são o contrato: os testes são escritos a partir dos checks, antes da implementação, e cada um nasce em `Esclari.Api.Tests` ou `web/src` com o nome citado. O relógio dos testes da API é o de `EsclariFactoryValidade` (`2026-11-17T12:00Z`, hoje `2026-11-17`). Nos exemplos, o chamado nasce de `Balcao.Chamado` (resolvido pela atendente A com "Boleto reemitido.") e o corpo válido é `{ titulo: "Segunda via do boleto", perguntas: ["como tiro a segunda via do boleto?"], resposta: "Boleto reemitido.", links: [] }`.
 
 **Notas de precisão (L-021, tiradas do código).**

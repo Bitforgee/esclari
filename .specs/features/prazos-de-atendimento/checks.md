@@ -5,6 +5,12 @@ Plan: `.specs/features/prazos-de-atendimento/plan.md`
 
 53 checks em 5 slices · 3 one-way doors · 0 perguntas abertas (plano aprovado pelo dono em 17/11/2026: "siga com o que for recomendado", "aprovo"; AD-068)
 
+**Emenda de construção E1 (C1 e C48; aceita no AD-071).** `POST /api/conversas/{id}/transferir` responde `201 Created` desde antes desta feature (retrato `sucessos.txt`), não `200`. Onde C1 e C48 e o Surface do plano dizem `200`, leia `201`; o resto das afirmações não muda.
+
+**Emenda de construção E2 (C51; aceita no AD-071).** O retrato de sucessos ganha as linhas de `GET /api/chamados/busca` e `GET /api/indicadores/detalhe`, que a base não gravava, para cobrir as 4 rotas do Surface. `POST /api/chamados/{numero}/mensagens` do aluno também passa a trazer `prazoPrimeiraRespostaEm`, porque as ações devolvem o mesmo `DetalheChamado` e a tela troca o detalhe pela resposta. Nenhum outro campo muda.
+
+**Emenda de construção E3 (C53, só a prova; aceita no AD-071).** A prova do `dryer` é a das features anteriores (E2 de `filtros-e-relatorios`): `dryer` sobre as 6 fatias e os arquivos não-teste da raiz de `web/src`, com `--threshold 0.8`, saindo com "No duplicate candidates found.". A afirmação não muda.
+
 **Como as provas rodam.** Na raiz `D:\esclari`, salvo `cd web &&`. API: `docker compose up -d postgres mailpit minio` e uma execução de `dotnet test` por vez. Vitest: `cd web && npx vitest run <arquivo> -t "<nome>"`. Um filtro que não seleciona teste sai com 0 (L-002): conferir a contagem de testes executados. `mutator` está suspenso (AD-025). Os nomes de teste abaixo são o contrato: os testes são escritos a partir dos checks, antes da implementação. O relógio dos testes é `FakeTimeProvider`; as metas dos exemplos são 24 h e 120 h, salvo onde o check diz outra coisa.
 
 ## Checks

@@ -5,6 +5,8 @@ Plan: `.specs/features/validade-do-conhecimento/plan.md`
 
 50 checks em 5 slices · 3 one-way doors · 0 perguntas abertas (plano aprovado pelo dono em 17/11/2026: "siga com o que for recomendado", "aprovo"; AD-069)
 
+**Emenda de construção E1 (C9 a C15 e C47, só o caminho; aceita no AD-071).** As rotas de renovar ficam no grupo de administração que já serve artigos e documentos: `POST /api/admin/artigos/{id}/renovar` e `POST /api/admin/documentos/{id}/renovar`. O plano escreve `/api/artigos/...` e `/api/documentos/...`, como escreve `GET /api/artigos` para a lista que é `GET /api/admin/artigos`. `GET /api/conhecimento/validade` fica como está escrito. As afirmações não mudam.
+
 **Como as provas rodam.** Na raiz `D:\esclari`, salvo `cd web &&`. API: `docker compose up -d postgres mailpit minio` e uma execução de `dotnet test` por vez. Vitest: `cd web && npx vitest run <arquivo> -t "<nome>"`. Um filtro que não seleciona teste sai com 0 (L-002): conferir a contagem de testes executados. `mutator` está suspenso (AD-025). Os nomes de teste abaixo são o contrato: os testes são escritos a partir dos checks, antes da implementação, e cada um nasce em `Esclari.Api.Tests` ou `web/src` com o nome citado. O relógio dos testes é `FakeTimeProvider`; a data de hoje de cada caso vem dele.
 
 ## Checks
