@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using Esclari.Api.Dados;
+using Esclari.Api.Dados.Emails;
 
 namespace Esclari.Api;
 
@@ -13,14 +14,14 @@ public partial class EnviadorSmtp(IConfiguration cfg, Armazenamento armazenament
 
     [GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$")] public static partial Regex Valido();
 
-    public async Task Enviar(EsclariDb db, Instituicao instituicao, string para, string assunto, string corpo)
+    public async Task Enviar(EsclariDb db, Instituicao instituicao, string para, string assunto, string corpo, string? titulo = null, AcaoDoEmail? acao = null)
     {
         var logo = await Logo(db, instituicao.Id);
         var msg = new MimeMessage();
         msg.From.Add(new MailboxAddress(instituicao.Nome, cfg["Smtp:Remetente"] ?? "nao-responda@esclari.com.br"));
         msg.To.Add(MailboxAddress.Parse(para));
         msg.Subject = assunto;
-        var partes = new BodyBuilder { TextBody = corpo, HtmlBody = LayoutEmail.Html(instituicao.Nome, instituicao.Cor, logo is not null, corpo) };
+        var partes = new BodyBuilder { TextBody = corpo, HtmlBody = LayoutEmail.Html(instituicao.Nome, instituicao.Cor, logo is not null, corpo, assunto, titulo, acao, Tokens.UrlBase(cfg)) };
         if (logo is { } l) partes.LinkedResources.Add("logo", l.Bytes, ContentType.Parse(l.Tipo)).ContentId = "logo";
         msg.Body = partes.ToMessageBody();
 

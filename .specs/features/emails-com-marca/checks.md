@@ -170,3 +170,4 @@ Mudam por consequência direta do plano (`## Impact`, linha "tests"), e só esta
 - S1 ~9k, S2 ~11k, S3 ~7k: arquivos tocados somam 33 KB (`wc -c` das 11 fontes, ~8k tokens) mais os testes novos e a leitura do repo, ~30k no total, abaixo do orçamento de 150k - one builder
 - Mechanism: one builder
 - Base da verificação: o commit que leva `plan.md` e `checks.md` (o SHA entra aqui quando existir)
+- **Settled mid-build:** (1) porta 3 do plano: Criar recebe ApresentacaoDoEmail em vez de 	itulo e cao soltos, por causa de Dados_ate_5_parametros; o que a fila guarda (C28, C29) não mudou, e os testes de C29 usam a forma nova. (2) AC 19 pede citação sem dizer como o molde a reconhece: blocos de linhas com >  viram <blockquote>, e Avisos.Resolvido grava a resolução com >  (C19). (3) O resumo de atrasos passa a escrever o endereço de Ver todos os chamados em atraso: na linha de baixo, para o molde não repeti-lo (C16, C23)

@@ -18,7 +18,7 @@ public sealed class EnviarEmails(EnviadorSmtp email, ILogger<Agendador> log) : I
         var instituicao = await db.Instituicoes.SingleAsync(i => i.Id == e.InstituicaoId);
         try
         {
-            await email.Enviar(db, instituicao, e.Destinatario, e.Assunto, e.Corpo);
+            await email.Enviar(db, instituicao, e.Destinatario, e.Assunto, e.Corpo, e.Titulo, e.Acao);
             e.Concluir(agora);
         }
         catch (Exception falha)

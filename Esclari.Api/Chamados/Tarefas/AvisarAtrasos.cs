@@ -17,7 +17,7 @@ public sealed class AvisarAtrasos(IConfiguration cfg, Prazos prazos, ILogger<Age
 
     sealed record Avisado(Chamado Chamado, AtrasoDoChamado.Vencido Vencido);
 
-    sealed record Carta(string Para, string Assunto, string Corpo, List<Avisado> Chamados);
+    sealed record Carta(string Para, string Assunto, string Corpo, List<Avisado> Chamados, string Titulo, AcaoDoEmail Acao);
 
     public Task<List<ItemAgendado>> Ler(EsclariDb db, DateTime agora)
     {
@@ -46,7 +46,7 @@ public sealed class AvisarAtrasos(IConfiguration cfg, Prazos prazos, ILogger<Age
             log.LogWarning("Aviso de atraso adiado: a instituição {InstituicaoId} não tem destinatário ativo com e-mail para {Chamados} chamados", instituicao.Id, pendentes.Count - avisados.Count);
         if (avisados.Count == 0) return;
         foreach (var c in avisados) c.MarcarAtrasoAvisado(agora);
-        db.EmailsSaida.AddRange(cartas.Select(c => EmailSaida.Criar(c.Para, c.Assunto, c.Corpo, agora)));
+        db.EmailsSaida.AddRange(cartas.Select(c => EmailSaida.Criar(c.Para, c.Assunto, c.Corpo, agora, new(c.Titulo, c.Acao))));
         try { await db.SaveChangesAsync(parar); }
         catch (DbUpdateConcurrencyException) { return; }
         log.LogInformation("Atrasos da instituição {InstituicaoId}: primeiraResposta={PrimeiraResposta} resolucao={Resolucao} emails={Emails}",
@@ -84,8 +84,9 @@ public sealed class AvisarAtrasos(IConfiguration cfg, Prazos prazos, ILogger<Age
         corpo.Append($"Meta: primeira resposta em {prazos.PrimeiraRespostaHoras} h; resolução em {prazos.ResolucaoHoras} h.\n\n");
         foreach (var a in chamados)
             corpo.Append($"- {a.Chamado.Numero} · {a.Chamado.Titulo} · {Rotulo(a.Vencido.Tipo)} · atrasado há {Tempo(agora - a.Vencido.VenceuEm)}\n  {Avisos.Link(cfg, i, a.Chamado)}\n");
-        corpo.Append($"\nVer todos os chamados em atraso: {Tokens.UrlBase(cfg)}/{i.Slug}/{(doSetor ? "fila" : "chamados")}?atraso=true\n");
-        return new Carta(para, assunto, corpo.ToString(), chamados);
+        var todos = $"{Tokens.UrlBase(cfg)}/{i.Slug}/{(doSetor ? "fila" : "chamados")}?atraso=true";
+        corpo.Append($"\nVer todos os chamados em atraso:\n{todos}\n");
+        return new Carta(para, assunto, corpo.ToString(), chamados, doSetor ? "Chamados em atraso" : "Resumo de chamados em atraso", new("Ver chamados em atraso", todos));
     }
 
     static string Rotulo(string tipo) => tipo == AtrasoDoChamado.PrimeiraResposta ? "sem primeira resposta" : "sem resolução";

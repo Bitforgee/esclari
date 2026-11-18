@@ -93,3 +93,7 @@ uma vez no código, num grupo de constantes de `Esclari.Api/Dados/Entidades.cs`;
 | Valor gravado | Grupo | Significado |
 | --- | --- | --- |
 | `OPERADOR` | papel | quem na equipe do Esclari gerencia todas as instituições pela área `/api/plataforma` e pela tela Instituições; vive no usuário da própria instituição e só é dado ou tirado por `dotnet api.dll instituicao operador --slug <slug> --cpf <cpf> [--remover]`, nunca pela tela Usuários |
+
+## Ação do e-mail (colunas mail_saida.acao_rotulo e mail_saida.acao_url)
+
+Rótulo e endereço do único botão de um e-mail (AcaoDoEmail). Anulável junto com mail_saida.titulo: sem eles o e-mail sai no mesmo molde, sem título e sem botão. O corpo continua sendo o texto puro completo e a fonte do HTML.

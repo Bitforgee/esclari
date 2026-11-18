@@ -42,4 +42,19 @@ public class EmailSaidaDominioTests
 
         Assert.Equal(Agora.AddMinutes(3), e.EnviadoEm);
     }
-}
+
+    [Fact]
+    public void Criar_sem_titulo_e_acao_deixa_nulos()
+    {
+        var e = EmailSaida.Criar("aluno@teste.esclari", "Aviso", "Olá", Agora);
+
+        Assert.Equal((null, null, null), (e.Titulo, e.AcaoRotulo, e.AcaoUrl));
+    }
+
+    [Fact]
+    public void Criar_com_titulo_e_acao_guarda_os_tres_campos()
+    {
+        var e = EmailSaida.Criar("aluno@teste.esclari", "Aviso", "Olá", Agora, new("T", new("Abrir", "http://x/y")));
+
+        Assert.Equal(("T", "Abrir", "http://x/y"), (e.Titulo, e.AcaoRotulo, e.AcaoUrl));
+    }}

@@ -1028,6 +1028,14 @@ namespace Esclari.Api.Dados.Migracoes
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("AcaoRotulo")
+                        .HasColumnType("text")
+                        .HasColumnName("acao_rotulo");
+
+                    b.Property<string>("AcaoUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("acao_url");
+
                     b.Property<string>("Assunto")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1058,6 +1066,10 @@ namespace Esclari.Api.Dados.Migracoes
                     b.Property<int>("Tentativas")
                         .HasColumnType("integer")
                         .HasColumnName("tentativas");
+
+                    b.Property<string>("Titulo")
+                        .HasColumnType("text")
+                        .HasColumnName("titulo");
 
                     b.HasKey("Id")
                         .HasName("pk_email_saida");

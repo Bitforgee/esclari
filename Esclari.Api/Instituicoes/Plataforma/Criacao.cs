@@ -47,7 +47,12 @@ public static partial class Criacao
         return (instituicao, token);
     }
 
-    public static EmailSaida EmailDeAcesso(IConfiguration cfg, Instituicao i, string para, string token, DateTime agora) => EmailSaida.Criar(para,
-        $"[{i.Nome}] Crie sua senha",
-        $"Você é administrador de {i.Nome} no Esclari.\n\nPara criar sua senha, abra o link abaixo (vale 60 minutos):\n{Tokens.Link(cfg, i.Slug, token)}\n", agora);
+    public static EmailSaida EmailDeAcesso(IConfiguration cfg, Instituicao i, string para, string token, DateTime agora)
+    {
+        var link = Tokens.Link(cfg, i.Slug, token);
+        return EmailSaida.Criar(para,
+            $"[{i.Nome}] Crie sua senha",
+            $"Você é administrador de {i.Nome} no Esclari.\n\nPara criar sua senha, abra o link abaixo (vale 60 minutos):\n{link}\n\nSe você não pediu isso, ignore este e-mail.\n", agora,
+            new("Crie a sua senha", new("Criar senha", link)));
+    }
 }

@@ -44,8 +44,8 @@ public sealed class AvisarValidade(IConfiguration cfg, ILogger<Agendador> log) :
             return;
         }
         db.AvisosValidade.AddRange(novos.Select(c => AvisoValidade.Criar(c.Tipo, c.Id, c.ValidoAte, c.Marco, agora)));
-        var (assunto, corpo) = Email(instituicao, novos);
-        db.EmailsSaida.AddRange(admins.Select(email => EmailSaida.Criar(email, assunto, corpo, agora)));
+        var (assunto, corpo, acao) = Email(instituicao, novos);
+        db.EmailsSaida.AddRange(admins.Select(email => EmailSaida.Criar(email, assunto, corpo, agora, new("Conteúdo para renovar", acao))));
         try { await db.SaveChangesAsync(parar); }
         catch (DbUpdateException e) when (e.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation }) { return; }
         log.LogInformation("Avisos de validade da instituição {InstituicaoId}: vencidos={Vencidos} em7Dias={Em7Dias} em30Dias={Em30Dias}",
@@ -70,10 +70,11 @@ public sealed class AvisarValidade(IConfiguration cfg, ILogger<Agendador> log) :
         return candidatos.Where(c => !AvisoValidade.JaAvisado(c.Marco, registrados[(c.Tipo, c.Id, c.ValidoAte)])).ToList();
     }
 
-    (string, string) Email(Instituicao instituicao, List<Candidato> novos)
+    (string, string, AcaoDoEmail) Email(Instituicao instituicao, List<Candidato> novos)
     {
         var assunto = $"[{instituicao.Nome}] Base de conhecimento: {novos.Count} {(novos.Count == 1 ? "item" : "itens")} para renovar";
         var corpo = new StringBuilder("Estes itens da base de conhecimento precisam de revisão. Renove o que continua certo e atualize o que mudou.\n");
+        string? primeira = null;
         foreach (var (marco, titulo, filtro) in Grupos)
         {
             var doGrupo = novos.Where(c => c.Marco == marco).OrderBy(c => c.ValidoAte).ThenBy(c => c.Titulo).ToList();
@@ -81,9 +82,13 @@ public sealed class AvisarValidade(IConfiguration cfg, ILogger<Agendador> log) :
             corpo.Append($"\n{titulo}\n");
             foreach (var c in doGrupo) corpo.Append($"- {Nome(c.Tipo)}: {c.Titulo} ({(marco == AvisoValidade.Vencido ? "venceu em" : "vence em")} {c.ValidoAte.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)})\n");
             foreach (var tipo in doGrupo.Select(c => c.Tipo).Distinct().Order())
-                corpo.Append($"Abrir: {Tokens.UrlBase(cfg)}/{instituicao.Slug}/{Lista(tipo)}?validade={filtro}\n");
+            {
+                var url = $"{Tokens.UrlBase(cfg)}/{instituicao.Slug}/{Lista(tipo)}?validade={filtro}";
+                primeira ??= url;
+                corpo.Append($"Abrir: {url}\n");
+            }
         }
-        return (assunto, corpo.ToString());
+        return (assunto, corpo.ToString(), new("Abrir a lista", primeira!));
     }
 
     static string Nome(string tipo) => tipo == AvisoValidade.Artigo ? "Artigo" : "Documento";
