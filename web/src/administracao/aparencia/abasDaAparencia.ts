@@ -1,4 +1,4 @@
-import type { Imagens } from '../../aparencia'
+import { LogoDoEsclari, SimboloDoEsclari, type Imagens } from '../../aparencia'
 import { comUnidade } from '../../formatos'
 
 export type Tipo = keyof Imagens
@@ -11,6 +11,13 @@ export const Rotulos: Record<Tipo, [string, string, string?]> = {
   icone: ['Ícone do app', `PNG quadrado de pelo menos ${comUnidade(512, 'px')}, até ${comUnidade(1, 'MB')}.`, 'PNG quadrado, sem transparência, com o desenho a pelo menos 10% das bordas. O Android recorta as pontas.'],
   login: ['Imagem do login', `PNG ou JPEG, até ${comUnidade(3, 'MB')}.`],
   assistente: ['Foto do assistente', `PNG ou JPEG, até ${comUnidade(1, 'MB')}.`],
+}
+
+export const PadraoDaImagem: Record<Tipo, { src?: string; legenda: string }> = {
+  logo: { src: LogoDoEsclari, legenda: 'Marca do Esclari (padrão)' },
+  icone: { src: SimboloDoEsclari, legenda: 'Marca do Esclari (padrão)' },
+  login: { legenda: 'Imagem padrão do Esclari' },
+  assistente: { src: SimboloDoEsclari, legenda: 'Marca do Esclari (padrão)' },
 }
 
 export const LimiteDoNomeDoApp = 12

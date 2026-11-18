@@ -152,13 +152,16 @@ export function iniciais(nome: string) {
   return ((partes[0]?.[0] ?? '') + (partes.length > 1 ? partes[partes.length - 1][0] : '')).toUpperCase()
 }
 
-export function Sigla({ slug, nome, icone, className = 'size-8' }: { slug?: string; nome: string; icone: number | null; className?: string }) {
-  if (slug && icone) return <img src={urlDaImagem(slug, 'icone', icone)} alt="" width={32} height={32} className={`${className} shrink-0 rounded-sm object-cover`} />
-  return (
-    <span aria-hidden="true" className={`${className} flex shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-bold text-primary-foreground`}>
-      {iniciais(nome)}
-    </span>
-  )
+export const SimboloDoEsclari = '/marca/favicon.svg'
+export const LogoDoEsclari = '/marca/logo-horizontal.svg'
+
+export function Sigla({ slug, icone, className = 'size-8' }: { slug?: string; icone: number | null; className?: string }) {
+  const src = slug && icone ? urlDaImagem(slug, 'icone', icone) : SimboloDoEsclari
+  return <img src={src} alt="" width={32} height={32} className={`${className} shrink-0 rounded-sm object-cover`} />
+}
+
+export function usePlaca() {
+  return useTema() === 'light' ? '' : 'rounded-md bg-white p-1'
 }
 
 export const temContato = (c: Aparencia['contato']) => !!(c.horario || c.telefone || c.email)

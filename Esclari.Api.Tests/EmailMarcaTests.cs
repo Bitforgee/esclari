@@ -81,7 +81,8 @@ public class EmailMarcaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var simples = (await PrimeiroAcessoTests.EmailNoMailpit(await Enfileirar(semMarca)))!.Value.GetProperty("HTML").GetString()!;
         Assert.Contains("background-color:#0e1330", simples);
         Assert.Contains("background-color:#ffffff", simples);
-        Assert.DoesNotContain("cid:", simples);
+        Assert.DoesNotContain("alt=\"Esclari\"", html);
+        Assert.Contains("<img src=\"cid:logo\" alt=\"Esclari\"", simples);
     }
 
     [Fact]
@@ -100,9 +101,27 @@ public class EmailMarcaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.NotNull(await f.Db(i.Id, db => db.EmailsSaida.Where(e => e.Destinatario == para).Select(e => e.EnviadoEm).SingleAsync()));
         var msg = (await PrimeiroAcessoTests.EmailNoMailpit(para))!.Value;
         var html = msg.GetProperty("HTML").GetString()!;
-        Assert.DoesNotContain("cid:", html);
+        Assert.Contains("<img src=\"cid:logo\" alt=\"Esclari\"", html);
         Assert.Contains("Univag &amp; Cia", html);
         Assert.Equal(Corpo, Texto(msg));
+    }
+
+    [Fact]
+    public async Task Sem_logo_propria_leva_a_logo_do_Esclari_e_o_nome()
+    {
+        var (i, _) = await InstituicaoComMarca(comLogo: false, cor: null);
+        var msg = (await PrimeiroAcessoTests.EmailNoMailpit(await Enfileirar(i)))!.Value;
+
+        var html = msg.GetProperty("HTML").GetString()!;
+
+        Assert.Contains("<img src=\"cid:logo\" alt=\"Esclari\"", html);
+        Assert.Contains("max-height:40px", html);
+        Assert.Matches("font-size:20px[^\"]*\">Univag &amp; Cia<", html);
+        var inline = Assert.Single(msg.GetProperty("Inline").EnumerateArray());
+        Assert.Equal("logo", inline.GetProperty("ContentID").GetString());
+        Assert.Equal("image/png", inline.GetProperty("ContentType").GetString());
+        var bytes = await Mailpit.GetByteArrayAsync($"/api/v1/message/{msg.GetProperty("ID").GetString()}/part/{inline.GetProperty("PartID").GetString()}");
+        Assert.Equal(EnviadorSmtp.LogoDoEsclari(), bytes);
     }
 
     [Fact]

@@ -41,7 +41,7 @@ None - nothing consumed outside. O manifest e a rota de instituição mantêm a 
 | One-way door | Literal shape | Alternative rejected |
 | --- | --- | --- |
 | 1. onde mora o padrão | a instituição guarda só o que sobrescreveu: `NULL` em `logo`, `icone`, `login`, `assistente`, `cor` significa "usa o Esclari", e nenhuma migration copia a marca para as linhas | gravar a marca do Esclari em cada instituição na criação: uma mudança futura da marca não chegaria a quem não personalizou, e "usar a marca do Esclari" teria de saber qual era o padrão naquele dia |
-| 2. logo do e-mail | recurso do projeto `Esclari.Api/Marca/logo-horizontal-email.png`, PNG com o dobro do tamanho exibido (348 por 80 px, exibido em 174 por 40), anexado como `cid:logo`, o mesmo identificador de hoje | URL pública da imagem: depende do endereço público (pergunta 5), muitos clientes bloqueiam imagem remota por padrão e o teste local com o Mailpit não a alcança; SVG: Gmail e Outlook não o desenham |
+| 2. logo do e-mail | recurso do projeto `Esclari.Api/Instituicoes/Aparencia/logo-horizontal-email.png`, PNG com o dobro do tamanho exibido (348 por 80 px, exibido em 174 por 40), anexado como `cid:logo`, o mesmo identificador de hoje | URL pública da imagem: depende do endereço público (pergunta 5), muitos clientes bloqueiam imagem remota por padrão e o teste local com o Mailpit não a alcança; SVG: Gmail e Outlook não o desenham |
 
 - Nada mais nesta mudança é difícil de desfazer. Medidas, textos de apoio e a ordem na tela mudam por refatoração.
 

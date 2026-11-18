@@ -176,7 +176,7 @@ describe('tela Aparência', () => {
     abrir('/univag/aparencia')
     const miniatura = await screen.findByRole('img', { name: 'Miniatura: Logo' })
     expect(miniatura).toHaveAttribute('src', '/api/instituicoes/univag/imagens/logo?v=3')
-    await userEvent.click(screen.getByRole('button', { name: 'Remover imagem: Logo' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Usar a marca do Esclari: Logo' }))
     const dialogo = await screen.findByRole('dialog', { name: 'Remover a imagem?' })
     expect(chamadas.some((c) => c.metodo === 'DELETE')).toBe(false)
     await userEvent.click(within(dialogo).getByRole('button', { name: 'Remover' }))
@@ -215,7 +215,7 @@ describe('tela Aparência', () => {
       await ir(aba)
       expect(await screen.findByRole('img', { name: `Miniatura: ${rotulo}` }), tipo).toHaveAttribute('src', `/api/instituicoes/univag/imagens/${tipo}?v=7`)
       expect(screen.getByRole('button', { name: `Enviar imagem: ${rotulo}` })).toBeInTheDocument()
-      expect(screen.getAllByRole('button', { name: /^Remover imagem:/ }), tipo).toHaveLength(1)
+      expect(screen.getAllByRole('button', { name: /^Usar a marca do Esclari:/ }), tipo).toHaveLength(1)
       expect(document.querySelectorAll('img[alt^="Miniatura:"]'), tipo).toHaveLength(1)
 
       await userEvent.upload(screen.getByLabelText(`Arquivo: ${rotulo}`), arquivo('nova.png'))
@@ -223,31 +223,31 @@ describe('tela Aparência', () => {
       await waitFor(() => expect(chamadas.filter((c) => c.metodo === 'POST').map((c) => c.url)).toEqual([`/api/admin/aparencia/imagens/${tipo}`]))
       expect(chamadas.find((c) => c.metodo === 'POST')!.corpo.arquivo, tipo).toBeInstanceOf(File)
 
-      await userEvent.click(screen.getByRole('button', { name: `Remover imagem: ${rotulo}` }))
+      await userEvent.click(screen.getByRole('button', { name: `Usar a marca do Esclari: ${rotulo}` }))
       await userEvent.click(within(await screen.findByRole('dialog', { name: 'Remover a imagem?' })).getByRole('button', { name: 'Remover' }))
       await waitFor(() => expect(chamadas.filter((c) => c.metodo === 'DELETE').map((c) => c.url), tipo).toEqual([`/api/admin/aparencia/imagens/${tipo}`]))
       unmount()
     }
   })
 
-  it('iniciais da prévia iguais às do login', async () => {
+  it('prévia e login mostram a mesma marca do Esclari sem logo', async () => {
     for (const nome of ['Centro Universitário de Várzea Grande', 'Faculdade Demo']) {
-      const sigla = (raiz: ParentNode) => raiz.querySelector('span.bg-primary[aria-hidden=true]')!.textContent
+      const marca = (raiz: ParentNode) => raiz.querySelector('img[src="/marca/logo-horizontal.svg"]')!.getAttribute('src')
       api({
         'GET /api/auth/me': () => [200, { ...admin, instituicao: { ...admin.instituicao, nome } }],
         'GET /api/admin/aparencia': () => [200, aparencia()],
         'GET /api/instituicoes/univag': () => [200, instituicao({ nome })],
       })
       const prévia = abrir('/univag/aparencia')
-      const daPrevia = sigla(await screen.findByRole('region', { name: 'Prévia' }))
+      const daPrevia = marca(await screen.findByRole('region', { name: 'Prévia' }))
       prévia.unmount()
 
       api({ 'GET /api/instituicoes/univag': () => [200, instituicao({ nome })] })
       abrir('/univag')
       await screen.findByLabelText('CPF')
-      const doLogin = await waitFor(() => sigla(document.body))
+      const doLogin = await waitFor(() => marca(document.body))
       expect(daPrevia, nome).toBe(doLogin)
-      expect(daPrevia, nome).toBe(iniciais(nome))
+      expect(daPrevia, nome).toBe('/marca/logo-horizontal.svg')
       cleanup()
     }
   })

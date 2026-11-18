@@ -5,7 +5,7 @@ import { Link as RouterLink, Navigate, NavLink, Outlet, useLocation, useMatch, u
 import { api, ErroApi, type Me } from './api'
 import { Carregando } from './Carregando'
 import { ErroDe } from './ErroDe'
-import { DialogoDeContato, iniciais, normalizar, Sigla, temContato, urlDaImagem, useInstituicao, useRota, type InstituicaoPublica } from './aparencia'
+import { DialogoDeContato, iniciais, normalizar, Sigla, temContato, urlDaImagem, useInstituicao, usePlaca, useRota, type InstituicaoPublica } from './aparencia'
 import { AvisosPush } from './AvisosPush'
 import { telaInicial, useSair, type Sessao } from './sessao'
 import { useTempoReal } from './tempo-real'
@@ -202,12 +202,13 @@ function ContatoDoMenu({ contato }: { contato: InstituicaoPublica['contato'] }) 
 }
 
 function CabecalhoDaBarra({ me, slug, ap }: { me: Me; slug?: string; ap: InstituicaoPublica }) {
+  const placa = usePlaca()
   const logo = ap.imagens.logo
   return (
     <div className="flex items-center gap-2 p-1.5">
-      {logo && slug && <img src={urlDaImagem(slug, 'logo', logo)} alt={ap.nome} width={160} height={32} className="h-8 w-auto max-w-40 object-contain group-data-[collapsible=icon]:hidden" />}
+      {logo && slug && <img src={urlDaImagem(slug, 'logo', logo)} alt={ap.nome} width={160} height={32} className={`h-8 w-auto max-w-40 object-contain group-data-[collapsible=icon]:hidden ${placa}`} />}
       <span className={logo ? 'hidden group-data-[collapsible=icon]:flex' : 'flex'}>
-        <Sigla slug={slug} nome={me.instituicao.nome} icone={ap.imagens.icone} />
+        <Sigla slug={slug} icone={ap.imagens.icone} />
       </span>
       {!logo && (
         <div className="grid min-w-0 text-sm leading-tight">
@@ -263,7 +264,7 @@ function Topo({ titulo, aluno, abas, slug, icone, nome, voltar }: { titulo: stri
             <span className="sr-only">Voltar</span>
           </Button>
         )}
-        {!voltar && <Sigla slug={slug} nome={nome} icone={icone} className="size-6 md:hidden" />}        <h1 translate={/^ESC-\d+$/.test(titulo) ? 'no' : undefined} className="truncate text-base font-medium">{titulo}</h1>
+        {!voltar && <Sigla slug={slug} icone={icone} className="size-6 md:hidden" />}        <h1 translate={/^ESC-\d+$/.test(titulo) ? 'no' : undefined} className="truncate text-base font-medium">{titulo}</h1>
         <div className="ms-auto flex shrink-0 items-center gap-1">{aluno && <AvisosPush />}</div>
       </div>
     </header>

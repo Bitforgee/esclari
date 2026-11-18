@@ -1,6 +1,6 @@
 import { ChevronRight, MessageCircleQuestion } from 'lucide-react'
 import type { CSSProperties, ReactElement } from 'react'
-import { iniciais, Sigla } from '../../aparencia'
+import { iniciais, LogoDoEsclari, SimboloDoEsclari } from '../../aparencia'
 import { Literal } from '../../Literal'
 import { Button } from '../../ui/button'
 import type { IdAba } from './abasDaAparencia'
@@ -29,7 +29,7 @@ function PreviaDoLogin({ d }: { d: DadosDaPrevia }) {
   return (
     <div className="flex flex-col gap-2">
       {d.imagens.login && <img src={d.imagens.login} alt="" width={320} height={64} className="h-16 w-full rounded-xs object-cover" />}
-      {d.imagens.logo ? <img src={d.imagens.logo} alt="" width={128} height={32} className="h-8 w-auto self-start object-contain" /> : <Sigla nome={d.nome} icone={null} />}
+      {d.imagens.logo ? <img src={d.imagens.logo} alt="" width={128} height={32} className="h-8 w-auto self-start object-contain" /> : <img src={LogoDoEsclari} alt="" width={128} height={32} className="h-8 w-auto self-start object-contain" />}
       <p className="m-0 min-w-0 font-heading text-xl font-semibold break-words">{d.nome}</p>
       <p className="m-0 text-base font-semibold">{d.loginTitulo || Base.titulo}</p>
       <p className="m-0 text-muted-foreground">{d.loginFrase || Base.frase}</p>
@@ -51,7 +51,7 @@ function PreviaDoAssistente({ d }: { d: DadosDaPrevia }) {
       <p className="m-0 min-w-0 font-heading text-xl font-semibold break-words">{`Atendimento ao estudante · ${d.nomeCurto.trim() || d.nome}`}</p>
       <p className="m-0 text-muted-foreground">{d.boasVindas || 'Respostas com base nas normas da instituição.'}</p>
       <div className="flex items-center gap-2 text-muted-foreground">
-        {d.imagens.assistente && <img src={d.imagens.assistente} alt="" width={32} height={32} className="size-8 rounded-full object-cover" />}
+        <img src={d.imagens.assistente ?? SimboloDoEsclari} alt="" width={32} height={32} className="size-8 rounded-full object-cover" />
         <span>{d.assistenteNome ? `${d.assistenteNome}, assistente virtual` : 'Assistente virtual'}</span>
       </div>
       <ul className="m-0 w-full list-none p-0">

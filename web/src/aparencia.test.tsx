@@ -128,7 +128,8 @@ describe('marca da instituição', () => {
     await screen.findByLabelText('CPF')
     expect(screen.queryByRole('img', { name: 'Univag' })).not.toBeInTheDocument()
     expect(screen.queryByText('Esclari')).not.toBeInTheDocument()
-    expect(document.querySelector('span.bg-primary')).toHaveTextContent('U')
+    expect(screen.getByRole('img', { name: 'Esclari' })).toHaveAttribute('src', '/marca/logo-horizontal.svg')
+    expect(document.querySelector('span.bg-primary')).toBeNull()
   })
 
   it('identidade da instituicao prevalece - icone na aba e na barra', async () => {
@@ -148,8 +149,8 @@ describe('marca da instituição', () => {
     await waitFor(() => expect(noHead('link[rel="icon"]', 'href')).toBe(baseDe('link[rel="icon"]', 'href')))
     expect(noHead('link[rel="apple-touch-icon"]', 'href')).toBe('/icons/apple-touch-icon.png')
     expect(noHead('link[rel="icon"][type="image/png"]', 'href')).toBe('/icons/icon-192.png')
-    expect(document.querySelector('[data-sidebar=sidebar] img')).toBeNull()
-    expect(document.querySelector('[data-sidebar=sidebar] span.bg-primary')).toHaveTextContent('U')
+    expect(document.querySelector('[data-sidebar=sidebar] img')).toHaveAttribute('src', '/marca/favicon.svg')
+    expect(document.querySelector('[data-sidebar=sidebar] span.bg-primary')).toBeNull()
   })
 
   it('título e theme-color da instituição', async () => {

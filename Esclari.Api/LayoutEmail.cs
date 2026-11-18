@@ -17,7 +17,7 @@ public static partial class LayoutEmail
 
     static string Escapar(string s) => s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
 
-    public static string Html(string nome, string? cor, bool logo, string corpo, string assunto, string? titulo, AcaoDoEmail? acao, string urlBase)
+    public static string Html(string nome, string? cor, bool logo, string corpo, string assunto, string? titulo, AcaoDoEmail? acao, string urlBase, bool logoDoEsclari = false)
     {
         var marca = cor is not null && CorValida().IsMatch(cor) ? cor : Tinta;
         var blocos = Blocos(corpo);
@@ -33,7 +33,7 @@ public static partial class LayoutEmail
             .Append(Previa(corpo))
             .Append("<table role=\"presentation\" width=\"100%\" class=\"fundo\" style=\"background-color:#f7f5ee\"><tr><td align=\"center\" style=\"padding:24px 12px\">")
             .Append("<table role=\"presentation\" width=\"100%\" style=\"max-width:600px;width:100%\">")
-            .Append(Cabecalho(nome, marca, logo))
+            .Append(Cabecalho(nome, marca, logo, logoDoEsclari))
             .Append("<tr><td class=\"cartao\" style=\"background-color:#ffffff\"><table role=\"presentation\" width=\"100%\"><tr><td class=\"miolo\" style=\"padding:32px\">")
             .Append(titulo is null ? "" : $"<h1 class=\"texto\" style=\"margin:0 0 16px;{Fonte};font-size:24px;line-height:1.3;font-weight:bold;color:{Tinta}\">{Escapar(titulo)}</h1>")
             .Append(Conteudo(blocos, marca, botao?.Url))
@@ -55,11 +55,11 @@ public static partial class LayoutEmail
         return $"<div style=\"display:none;max-height:0;overflow:hidden;mso-hide:all\">{Escapar(texto.Length > TamanhoDaPrevia ? texto[..TamanhoDaPrevia] : texto)}</div>";
     }
 
-    static string Cabecalho(string nome, string marca, bool logo)
+    static string Cabecalho(string nome, string marca, bool logo, bool logoDoEsclari)
     {
-        var identidade = logo
-            ? $"<img src=\"cid:logo\" alt=\"{Escapar(nome)}\" style=\"max-height:40px;border:0;vertical-align:middle\">"
-            : $"<span style=\"{Fonte};font-size:20px;font-weight:bold;color:{Tinta}\">{Escapar(nome)}</span>";
+        var nomeEmTexto = $"<span style=\"{Fonte};font-size:20px;font-weight:bold;color:{Tinta};vertical-align:middle\">{Escapar(nome)}</span>";
+        var imagem = $"<img src=\"cid:logo\" alt=\"{(logoDoEsclari ? "Esclari" : Escapar(nome))}\" style=\"max-height:40px;border:0;vertical-align:middle\">";
+        var identidade = !logo ? nomeEmTexto : logoDoEsclari ? $"{imagem}<span style=\"padding-left:12px\"></span>{nomeEmTexto}" : imagem;
         return $"<tr><td style=\"height:4px;line-height:4px;font-size:0;background-color:{marca}\">&nbsp;</td></tr>" +
             $"<tr><td class=\"cabecalho\" style=\"background-color:#ffffff;padding:20px 32px\">{identidade}</td></tr>";
     }

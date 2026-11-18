@@ -14,15 +14,27 @@ public partial class EnviadorSmtp(IConfiguration cfg, Armazenamento armazenament
 
     [GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$")] public static partial Regex Valido();
 
+    const string RecursoDoLogoDoEsclari = "logo-horizontal-email.png";
+
+    public static byte[] LogoDoEsclari()
+    {
+        using var fluxo = typeof(EnviadorSmtp).Assembly.GetManifestResourceStream(RecursoDoLogoDoEsclari)
+            ?? throw new InvalidOperationException($"Recurso {RecursoDoLogoDoEsclari} não está embutido no projeto.");
+        using var ms = new MemoryStream();
+        fluxo.CopyTo(ms);
+        return ms.ToArray();
+    }
+
     public async Task Enviar(EsclariDb db, Instituicao instituicao, string para, string assunto, string corpo, string? titulo = null, AcaoDoEmail? acao = null)
     {
-        var logo = await Logo(db, instituicao.Id);
+        var propria = await Logo(db, instituicao.Id);
+        var logo = propria ?? (LogoDoEsclari(), "image/png");
         var msg = new MimeMessage();
         msg.From.Add(new MailboxAddress(instituicao.Nome, cfg["Smtp:Remetente"] ?? "nao-responda@esclari.com.br"));
         msg.To.Add(MailboxAddress.Parse(para));
         msg.Subject = assunto;
-        var partes = new BodyBuilder { TextBody = corpo, HtmlBody = LayoutEmail.Html(instituicao.Nome, instituicao.Cor, logo is not null, corpo, assunto, titulo, acao, Tokens.UrlBase(cfg)) };
-        if (logo is { } l) partes.LinkedResources.Add("logo", l.Bytes, ContentType.Parse(l.Tipo)).ContentId = "logo";
+        var partes = new BodyBuilder { TextBody = corpo, HtmlBody = LayoutEmail.Html(instituicao.Nome, instituicao.Cor, true, corpo, assunto, titulo, acao, Tokens.UrlBase(cfg), logoDoEsclari: propria is null) };
+        partes.LinkedResources.Add("logo", logo.Bytes, ContentType.Parse(logo.Tipo)).ContentId = "logo";
         msg.Body = partes.ToMessageBody();
 
         using var smtp = new SmtpClient { Timeout = 10_000 };

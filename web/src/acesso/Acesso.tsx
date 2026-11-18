@@ -10,7 +10,7 @@ import { api, ErroApi } from '../api'
 import { Carregando } from '../Carregando'
 import { ErroDe } from '../ErroDe'
 import { descricaoDoCampo } from '../Campo'
-import { Sigla, urlDaImagem, useInstituicao, useTema, type InstituicaoPublica } from '../aparencia'
+import { urlDaImagem, useInstituicao, usePlaca, useTema, type InstituicaoPublica } from '../aparencia'
 import { telaInicial, useSessao } from '../sessao'
 import { Alert } from '../ui/alert'
 import { Button } from '../ui/button'
@@ -62,10 +62,12 @@ export function Raiz() {
 }
 
 function Identidade({ slug, d }: { slug?: string; d?: InstituicaoPublica }) {
+  const tema = useTema()
+  const placa = usePlaca()
   const logo = slug && d?.imagens.logo
   return (
     <div className="mb-3 flex h-12 items-center">
-      {logo ? <img src={urlDaImagem(slug, 'logo', logo)} alt={d.nome} width={192} height={48} className="h-12 w-auto max-w-full object-contain" /> : d && <Sigla nome={d.nome} icone={null} className="size-12" />}
+      {logo ? <img src={urlDaImagem(slug, 'logo', logo)} alt={d.nome} width={192} height={48} className={`h-12 w-auto max-w-full object-contain ${placa}`} /> : d && <img src={tema === 'light' ? '/marca/logo-horizontal.svg' : '/marca/logo-horizontal-escuro.svg'} alt="Esclari" width={174} height={40} className="h-10 w-auto" />}
     </div>
   )
 }

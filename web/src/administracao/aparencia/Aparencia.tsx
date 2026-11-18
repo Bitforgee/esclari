@@ -19,7 +19,7 @@ import { Skeleton } from '../../ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs'
 import { Textarea } from '../../ui/textarea'
 import { useConsulta } from '../../ui/use-mobile'
-import { Abas, abaPedida, abasComErro, Campos, EhLista, Rotulos, type Campo, type IdAba, type Tipo } from './abasDaAparencia'
+import { Abas, abaPedida, abasComErro, Campos, EhLista, PadraoDaImagem, Rotulos, type Campo, type IdAba, type Tipo } from './abasDaAparencia'
 import { useAvisoAoFechar } from '../avisoAoFechar'
 import { CampoImagem } from './CampoImagem'
 import { CoresProntas, SeletorDeCor } from './CoresProntas'
@@ -268,8 +268,13 @@ function ConteudoDaAba({ aba, valores, muda, falhas, miniatura, escolher, tirar 
       {aba.campos.map((c) => (
         <CampoDeTexto key={c.chave} campo={c} valor={valores[c.chave]} mudar={muda(c.chave)} erro={falhas.campos[c.chave]} />
       ))}
+      {aba.id === 'marca' && valores.cor !== '' && (
+        <Button type="button" variant="outline" className="self-start" onClick={() => muda('cor')('')}>
+          Usar a cor padrão
+        </Button>
+      )}
       {aba.imagens.map((t) => (
-        <CampoImagem key={t} rotulo={Rotulos[t][0]} dica={Rotulos[t][1]} extra={Rotulos[t][2]} miniatura={miniatura(t)} escolher={(f) => escolher(t, f)} remover={() => tirar(t)} erro={falhas.imagens[t]} />
+        <CampoImagem key={t} rotulo={Rotulos[t][0]} dica={Rotulos[t][1]} extra={Rotulos[t][2]} padrao={PadraoDaImagem[t]} miniatura={miniatura(t)} escolher={(f) => escolher(t, f)} remover={() => tirar(t)} erro={falhas.imagens[t]} />
       ))}
       {aba.nota && <p className="m-0 text-sm text-muted-foreground">{aba.nota}</p>}
     </TabsContent>

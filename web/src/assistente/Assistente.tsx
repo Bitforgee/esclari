@@ -3,7 +3,7 @@ import { ChevronRight, Hand, MessageCircleQuestion, ShieldAlert } from 'lucide-r
 import { useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { api, type Matricula } from '../api'
-import { Contato, temContato, urlDaImagem, useAparencia, type InstituicaoPublica } from '../aparencia'
+import { Contato, SimboloDoEsclari, temContato, urlDaImagem, useAparencia, type InstituicaoPublica } from '../aparencia'
 import { Estados, useChamado, type Anexo } from '../chamado'
 import { plural } from '../formatos'
 import { ProximoPasso } from '../chamados/Chamados'
@@ -495,7 +495,7 @@ export function Assistente() {
         <ShieldAlert aria-hidden="true" className="size-3.5 shrink-0" />
         {AvisoExterno}
       </p>
-      {mensagens.length === 0 && <BoasVindas ap={ap} foto={foto} perguntar={(p) => envio.mutate({ mensagem: p })} pendente={envio.isPending} />}
+      {mensagens.length === 0 && <BoasVindas ap={ap} foto={foto ?? { src: SimboloDoEsclari, alt: '' }} perguntar={(p) => envio.mutate({ mensagem: p })} pendente={envio.isPending} />}
       <Conversa
         mensagens={mensagens}
         fuso={fuso}

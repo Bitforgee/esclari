@@ -14,6 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Instituicoes\Aparencia\logo-horizontal-email.png" LogicalName="logo-horizontal-email.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.104.8" />
     <PackageReference Include="MailKit" Version="4.18.2" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.4.0" />

@@ -10,6 +10,7 @@
     "e2e": "playwright test",
     "e2e:preparar": "node scripts/preparar-e2e.mjs",
     "icones": "node scripts/gerar-icones.mjs",
+    "logo-email": "node scripts/gerar-logo-email.mjs",
     "coverage": "vitest run --coverage --coverage.reporter=lcov"
   },
   "dependencies": {

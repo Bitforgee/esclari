@@ -74,7 +74,7 @@ describe('assistente com identidade', () => {
       }
       expect(doAluno.querySelector('img')).toBeNull()
       expect(doAluno.parentElement!.querySelector(':scope > img')).toBeNull()
-      expect(document.querySelectorAll('img')).toHaveLength(fotos)
+      expect([...document.querySelectorAll('img')].filter((i) => !i.getAttribute('src')?.startsWith('/marca/'))).toHaveLength(fotos)
       unmount()
     }
   })

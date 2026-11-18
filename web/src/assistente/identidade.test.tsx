@@ -39,8 +39,10 @@ describe('boas-vindas do assistente', () => {
       rotas(instituicao(parcial))
       const { unmount } = abrir('/univag/assistente')
       expect(await screen.findByText(texto), texto).toBeInTheDocument()
-      expect(document.querySelectorAll('img'), texto).toHaveLength(comFoto ? 1 : 0)
-      if (comFoto) expect(document.querySelector('img')).toHaveAttribute('src', foto)
+      const proprias = [...document.querySelectorAll('img')].filter((i) => !i.getAttribute('src')?.startsWith('/marca/'))
+      expect(proprias, texto).toHaveLength(comFoto ? 1 : 0)
+      if (comFoto) expect(proprias[0]).toHaveAttribute('src', foto)
+      else expect(document.querySelector('main img[src="/marca/favicon.svg"]'), texto).not.toBeNull()
       unmount()
     }
   })

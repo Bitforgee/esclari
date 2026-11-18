@@ -46,7 +46,8 @@ public class ManifestoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(HttpStatusCode.OK, r.StatusCode);
         var m = await r.Json();
         Assert.Equal("CV", m.GetProperty("short_name").GetString());
-        Assert.Equal("#C83A23", m.GetProperty("theme_color").GetString());
+        Assert.Equal("#f7f5ee", m.GetProperty("theme_color").GetString());
+        Assert.Equal(i.Nome, m.GetProperty("name").GetString());
         Assert.Equal($"/{i.Slug}/", m.GetProperty("start_url").GetString());
         var icones = m.GetProperty("icons").EnumerateArray().ToList();
         Assert.Equal(["/icons/icon-192.png", "/icons/icon-512.png", "/icons/icon-maskable-512.png"], icones.Select(x => x.GetProperty("src").GetString()));
@@ -119,6 +120,43 @@ public class ManifestoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             Assert.Equal("any", x.Purpose);
         });
         Assert.DoesNotContain(icones, x => x.Purpose == "maskable");
+    }
+
+    [Fact]
+    public async Task Trocar_a_marca_nao_muda_id_scope_nem_start_url()
+    {
+        var i = await f.Instituicao();
+        var endereco = $"/api/instituicoes/{i.Slug}/manifest.webmanifest";
+        var antes = await (await f.Cliente().GetAsync(endereco)).Json();
+
+        await f.Db(i.Id, async db =>
+        {
+            await db.Instituicoes.Where(x => x.Id == i.Id).ExecuteUpdateAsync(s => s.SetProperty(x => x.Cor, "#8a1538").SetProperty(x => x.NomeCurto, "Marca"));
+            db.ImagensInstituicao.Add(ImagemTeste.Icone());
+            await db.SaveChangesAsync();
+        });
+        var depois = await (await f.Cliente().GetAsync(endereco)).Json();
+
+        Assert.Equal("#8a1538", depois.GetProperty("theme_color").GetString());
+        foreach (var campo in new[] { "id", "scope", "start_url" })
+            Assert.Equal(antes.GetProperty(campo).GetString(), depois.GetProperty(campo).GetString());
+    }
+
+    [Fact]
+    public async Task Instituicao_nova_nao_grava_a_marca_do_Esclari()
+    {
+        var i = await f.Instituicao();
+
+        var linha = await f.Db(i.Id, db => db.Instituicoes.AsNoTracking().SingleAsync(x => x.Id == i.Id));
+        var imagens = await f.Db(i.Id, db => db.ImagensInstituicao.CountAsync());
+        var publica = await (await f.Cliente().GetAsync($"/api/instituicoes/{i.Slug}")).Json();
+
+        Assert.Null(linha.Cor);
+        Assert.Equal(0, imagens);
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, publica.GetProperty("cor").ValueKind);
+        var figuras = publica.GetProperty("imagens");
+        foreach (var tipo in new[] { "logo", "icone", "login", "assistente" })
+            Assert.Equal(System.Text.Json.JsonValueKind.Null, figuras.GetProperty(tipo).ValueKind);
     }
 
     [Fact]
