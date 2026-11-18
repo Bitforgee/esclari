@@ -7,6 +7,8 @@ Plan: `.specs/features/validade-do-conhecimento/plan.md`
 
 **Emenda de construção E1 (C9 a C15 e C47, só o caminho; aceita no AD-071).** As rotas de renovar ficam no grupo de administração que já serve artigos e documentos: `POST /api/admin/artigos/{id}/renovar` e `POST /api/admin/documentos/{id}/renovar`. O plano escreve `/api/artigos/...` e `/api/documentos/...`, como escreve `GET /api/artigos` para a lista que é `GET /api/admin/artigos`. `GET /api/conhecimento/validade` fica como está escrito. As afirmações não mudam.
 
+**Emenda de construção E2 (C4, C5, C32 e C42, só as provas; depois da rodada 1 do Verify).** As afirmações não mudam; as provas ganham força. C4 e C5 ganham a prova de rota `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ValidadeConhecimentoTests.Nova_versao_pela_rota_refaz_a_validade"`, além do teste da entidade. `AvisarValidadeTests.Arquivado_e_rascunho_nao_geram_aviso` (C32) passa a ter também um artigo ativo vencido no mesmo cenário, que é o único a gerar aviso. `baseDeConhecimento.test.tsx` "secao com totais e link" (C42) compara o valor exato de cada medida, sem casar com a nota.
+
 **Como as provas rodam.** Na raiz `D:\esclari`, salvo `cd web &&`. API: `docker compose up -d postgres mailpit minio` e uma execução de `dotnet test` por vez. Vitest: `cd web && npx vitest run <arquivo> -t "<nome>"`. Um filtro que não seleciona teste sai com 0 (L-002): conferir a contagem de testes executados. `mutator` está suspenso (AD-025). Os nomes de teste abaixo são o contrato: os testes são escritos a partir dos checks, antes da implementação, e cada um nasce em `Esclari.Api.Tests` ou `web/src` com o nome citado. O relógio dos testes é `FakeTimeProvider`; a data de hoje de cada caso vem dele.
 
 ## Checks

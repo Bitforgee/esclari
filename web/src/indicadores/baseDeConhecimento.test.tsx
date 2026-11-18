@@ -32,6 +32,10 @@ describe('base de conhecimento no painel', () => {
 
     const secao = within(await screen.findByRole('region', { name: Titulo }))
     const medida = async (rotulo: string) => (await secao.findByText(rotulo)).parentElement!
+    const valor = async (rotulo: string) => (await medida(rotulo)).querySelector('dd > span')?.textContent
+    expect(await valor('Vigentes')).toBe('12')
+    expect(await valor('Vencem em 30 dias')).toBe('2')
+    expect(await valor('Vencidos')).toBe('1')
     expect(await medida('Vigentes')).toHaveTextContent('12')
     expect(await medida('Vigentes')).toHaveTextContent('8 artigos e 4 documentos')
     expect(await medida('Vencem em 30 dias')).toHaveTextContent('2')

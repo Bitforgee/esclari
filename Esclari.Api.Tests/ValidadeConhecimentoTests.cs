@@ -104,6 +104,26 @@ public class ValidadeConhecimentoTests(EsclariFactoryValidade f, EsclariFactoryM
     }
 
     [Fact]
+    public async Task Nova_versao_pela_rota_refaz_a_validade()
+    {
+        var (i, admin, categoria) = await Preparar(f);
+        var artigo = await admin.NovoArtigo(categoria);
+        var documento = await admin.NovoDocumento(categoria);
+        await f.ValidadeDoArtigo(i, artigo, new DateOnly(2027, 1, 10));
+        await f.ValidadeDoDocumento(i, documento, new DateOnly(2027, 1, 10));
+
+        var a = await admin.PutAsJsonAsync($"/api/admin/artigos/{artigo}", ConhecimentoTeste.CorpoArtigo(categoria, "Abono de faltas, versão 2"));
+        var d = await admin.NovaVersao(documento, Pdfs.Criar("Regulamento do estagio supervisionado, versao dois."));
+
+        Assert.Equal(HttpStatusCode.OK, a.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, d.StatusCode);
+        Assert.Equal("2027-11-17", (await a.Json()).GetProperty("validoAte").GetString());
+        Assert.Equal("2027-11-17", (await d.Json()).GetProperty("validoAte").GetString());
+        Assert.Equal(new DateOnly(2027, 11, 17), await f.Db(i.Id, db => db.Artigos.Where(x => x.Id == artigo).Select(x => x.ValidoAte).SingleAsync()));
+        Assert.Equal(new DateOnly(2027, 11, 17), await f.Db(i.Id, db => db.Documentos.Where(x => x.Id == documento).Select(x => x.ValidoAte).SingleAsync()));
+    }
+
+    [Fact]
     public async Task Vencido_continua_ativo_e_aparece_como_vencido()
     {
         var (i, admin, categoria) = await Preparar(f);

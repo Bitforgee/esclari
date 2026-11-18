@@ -244,6 +244,15 @@ public class AvisarValidadeTests(EsclariFactory f) : IClassFixture<EsclariFactor
 
         Assert.Empty(await f.Avisos(i));
         Assert.Empty(await f.EmailsDeAviso(i));
+
+        var ativo = await f.ArtigoQueVence(i, "Ativo vencido", hoje.AddDays(-1));
+        await Rodar();
+
+        Assert.Equal([new LinhaDeAviso("ARTIGO", ativo, hoje.AddDays(-1), "VENCIDO")], await f.Avisos(i));
+        var corpo = Assert.Single(await f.EmailsDeAviso(i)).Corpo;
+        Assert.Contains("Ativo vencido", corpo);
+        Assert.All(new[] { "Arquivado", "Rascunho", "Documento arquivado" }, t => Assert.DoesNotContain("- Artigo: " + t + " (", corpo));
+        Assert.DoesNotContain("Documento arquivado", corpo);
     }
 
     [Fact]
