@@ -1,9 +1,9 @@
 # Parâmetros por instituição verification
 
-**Verdict**: PASS (C1..C21)
+**Verdict**: PASS (C1..C22)
 **Profile**: standard
-**Diff range**: 2b1f6b0..7b0dcc1
-**Round**: 2 - scoped (C17..C21; rodada 1 completa nos C1..C16)
+**Diff range**: 2b1f6b0..902f9ec
+**Round**: 3 - scoped (C22; rodada 1 completa nos C1..C16, rodada 2 nos C17..C21)
 **Verifier**: independent sub-agent (author != verifier)
 
 Os 16 checks têm prova que roda e passa em `HEAD` (`67f9326`), e as 3 falhas injetadas foram pegas. Verificação enxuta por decisão do dono (18/11): uma rodada, no máximo 3 falhas, sem Playwright e sem `mutator` (AD-025). Achados não bloqueantes no fim.
@@ -68,9 +68,7 @@ Isolamento: `git worktree add ..\esclari-verify-par HEAD`, removido com `git wor
 
 ## Achados não bloqueantes
 
-Os achados 1, 2, 4 e 5 da rodada 1 foram resolvidos pelos checks C17..C20 (ver Round 2). Restam:
-
-3. `Swept` cita idempotência em C3 ("mesmo `PUT` duas vezes deixa o mesmo estado"): nenhum teste envia o mesmo `PUT` duas vezes. O código é uma substituição total, então o risco é baixo.
+Os achados 1, 2, 4 e 5 da rodada 1 foram resolvidos pelos checks C17..C20 (ver Round 2). O achado 3 (idempotência sem teste) foi resolvido pelo C22 (ver Round 3). Nenhum achado aberto.
 
 ## Round 2
 
@@ -96,4 +94,26 @@ Isolamento: `git worktree add ..\esclari-verify-par2 HEAD`, cada falha sozinha e
 | `TransferirConversaHandler` recebe o singleton `Prazos` em vez de `PrazosAtuais` | `Esclari.Api/Assistente/Conversas/TransferirConversa.cs:18,22` | yes - `Previsao_ao_aluno_com_a_meta_da_instituicao`: `Expected: 6, Actual: 24` |
 | `RenovarDocumentoHandler` usa `Prazos` global na validade | `Esclari.Api/Conhecimento/Documentos/RenovarDocumento.cs:13,17` | yes - `Validade_propria_em_versao_renovacao_e_artigo_do_chamado`: coleção `[..., 02/11/2027, ...]` em vez de `02/03/2027` |
 
-Limite: `NovaVersaoDocumento.cs` e `AlterarArtigo` não foram injetados (máximo de 3 falhas); o mesmo teste cobre todos pela asserção dos três valores.
+Limite da rodada 2: `NovaVersaoDocumento.cs` e `AlterarArtigo` não foram injetados (máximo de 3 falhas). Coberto na Round 3.
+
+## Round 3
+
+Escopo: `git diff 902f9ec~1 902f9ec` (2 arquivos, +26/-2). `checks.md`: C1..C21 intactos (texto e provas); só entram o C22, o cabeçalho "22 checks" e a linha de idempotência do `Swept` que passa de C3 para C22. `ParametrosTests.cs`: só adição de um teste; nenhuma asserção removida ou enfraquecida.
+
+| Check | Claim | Proof run | Evidence | Result |
+| --- | --- | --- | --- | --- |
+| C22 | mesmo `PUT` duas vezes: 200 nas duas, mesmo corpo, mesmos sete valores gravados, segunda linha de `PARAMETROS_ALTERADOS` termina em "nenhuma mudança" | `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ParametrosTests.Mesmo_put_duas_vezes_deixa_o_mesmo_estado"` - 1 passed | `ParametrosTests.cs` - `Assert.Equal((OK, OK), ...)`; corpos iguais como texto; `Assert.Equal(new ParametrosDaInstituicao { AbandonoMinutos = 45, ConfirmacaoDias = 2, PrimeiraRespostaHoras = 8, ResolucaoHoras = 48 }, ...)` (igualdade de record cobre os sete); estado após a segunda igual ao da primeira; `Assert.Equal(2, resumos.Count)` e `Assert.EndsWith("nenhuma mudança", resumos[1])` | PASS |
+
+Gate: `dotnet test Esclari.Api.Tests` - 1309 passed, 0 failed.
+
+### Faults injected (round 3)
+
+Isolamento: `git worktree add ..\esclari-verify-par3 HEAD`, cada falha sozinha e revertida com `git checkout -- .`; worktree removido com `--force`. Sem `git stash`; árvore principal intocada.
+
+| Mutation | Location | Killed |
+| --- | --- | --- |
+| `AlterarArtigo` calcula a validade com `prazos with { ValidadeConhecimentoMeses = 12 }` (global) | `Esclari.Api/Conhecimento/Artigos/AlterarArtigo.cs:25` | yes - `PrazosPorInstituicaoTests.Validade_propria_em_versao_renovacao_e_artigo_do_chamado` falha (1 failed, 92 passed) |
+| `NovaVersaoDocumento` idem | `Esclari.Api/Conhecimento/Documentos/NovaVersaoDocumento.cs:25` | yes - o mesmo teste falha (1 failed, 92 passed) |
+| `AlterarParametros` responde `204` em vez do corpo quando o resumo termina em "nenhuma mudança" (não idempotente no corpo) | `Esclari.Api/Plataforma/AlterarParametros.cs` (retorno final) | yes - `ParametrosTests.Mesmo_put_duas_vezes_deixa_o_mesmo_estado` falha (1 failed, 92 passed) |
+
+Achados: nenhum aberto.
