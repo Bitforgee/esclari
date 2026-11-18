@@ -2,6 +2,15 @@ import { useRef } from 'react'
 import { Alert } from '../../ui/alert'
 import { Button } from '../../ui/button'
 
+function Miniatura({ rotulo, miniatura, padrao }: { rotulo: string; miniatura?: string; padrao?: string }) {
+  const imagem = miniatura ? { src: miniatura, alt: `Miniatura: ${rotulo}`, classe: 'size-full object-contain' } : padrao ? { src: padrao, alt: '', classe: 'size-full object-contain p-1' } : null
+  return (
+    <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-sm border bg-muted">
+      {imagem && <img src={imagem.src} alt={imagem.alt} width={64} height={64} className={imagem.classe} />}
+    </div>
+  )
+}
+
 export function CampoImagem({ rotulo, dica, extra, padrao = { legenda: 'Marca do Esclari (padrão)' }, miniatura, escolher, remover, erro }: {
   rotulo: string
   dica: string
@@ -17,13 +26,7 @@ export function CampoImagem({ rotulo, dica, extra, padrao = { legenda: 'Marca do
     <div className="flex flex-col gap-2">
       <p className="m-0 text-sm font-medium">{rotulo}</p>
       <div className="flex items-center gap-3">
-        <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-sm border bg-muted">
-          {miniatura ? (
-            <img src={miniatura} alt={`Miniatura: ${rotulo}`} width={64} height={64} className="size-full object-contain" />
-          ) : (
-            padrao.src && <img src={padrao.src} alt="" width={64} height={64} className="size-full object-contain p-1" />
-          )}
-        </div>
+        <Miniatura rotulo={rotulo} miniatura={miniatura} padrao={padrao.src} />
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" aria-label={`Enviar imagem: ${rotulo}`} onClick={() => entrada.current?.click()}>
             Enviar imagem

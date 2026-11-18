@@ -208,7 +208,7 @@ function BoasVindas({ ap, foto, perguntar, pendente }: { ap: InstituicaoPublica;
       <h2 className="m-0 font-heading text-2xl font-semibold tracking-tight">{`Atendimento ao estudante · ${ap.nomeCurto ?? ap.nome}`}</h2>
       <p className="m-0 text-muted-foreground">{ap.assistente.boasVindas ?? FraseBase}</p>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        {foto && <img src={foto.src} alt="" width={32} height={32} className="size-8 shrink-0 rounded-full object-cover" />}
+        <img src={foto?.src ?? SimboloDoEsclari} alt="" width={32} height={32} className="size-8 shrink-0 rounded-full object-cover" />
         <span>{ap.assistente.nome ? `${ap.assistente.nome}, assistente virtual` : 'Assistente virtual'}</span>
       </div>
       <SolicitacaoEmAberto />
@@ -495,7 +495,7 @@ export function Assistente() {
         <ShieldAlert aria-hidden="true" className="size-3.5 shrink-0" />
         {AvisoExterno}
       </p>
-      {mensagens.length === 0 && <BoasVindas ap={ap} foto={foto ?? { src: SimboloDoEsclari, alt: '' }} perguntar={(p) => envio.mutate({ mensagem: p })} pendente={envio.isPending} />}
+      {mensagens.length === 0 && <BoasVindas ap={ap} foto={foto} perguntar={(p) => envio.mutate({ mensagem: p })} pendente={envio.isPending} />}
       <Conversa
         mensagens={mensagens}
         fuso={fuso}
