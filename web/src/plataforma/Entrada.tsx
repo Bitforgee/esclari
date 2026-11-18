@@ -1,4 +1,5 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import QRCode from 'qrcode'
 import { useState, type ReactNode } from 'react'
 import { BotaoAcao } from '../acao'
 import { api } from '../api'
@@ -6,6 +7,7 @@ import { useTema } from '../aparencia'
 import { Campo, descricaoDoCampo } from '../Campo'
 import { ErroDe, errosDeCampo } from '../ErroDe'
 import { Alert } from '../ui/alert'
+import { useConsulta } from '../ui/use-mobile'
 
 type Etapa = { etapa: 'CODIGO' | 'CADASTRAR'; segredo: string | null; uri: string | null }
 
@@ -50,15 +52,25 @@ function Credenciais({ avancar }: { avancar: (e: Etapa) => void }) {
   )
 }
 
+const Toque = '(pointer: coarse)'
+
+function QrCode({ uri }: { uri: string }) {
+  const { data: svg } = useQuery({ queryKey: ['qr', uri], queryFn: () => QRCode.toString(uri, { type: 'svg' }), staleTime: Infinity })
+  if (!svg) return null
+  return <img src={'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)} alt="QR code para o aplicativo autenticador" width={200} height={200} className="size-50 rounded-md bg-white p-2" />
+}
+
 function Cadastro({ etapa }: { etapa: Etapa }) {
+  const toque = useConsulta(Toque)
   if (etapa.etapa !== 'CADASTRAR' || !etapa.segredo) return <p className="m-0 text-sm text-muted-foreground">Digite os 6 dígitos do aplicativo autenticador.</p>
   return (
     <div className="flex flex-col gap-3 text-sm">
-      <p className="m-0 text-muted-foreground">Cadastre esta conta no aplicativo autenticador. Digite a chave abaixo ou abra o link no celular.</p>
+      <p className="m-0 text-muted-foreground">Escaneie o QR code com o aplicativo autenticador. Se não der, digite a chave abaixo.</p>
+      {etapa.uri && <QrCode uri={etapa.uri} />}
       <p translate="no" className="m-0 font-mono text-base tracking-wider break-all" aria-label="Chave do aplicativo">
         {emGrupos(etapa.segredo)}
       </p>
-      {etapa.uri && (
+      {etapa.uri && toque && (
         <a href={etapa.uri} className="inline-flex min-h-11 items-center underline">
           Abrir no aplicativo
         </a>

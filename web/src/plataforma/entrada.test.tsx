@@ -1,11 +1,25 @@
 import { cleanup, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import QRCode from 'qrcode'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { abrir, api, escolher, type Rota } from '../test/util'
 
 const operador = { id: 1, nome: 'Marina Souza', email: 'marina@esclari.com.br' }
 const naoAutenticado = { status: 401, detail: 'Entre para continuar.' }
 const auditoriaVazia = { itens: [], total: 0 }
+
+const Uri = 'otpauth://totp/Esclari:marina@esclari.com.br?secret=JBSWY3DPEHPK3PXP&issuer=Esclari'
+
+function ponteiro(toque: boolean) {
+  vi.stubGlobal('matchMedia', (media: string) => ({ media, matches: toque && media === '(pointer: coarse)', onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false }))
+}
+
+async function ateACadastro(chamadas: { url: string }[] = []) {
+  await userEvent.type(await screen.findByLabelText('E-mail'), 'marina@esclari.com.br')
+  await userEvent.type(screen.getByLabelText('Senha'), 'uma senha longa')
+  await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+  return chamadas
+}
 
 function tela(rotas: Record<string, Rota> = {}) {
   let entrou = false
@@ -55,7 +69,8 @@ describe('entrada no console', () => {
   })
 
   it('entrada em tres etapas: sem 2FA mostra a chave em grupos de 4 e o link para o aplicativo', async () => {
-    const uri = 'otpauth://totp/Esclari:marina@esclari.com.br?secret=JBSWY3DPEHPK3PXP&issuer=Esclari'
+    const uri = Uri
+    ponteiro(true)
     tela({ 'POST /api/plataforma/auth/entrar': () => [200, { etapa: 'CADASTRAR', segredo: 'JBSWY3DPEHPK3PXP', uri }] })
     await userEvent.type(await screen.findByLabelText('E-mail'), 'marina@esclari.com.br')
     await userEvent.type(screen.getByLabelText('Senha'), 'uma senha longa')
@@ -64,6 +79,49 @@ describe('entrada no console', () => {
     expect(await screen.findByText('JBSW Y3DP EHPK 3PXP')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Abrir no aplicativo' })).toHaveAttribute('href', uri)
     expect(screen.getByLabelText('Código de 6 dígitos')).toBeInTheDocument()
+  })
+
+  it('qr code da uri e chave em grupos de 4', async () => {
+    ponteiro(false)
+    tela({ 'POST /api/plataforma/auth/entrar': () => [200, { etapa: 'CADASTRAR', segredo: 'JBSWY3DPEHPK3PXP', uri: Uri }] })
+    await ateACadastro()
+
+    const qr = await screen.findByRole('img', { name: 'QR code para o aplicativo autenticador' })
+    const esperado = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(await QRCode.toString(Uri, { type: 'svg' }))
+    expect(qr).toHaveAttribute('src', esperado)
+    expect(screen.getByText('JBSW Y3DP EHPK 3PXP')).toBeInTheDocument()
+  })
+
+  it('qr code sem chamada de rede', async () => {
+    ponteiro(false)
+    const chamadas = tela({ 'POST /api/plataforma/auth/entrar': () => [200, { etapa: 'CADASTRAR', segredo: 'JBSWY3DPEHPK3PXP', uri: Uri }] })
+    await ateACadastro()
+    await screen.findByRole('img', { name: 'QR code para o aplicativo autenticador' })
+    expect(chamadas.length).toBeGreaterThan(0)
+    expect(chamadas.filter((c) => !c.url.startsWith('/api/plataforma/'))).toEqual([])
+  })
+
+  it('link otpauth so em aparelho de toque', async () => {
+    ponteiro(false)
+    tela({ 'POST /api/plataforma/auth/entrar': () => [200, { etapa: 'CADASTRAR', segredo: 'JBSWY3DPEHPK3PXP', uri: Uri }] })
+    await ateACadastro()
+    await screen.findByRole('img', { name: 'QR code para o aplicativo autenticador' })
+    expect(screen.queryByRole('link', { name: 'Abrir no aplicativo' })).not.toBeInTheDocument()
+    cleanup()
+    vi.unstubAllGlobals()
+
+    ponteiro(true)
+    tela({ 'POST /api/plataforma/auth/entrar': () => [200, { etapa: 'CADASTRAR', segredo: 'JBSWY3DPEHPK3PXP', uri: Uri }] })
+    await ateACadastro()
+    expect(await screen.findByRole('link', { name: 'Abrir no aplicativo' })).toHaveAttribute('href', Uri)
+  })
+
+  it('codigo sem qr code nem chave', async () => {
+    tela({ 'POST /api/plataforma/auth/entrar': () => [200, { etapa: 'CODIGO', segredo: null, uri: null }] })
+    await ateACadastro()
+    expect(await screen.findByLabelText('Código de 6 dígitos')).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'QR code para o aplicativo autenticador' })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Chave do aplicativo')).not.toBeInTheDocument()
   })
 
   it('credenciais erradas mostram a mensagem e mantêm o e-mail', async () => {
