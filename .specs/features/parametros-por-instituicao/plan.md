@@ -1,6 +1,6 @@
 # Parâmetros por instituição, ajustados no console da plataforma
 
-Depende de `console-da-plataforma` (sessão da plataforma, tela de detalhe da instituição e registro de auditoria). Não começa antes dela.
+Depende de `console-da-plataforma` (sessão da plataforma, tela de detalhe da instituição e registro de auditoria). Não começa antes dela. Na implantação de uma instituição nova (`implantacao-de-instituicao`) a aba "Parâmetros" é o passo opcional "Parâmetros".
 
 ## Problem
 

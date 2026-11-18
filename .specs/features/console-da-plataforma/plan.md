@@ -183,6 +183,8 @@ Criar, ajustar, importar a carga, reenviar o acesso e desativar sem terminal.
 | Excluded | Why |
 | --- | --- |
 | Parâmetros por instituição (metas de prazo, validade, lembretes) | feature seguinte, `parametros-por-instituicao`, com plano próprio; mexe em tudo que lê `Prazos` |
+| Carga assistida (simular e modelo), criar administradores e atendentes da instituição, lista de prontidão | feature seguinte, `implantacao-de-instituicao`, que escreve na instituição alvo e por isso tem plano e regra de arquitetura próprios |
+| Marca padrão do Esclari nas instituições | feature `marca-padrao-esclari`, independente deste console |
 | Convidar e desativar operadores pela tela | o comando basta enquanto a equipe é de poucas pessoas; a tela entra quando houver mais |
 | Motivo de cada resposta "não encontrei" (busca fora do ar, provedor fora do ar, número sem fonte) | hoje só vai para o log, não para o banco; mostrar exige coluna nova em `mensagem_conversa` |
 | Uso de tokens e custo da IA por instituição | o produto calcula o uso em `Assistente.cs` e só o registra no log |
