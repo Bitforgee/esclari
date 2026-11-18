@@ -3,7 +3,7 @@
 Profile: standard
 Plan: `.specs/features/parametros-por-instituicao/plan.md`
 
-16 checks in 3 slices · 3 one-way doors · 0 open
+21 checks in 4 slices · 3 one-way doors · 0 open
 
 Provas: API `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~<Classe>.<Teste>"` (precisa de `docker compose up -d postgres mailpit minio`); web `npm --prefix web test -- <arquivo> -t "<nome>"` (Vitest). Aprovação do plano: pedido do dono em 18/11 ("pode dar push nos commits e seguir com a implementação deste novo plano").
 
@@ -63,6 +63,23 @@ Proof: `npm --prefix web test -- src/plataforma/parametros.test.tsx -t "aba para
 **C16** - Um `400` mostra o erro junto ao campo, e "Usar padrão" esvazia o campo e só envia `null` ao apertar "Salvar" (AC 17, AC 18)
 Proof: `npm --prefix web test -- src/plataforma/parametros.test.tsx -t "erro no campo e usar padrao so ao salvar"`
 
+### S4 - Lacunas fechadas depois da rodada 1 (pedido do dono em 18/11) · API e web
+
+**C17** - Com `ResolucaoHoras` 2 numa instituição, um chamado dela já respondido e aberto há 3 horas aparece no filtro de atrasados e nos indicadores com `resolucaoMetaHoras` 2 e `emAtrasoAgora` 1; o mesmo chamado em outra instituição não (AC 9)
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~PrazosPorInstituicaoTests.Resolucao_propria_no_atraso_e_nos_indicadores"`
+
+**C18** - O e-mail de atrasos de uma instituição com metas 1 h e 30 h diz "Meta: primeira resposta em 1 h; resolução em 30 h.", e o de outra com só a primeira resposta própria diz "... resolução em 120 h." (AC 9)
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~PrazosPorInstituicaoTests.Email_de_atrasos_com_as_metas_da_instituicao"`
+
+**C19** - A transferência para atendimento devolve `prazoPrimeiraRespostaHoras` 6 e o detalhe do aluno mostra `prazoPrimeiraRespostaEm` igual a `criadoEm` + 6 h numa instituição com meta 6; em outra, 24 (AC 9)
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~PrazosPorInstituicaoTests.Previsao_ao_aluno_com_a_meta_da_instituicao"`
+
+**C20** - Com `ValidadeConhecimentoMeses` 4, alterar e renovar artigo, criar artigo a partir do chamado, criar documento, nova versão de documento e renovar documento gravam `valido_ate` daqui a 4 meses, e o documento antes da mudança tinha 12 (AC 13)
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~PrazosPorInstituicaoTests.Validade_propria_em_versao_renovacao_e_artigo_do_chamado"`
+
+**C21** - A aba "Implantação" mostra o passo "Parâmetros" entre "Carga inicial" e "Equipe inicial", e "Ajustar os parâmetros" abre a aba "Parâmetros" com os valores (AC 26 de `implantacao-de-instituicao`)
+Proof: `npm --prefix web test -- src/plataforma/parametros.test.tsx -t "passo parametros da implantacao abre a aba"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -92,7 +109,7 @@ Proof: `npm --prefix web test -- src/plataforma/parametros.test.tsx -t "erro no 
 
 ## Out of scope
 
-- Ver `plan.md`. O passo "Parâmetros" dentro da aba "Implantação" (AC 26 de `implantacao-de-instituicao`) fica como a aba "Parâmetros" do detalhe, sem um passo a mais na aba "Implantação".
+- Ver `plan.md`.
 
 ## Handoff
 

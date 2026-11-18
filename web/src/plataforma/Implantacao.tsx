@@ -135,11 +135,26 @@ function CargaInicial({ slug, recarregar }: { slug: string; recarregar: () => Pr
   )
 }
 
-export function Implantacao({ slug, prontidao, recarregar }: { slug: string; prontidao: Prontidao; recarregar: () => Promise<unknown> }) {
+function PassoDosParametros({ abrir }: { abrir: () => void }) {
+  return (
+    <section aria-labelledby="parametros-titulo" className="flex flex-col items-start gap-2">
+      <h3 id="parametros-titulo" className="m-0 text-base font-semibold">
+        Parâmetros
+      </h3>
+      <p className="m-0 text-sm text-muted-foreground">Prazos e metas da instituição. Sem mudança, ela usa os padrões do Esclari.</p>
+      <Button variant="outline" className="pointer-coarse:h-11" onClick={abrir}>
+        Ajustar os parâmetros
+      </Button>
+    </section>
+  )
+}
+
+export function Implantacao({ slug, prontidao, recarregar, abrirParametros }: { slug: string; prontidao: Prontidao; recarregar: () => Promise<unknown>; abrirParametros: () => void }) {
   return (
     <>
       <Lista prontidao={prontidao} />
       <CargaInicial slug={slug} recarregar={recarregar} />
+      <PassoDosParametros abrir={abrirParametros} />
     </>
   )
 }

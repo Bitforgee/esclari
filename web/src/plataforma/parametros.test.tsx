@@ -63,6 +63,18 @@ describe('parâmetros da instituição', () => {
     expect(confirmacao).toHaveValue(2)
   })
 
+  it('passo parametros da implantacao abre a aba', async () => {
+    tela({})
+    const passo = within(await screen.findByRole('region', { name: 'Parâmetros' }))
+    expect(passo.getByText('Prazos e metas da instituição. Sem mudança, ela usa os padrões do Esclari.')).toBeInTheDocument()
+    const ordem = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+    expect(ordem.indexOf('Carga inicial')).toBeLessThan(ordem.indexOf('Parâmetros'))
+    expect(ordem.indexOf('Parâmetros')).toBeLessThan(ordem.findIndex((t) => t?.startsWith('Equipe inicial')))
+    await userEvent.click(passo.getByRole('button', { name: 'Ajustar os parâmetros' }))
+    expect(screen.getByRole('tab', { name: 'Parâmetros', selected: true })).toBeInTheDocument()
+    expect(await screen.findByLabelText('Abandono da conversa (min)')).toHaveValue(45)
+  })
+
   it('erro no campo e usar padrao so ao salvar', async () => {
     let tentativa = 0
     const chamadas = tela({

@@ -28,14 +28,15 @@ function Cabeca({ d }: { d?: Detalhe }) {
 }
 
 function Abas({ slug, d, recarregar }: { slug: string; d?: Detalhe; recarregar: () => Promise<unknown> }) {
+  const [aba, setAba] = useState('implantacao')
   return (
-    <Tabs defaultValue="implantacao">
+    <Tabs value={aba} onValueChange={setAba}>
       <TabsList>
         <TabsTrigger value="implantacao">Implantação</TabsTrigger>
         <TabsTrigger value="parametros">Parâmetros</TabsTrigger>
       </TabsList>
       <TabsContent value="implantacao" className="flex flex-col gap-6 pt-2">
-        {d && <Implantacao slug={slug} prontidao={d.prontidao} recarregar={recarregar} />}
+        {d && <Implantacao slug={slug} prontidao={d.prontidao} recarregar={recarregar} abrirParametros={() => setAba('parametros')} />}
         {d && <Equipe slug={slug} nome={d.nome} recarregar={recarregar} />}
       </TabsContent>
       <TabsContent value="parametros" className="pt-2">
