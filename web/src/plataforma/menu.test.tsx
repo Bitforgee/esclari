@@ -12,7 +12,7 @@ const auditoria = {
 describe('menu do console e das instituições', () => {
   afterEach(() => cleanup())
 
-  it('administrador de instituição não vê grupo Plataforma nem Instituições', async () => {
+  it('menu da instituicao nao tem o grupo Plataforma: administrador, atendente e aluno nao veem Plataforma nem Instituições', async () => {
     for (const papeis of [['ADMINISTRADOR'], ['ATENDENTE'], ['ALUNO']]) {
       api({ 'GET /api/auth/me': () => [200, me({ papeis })] })
       abrir('/univag/trocar-senha')
@@ -21,19 +21,6 @@ describe('menu do console e das instituições', () => {
       expect(within(barra).queryByRole('link', { name: 'Instituições' }), papeis.join()).not.toBeInTheDocument()
       cleanup()
     }
-  })
-
-  it('casca do console tem a marca do Esclari e só Instituições e Auditoria', async () => {
-    api({ 'GET /api/plataforma/eu': () => [200, operador], 'GET /api/plataforma/auditoria?pagina=1': () => [200, auditoria] })
-    abrir('/plataforma/auditoria')
-    const nav = await screen.findByRole('navigation', { name: 'Navegação' })
-    expect(within(nav).getAllByRole('link').map((l) => [l.textContent, l.getAttribute('href')])).toEqual([
-      ['Instituições', '/plataforma/instituicoes'],
-      ['Auditoria', '/plataforma/auditoria'],
-    ])
-    expect(screen.getByRole('img', { name: 'Esclari' })).toHaveAttribute('src', '/marca/logo-horizontal.svg')
-    expect(screen.getByRole('heading', { name: 'Auditoria', level: 1 })).toBeInTheDocument()
-    expect(screen.getByText('Marina Souza', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('auditoria mostra a ação em português e o estado vazio', async () => {

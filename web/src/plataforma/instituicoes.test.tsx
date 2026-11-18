@@ -25,7 +25,7 @@ describe('instituições da plataforma', () => {
     localStorage.clear()
   })
 
-  it('lista com situação, saúde e ações', async () => {
+  it('lista com saude e etiquetas: situação, taxa e ações', async () => {
     tela()
     const ativa = await linha('Faculdade Demo')
     expect(cabecalhos()).toEqual(['Nome', 'Situação', 'Última atividade', 'Não encontrei', 'Administradores', 'Criada em', 'Ações'])
@@ -48,7 +48,7 @@ describe('instituições da plataforma', () => {
     expect(screen.getByRole('button', { name: 'Nova instituição' })).toBeInTheDocument()
   })
 
-  it('etiquetas de atenção e situação de primeiro acesso', async () => {
+  it('lista com saude e etiquetas: as cinco de atenção e o primeiro acesso', async () => {
     const etiquetas = ['PARADA', 'MUITOS_SEM_BASE', 'EMAILS_FALHANDO', 'CONTEUDO_VENCIDO', 'FILA_ANTIGA']
     tela({}, [{ ...demo, atencao: etiquetas }, { ...antiga, ativa: true, situacao: 'AGUARDANDO_PRIMEIRO_ACESSO' }])
     const celula = within(await linha('Faculdade Demo')).getAllByRole('cell')[1]
@@ -56,7 +56,7 @@ describe('instituições da plataforma', () => {
     expect(within(within(await linha('Faculdade Antiga')).getAllByRole('cell')[1]).getByText('Aguardando primeiro acesso')).toBeInTheDocument()
   })
 
-  it('lista vazia mostra a frase e o botão de criar', async () => {
+  it('estados vazios: instituições mostra a frase e o botão de criar', async () => {
     tela({}, [])
     expect(await screen.findByText('Ainda não há instituição cadastrada. Crie a primeira.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Nova instituição' })).toBeInTheDocument()
@@ -200,7 +200,7 @@ describe('instituições da plataforma', () => {
     expect(d.queryByText('setores[1].nome: "A" repetido')).not.toBeInTheDocument()
   })
 
-  it('desativar pede o motivo, reativar e reenviar agem direto', async () => {
+  it('desativar pede confirmacao e motivo, reativar e reenviar agem direto', async () => {
     let desativada = false
     const chamadas = tela({
       [`GET ${Lista}`]: () => [200, [{ ...demo, ativa: !desativada, situacao: desativada ? 'DESATIVADA' : 'ATIVA' }, antiga]],
@@ -244,18 +244,38 @@ describe('instituições da plataforma', () => {
     expect(gravacoes(chamadas).map(([, url]) => url)).toEqual([`${Lista}/demo/desativar`, `${Lista}/antiga/reativar`, `${Lista}/demo/reenviar-acesso`])
   })
 
-  it('401 com a sessão aberta volta à entrada com o aviso', async () => {
-    let lidas = 0
-    api({
-      'GET /api/plataforma/eu': () => [200, operador],
-      [`GET ${Lista}`]: () => (++lidas === 1 ? [200, [demo]] : [401, { status: 401, detail: 'Sua sessão terminou. Entre de novo.' }]),
-      [`POST ${Lista}/demo/reenviar-acesso`]: () => [401, { status: 401, detail: 'Sua sessão terminou. Entre de novo.' }],
-    })
+  it('estados vazios: auditoria mostra a frase sem botão de criar', async () => {
+    api({ 'GET /api/plataforma/eu': () => [200, operador], 'GET /api/plataforma/auditoria?pagina=1': () => [200, { itens: [], total: 0 }] })
+    abrir('/plataforma/auditoria')
+    expect(await screen.findByText('Ainda não há ações registradas.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Nova instituição' })).not.toBeInTheDocument()
+  })
+
+  it('casca da plataforma com a marca do Esclari e dois itens', async () => {
+    api({ 'GET /api/plataforma/eu': () => [200, operador], [`GET ${Lista}`]: () => [200, []] })
     abrir('/plataforma/instituicoes')
-    await linha('Faculdade Demo')
-    await escolher('Faculdade Demo', 'Reenviar acesso do admin')
-    expect(await screen.findByText('Sua sessão terminou. Entre de novo.')).toBeInTheDocument()
-    expect(screen.getByLabelText('E-mail')).toBeInTheDocument()
-    expect(screen.getByLabelText('Senha')).toBeInTheDocument()
+    const nav = await screen.findByRole('navigation', { name: 'Navegação' })
+    expect(within(nav).getAllByRole('link').map((l) => [l.textContent, l.getAttribute('href')])).toEqual([
+      ['Instituições', '/plataforma/instituicoes'],
+      ['Auditoria', '/plataforma/auditoria'],
+    ])
+    expect(screen.getByRole('img', { name: 'Esclari' })).toHaveAttribute('src', '/marca/logo-horizontal.svg')
+    expect(screen.getByText('Marina Souza', { selector: 'span' })).toBeInTheDocument()
+  })
+
+  it('criar leva a importar a carga na mesma tela', async () => {
+    const chamadas = tela({
+      [`POST ${Lista}`]: () => [201, demo],
+      [`POST ${Lista}/faculdade-demo/carga`]: () => [200, { setores: 2, cursos: 1, categorias: 3, regras: 2, artigos: 5 }],
+    })
+    await preencher(await abrirNova())
+    await userEvent.click(screen.getByRole('button', { name: 'Criar' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Importar carga' }))
+    const d = within(await screen.findByRole('dialog', { name: 'Importar carga: Faculdade Demo' }))
+    const arquivo = new File(['{}'], 'carga.json', { type: 'application/json' })
+    await userEvent.upload(d.getByLabelText(/Arquivo de carga/), arquivo)
+    await userEvent.click(d.getByRole('button', { name: 'Importar' }))
+    expect(await d.findByText('Importados: 2 setores, 1 curso, 3 categorias, 2 regras, 5 artigos.')).toBeInTheDocument()
+    expect(gravacoes(chamadas).map(([m, u]) => [m, u])).toEqual([['POST', Lista], ['POST', `${Lista}/faculdade-demo/carga`]])
   })
 })

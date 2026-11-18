@@ -116,7 +116,9 @@ function ResultadoDaCarga({ r, erro }: { r?: Contagens; erro: Error | null }) {
   return <ErroDe erro={erro} />
 }
 
-function ImportarCarga({ alvo, fechar }: { alvo: Item; fechar: () => void }) {
+type Alvo = Pick<Item, 'slug' | 'nome'>
+
+function ImportarCarga({ alvo, fechar }: { alvo: Alvo; fechar: () => void }) {
   const [arquivo, setArquivo] = useState<File>()
   const importacao = useMutation({ mutationFn: (f: FormData) => api<Contagens>(`/api/plataforma/instituicoes/${alvo.slug}/carga`, f) })
 
@@ -246,10 +248,13 @@ function useCriacao(recarregar: () => Promise<unknown>) {
   return { nova, setNova, criada, mutacao, campos, geral, abrir }
 }
 
-const AvisoDeCriacao = ({ criada }: { criada: Ficha }) => (
+const AvisoDeCriacao = ({ criada, importar }: { criada: Ficha; importar: () => void }) => (
   <Alert>
-    <div>
-      Instituição {criada.nome} criada. Enviamos o link de primeiro acesso para <Literal>{criada.email}</Literal>. <Link to={`/${criada.slug}`} translate="no">/{criada.slug}</Link>
+    <div className="flex flex-col items-start gap-2">
+      <p className="m-0">Instituição {criada.nome} criada. Enviamos o link de primeiro acesso para <Literal>{criada.email}</Literal>. <Link to={`/${criada.slug}`} translate="no">/{criada.slug}</Link></p>
+      <Button variant="outline" onClick={importar}>
+        Importar carga
+      </Button>
     </div>
   </Alert>
 )
@@ -261,7 +266,7 @@ export function Instituicoes() {
   const criacao = useCriacao(recarregar)
   const sujo = useSujo(criacao.nova)
   useFocoNoPrimeiroErro(criacao.mutacao.error)
-  const [carga, setCarga] = useState<Item>()
+  const [carga, setCarga] = useState<Alvo>()
   const [desativar, setDesativar] = useState<Item>()
   const acao = useGravacao(recarregar)
 
@@ -277,7 +282,7 @@ export function Instituicoes() {
       <Cabecalho botao="Nova instituição" Icone={Plus} aoClicar={criacao.abrir} />
       <ErroDe erro={erro} oque="as instituições" tentar={recarregar} />
       <ErroDe erro={acao.error} />
-      {criacao.criada && <AvisoDeCriacao criada={criacao.criada} />}
+      {criacao.criada && <AvisoDeCriacao criada={criacao.criada} importar={() => setCarga({ slug: criacao.criada!.slug, nome: criacao.criada!.nome })} />}
       <Tabela colunas={Colunas} itens={dados?.lista} erro={erro} vazio={SemInstituicoes}>
         {dados?.lista.map((i) => (
           <Linha key={i.slug} i={i} importar={() => setCarga(i)} desativar={() => setDesativar(i)} agir={agir} pendente={acao.isPending} />

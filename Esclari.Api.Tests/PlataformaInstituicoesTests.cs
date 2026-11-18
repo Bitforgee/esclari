@@ -96,6 +96,13 @@ public class PlataformaInstituicoesTests(EsclariFactory f) : IClassFixture<Escla
         }
         Assert.Equal(HttpStatusCode.BadRequest, (await c.PostAsJsonAsync($"{Lista}/{i.Slug}/desativar", new { })).StatusCode);
 
+        foreach (var limite in new[] { "abc", new string('y', 200) })
+        {
+            var outra = await f.Instituicao();
+            Assert.Equal(HttpStatusCode.OK, (await c.PostAsJsonAsync($"{Lista}/{outra.Slug}/desativar", new { motivo = limite })).StatusCode);
+            Assert.False((await f.Db(null, db => db.Instituicoes.SingleAsync(x => x.Id == outra.Id))).Ativa);
+        }
+
         var ok = await c.PostAsJsonAsync($"{Lista}/{i.Slug}/desativar", new { motivo = "Contrato encerrado" });
 
         Assert.Equal(HttpStatusCode.OK, ok.StatusCode);

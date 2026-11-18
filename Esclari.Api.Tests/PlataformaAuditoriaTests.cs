@@ -90,13 +90,18 @@ public class PlataformaAuditoriaTests(EsclariFactory f) : IClassFixture<EsclariF
         var email = $"{Guid.NewGuid():N}@teste.edu.br";
         await op.Cliente.PostAsJsonAsync(Lista, new { slug, nome = "Faculdade Auditada", fuso = "America/Cuiaba", admin = new { cpf, nome = "Dona Admin", email } });
         await op.Cliente.PostAsync($"{Lista}/{slug}/reenviar-acesso", null);
+        await op.Cliente.PutAsJsonAsync($"{Lista}/{slug}", new { nome = "Faculdade Auditada Nova", fuso = "America/Sao_Paulo" });
+        var carga = new MultipartFormDataContent { { new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes("{\"setores\":[{\"nome\":\"Financeiro\"}]}")), "arquivo", "carga.json" } };
+        await op.Cliente.PostAsync($"{Lista}/{slug}/carga", carga);
+        await op.Cliente.PostAsJsonAsync($"{Lista}/{slug}/desativar", new { motivo = new string('m', 200) });
+        await op.Cliente.PostAsync($"{Lista}/{slug}/reativar", null);
         await op.Cliente.PostAsJsonAsync($"{Lista}/{slug}/desativar", new { motivo = new string('m', 200) });
         await PlataformaComando.Executar(f.Services, ["operador", "--email", op.Operador.Email, "--redefinir-2fa"], new StringWriter(), new StringWriter());
 
         var linhas = await Linhas(op.Operador.Id);
         var tokens = await f.Db(null, db => db.Tokens.IgnoreQueryFilters().Select(t => t.Hash).ToListAsync());
 
-        Assert.True(linhas.Count >= 4);
+        Assert.Equal(AcoesDaPlataforma.Todas.Order(), linhas.Select(l => l.Acao).Distinct().Order());
         foreach (var l in linhas)
         {
             Assert.True(l.Resumo.Length <= 200, l.Acao);
@@ -106,7 +111,7 @@ public class PlataformaAuditoriaTests(EsclariFactory f) : IClassFixture<EsclariF
             Assert.DoesNotMatch(@"token|senha|password", l.Resumo.ToLowerInvariant());
             Assert.DoesNotContain(tokens, h => l.Resumo.Contains(h));
         }
-        Assert.Equal(200, linhas.Single(l => l.Acao == "INSTITUICAO_DESATIVADA").Resumo.Length);
+        Assert.All(linhas.Where(l => l.Acao == "INSTITUICAO_DESATIVADA"), l => Assert.Equal(200, l.Resumo.Length));
     }
 
     [Fact]

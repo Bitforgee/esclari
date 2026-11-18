@@ -31,6 +31,7 @@ public partial class NomeDoProdutoTests
         "prompt-evolucao-one.md",
         "One or more validation errors",
         "=== 'one'",
+        "one-time-code",
     ];
 
     static readonly string[] PrefixosDoStateAnteriores =
