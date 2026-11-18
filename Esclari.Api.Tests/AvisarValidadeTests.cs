@@ -71,13 +71,15 @@ public class AvisarValidadeTests(EsclariFactory f) : IClassFixture<EsclariFactor
         await f.Db(i.Id, async db =>
         {
             db.AvisosValidade.Add(AvisoValidade.Criar("ARTIGO", em8, hoje.AddDays(8), "EM_30_DIAS", f.Relogio.GetUtcNow().UtcDateTime));
+            db.AvisosValidade.Add(AvisoValidade.Criar("ARTIGO", em7, hoje.AddDays(7), "EM_30_DIAS", f.Relogio.GetUtcNow().UtcDateTime));
             await db.SaveChangesAsync();
         });
 
         await Rodar();
 
-        Assert.Equal([new LinhaDeAviso("ARTIGO", em8, hoje.AddDays(8), "EM_30_DIAS"), new LinhaDeAviso("ARTIGO", em7, hoje.AddDays(7), "EM_7_DIAS")], await f.Avisos(i));
+        Assert.Equal([new LinhaDeAviso("ARTIGO", em8, hoje.AddDays(8), "EM_30_DIAS"), new LinhaDeAviso("ARTIGO", em7, hoje.AddDays(7), "EM_30_DIAS"), new LinhaDeAviso("ARTIGO", em7, hoje.AddDays(7), "EM_7_DIAS")], await f.Avisos(i));
         var email = Assert.Single(await f.EmailsDeAviso(i));
+        Assert.Contains("Trancamento", email.Corpo);
         Assert.DoesNotContain("Rematrícula", email.Corpo);
     }
 
