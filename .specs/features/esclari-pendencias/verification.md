@@ -1,6 +1,6 @@
 # esclari-pendencias verification
 
-**Verdict**: FAIL
+**Verdict**: FAIL (rodada 2: C12, C14 e C16 continuam reprovados)
 **Profile**: standard
 **Diff range**: 6e648a4..867a03f
 **Round**: 1 - full
@@ -117,3 +117,16 @@ Sobreviveu F1 (gap 3). Os demais morreram.
 - E2E de specs: não rodado (o único check com Compose real que dependia disso é o C8, ver gap 4).
 - HEAD usado: `867a03f2f06689e78826201b537b05f84e767177`.
 - `validate_verification.py esclari-pendencias`: exit 1, único erro: `verdict is FAIL` (estrutura do relatório aceita).
+
+
+## Rodada 2 (escopada, fechamento)
+
+HEAD `14b9146`. Examinados só os checks reprovados na rodada 1 (C12, C14, C16). Desde `867a03f`, nenhum commit tocou `.specs/features/esclari-pendencias`, `AGENTS.md` ou `NomeDoProdutoTests.cs` (só `7c4141b`, que libera a URL antiga entre aspas no feedback da banca).
+
+| Check | Prova | Resultado |
+| --- | --- | --- |
+| C12 | `docker volume ls` sem `^one`: vazio. `select slug from instituicao where slug like 'demo-%' or slug like 'operadora-%'` no banco `esclari`: 2 linhas (`operadora-mwjmxeg9`, `demo-mwjmxeg9`), esperado 0 | FAIL: as duas linhas de e2e continuam, sem "ok" do dono para apagar |
+| C14 | `NomeDoProdutoTests.cs` continua com 2 testes (`Nenhum_arquivo...`, `State_registra_o_AD_do_nome`), sem `State_registra_o_AD_do_remoto_e_pasta`; `AGENTS.md` sem `Bitforgee`; `STATE.md:100` (antes 77) ainda cita `Bitforgee/One` | FAIL: sem teste do AD do remoto e da pasta, `AGENTS.md` e a linha do Handoff sem correção |
+| C16 | `checks.md:66` ainda exige `D:\esclari-system`; a pasta real é `D:\esclari` (AD-059), sem emenda do dono | FAIL (literal) |
+
+Não verificado: C8 prova real, gap 3 (teste dos ícones não roda o gerador), push. Os demais checks (C1 a C11, C13, C15) não foram reexecutados; valem os PASS da rodada 1.

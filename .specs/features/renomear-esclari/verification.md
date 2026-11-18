@@ -1,6 +1,6 @@
 # renomear-esclari verification
 
-**Verdict**: FAIL
+**Verdict**: FAIL (rodada 3: C20 regrediu, ver `## Rodada 3`)
 **Profile**: standard
 **Diff range**: f57b031..4be6cfc
 **Round**: 2 - full
@@ -107,3 +107,16 @@ apagado, 0 ignorados na API, web com 112 arquivos aprovados.
 - `mutator`: suspenso (AD-025), não rodado.
 - E2E: nenhum check desta feature depende de e2e.
 - HEAD usado: `4be6cfcca2c32920162dbc6f14095944091a46cf` (não mudou durante a verificação).
+
+## Rodada 3 (escopada, fechamento)
+
+Escopo: o gap aberto da rodada 2 (item 0, `UserSecretsId`) e uma reconfirmacao de C20, em HEAD `14b9146`, com `--no-build` (sem build, sem e2e, sem suite inteira).
+
+| Check | Prova | Resultado |
+| --- | --- | --- |
+| C20 / door 3 `UserSecretsId` | `dotnet test --no-build --filter "MarcaTests\|NomeDoProdutoTests"`: 9 testes, 8 aprovados, 1 falha. `MarcaTests.UserSecretsId_e_esclari_api` (commit `867a03f`) aprovado: o gap do item 0 foi fechado. | gap: PASS |
+| C20 nenhum arquivo cita `One` | `NomeDoProdutoTests.Nenhum_arquivo_rastreado_cita_One_fora_do_historico` FALHA: `ROADMAP.md:3` e `ROADMAP.md:86` citam "One passa a Esclari" (texto de `48b76b1`, posterior a 4be6cfc). | FAIL |
+| C1-C19, C21 | Nao reexecutados. Nenhum commit depois de 4be6cfc tocou produto de nome/protocolo/cookie/token. Somente `7c4141b` (guarda) e `867a03f` (teste). | NAO VERIFICADO nesta rodada (valem os resultados da rodada 2) |
+
+Fora: suite completa, web, e2e, crapper/dryer, mutacoes novas. Nao tocou codigo nem testes.
+Para fechar: reescrever as citacoes de "One" no ROADMAP.md (ou liberar a excecao no guarda por decisao do dono).

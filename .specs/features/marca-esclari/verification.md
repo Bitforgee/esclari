@@ -1,6 +1,6 @@
 # Logo e marca do Esclari verification
 
-**Verdict**: FAIL
+**Verdict**: PASS (rodada 3: o unico reprovado, C3, foi superado pelo redesign AD-062; ver `## Rodada 3`)
 **Profile**: ui
 **Diff range**: e39d84d..HEAD (HEAD = eddecf9)
 **Round**: 2 - full
@@ -121,3 +121,18 @@ Worktree em `%TEMP%\wt-marca` (e `wt-marca2`), `node_modules` por juncao, sem `g
 3. **Marca / cosmetico** (minor): o "r" encosta no "i" nos dois logos horizontais (`web/public/marca/logo-horizontal.svg`, `logo-horizontal-escuro.svg`); sem check de espacamento.
 4. **Plano / precisao** (minor): `plan.md` AC 1, 3, 16 e a Surface seguem com `#224fa7`, balao e "um `<path>`"; a porta 5 e o `Amendment 1` os supersedem so nos checks. `logo-horizontal-escuro.svg` nao esta na Surface. As cores padrao da API (`LayoutEmail`, `ManifestoInstituicao`) so tem prova em testes existentes editados, sem check proprio.
 5. **C18 / nivel** (minor): a prova roda no servidor de dev; o `Content-Type` do Kestrel para os SVG nao e exercido.
+
+## Rodada 3 (escopada, fechamento)
+
+Verificador independente, sem corrigir codigo nem testes. HEAD atual, depois de 108f95e, 643666e, 55eaed4, 49cba64.
+
+| Check | Resultado | Evidencia |
+| --- | --- | --- |
+| C3 (braco marca-texto do avicon.svg) | SUPERADO | 643666e (AD-062, edesign-marca-esclari-final) trocou o favicon: hoje web/public/marca/favicon.svg e o Fio de procedencia, placa #C83A23 e simbolo #FFFFFF num unico path, sem braco amarelo. A exigencia de "braco marca-texto" nao existe mais. Antes disso, 108f95e ja tinha acrescentado a asserção do braco amarelo em logo.test.ts (o mutante da rodada 2 foi coberto antes de ser superado). |
+| Marca atual (avicon.svg cores Origem+Branco, favicon em 16 px, <link rel=icon svg> antes do png) | PASS | 
+px vitest run src/test/logo.test.ts src/acesso/logo-esclari.test.tsx: 2 arquivos, 13 testes, 0 falhas (inclui "favicon preserva volta e extremidades em 16 px"). |
+| C26 (logo da raiz segue o tema) | PASS | os 4 testes de logo-esclari.test.tsx passam no HEAD. |
+| C1, C2, C4 (simbolo/logo com #ffd43b, #2438d6, Ultramar) | SUPERADO | descrevem a marca da porta 5, substituida pelo AD-062 (cores Tinta/Origem). Nao rodados. |
+| Demais checks (icones, guia, aparencia, .NET EmailMarcaTests, manifesto, e2e marca.spec.ts, C17 build) | NAO VERIFICADO | fora do escopo da rodada (pedido: sem suite completa, sem e2e, sem build, sem dotnet). Os que citam a marca antiga foram reescritos pelo AD-062/AD-063..065, cuja verificacao propria (interface-marca-esclari, PASS) os cobre. |
+
+Fora desta rodada: Playwright, build, dotnet test, crapper/dryer. Nada reprovado e aplicavel ficou sem prova; o FAIL da rodada 2 virou PASS por superacao do C3.
