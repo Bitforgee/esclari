@@ -16,4 +16,4 @@ Proof: `npm --prefix web test -- src/plataforma/entrada.test.tsx -t "link vencid
 
 ## Handoff
 
-- Verificação independente pendente (correção publicada antes para não vencer o convite de 60 minutos do primeiro operador)
+- Correção publicada antes da verificação para não vencer o convite de 60 minutos do primeiro operador; verificação independente feita depois, com PASS (`verification.md`)
