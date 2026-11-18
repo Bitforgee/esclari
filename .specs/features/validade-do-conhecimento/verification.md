@@ -1,9 +1,9 @@
 # Validade de um ano para artigos e documentos - verificação
 
-**Verdict**: FAIL (1 check reprovado: C42; 3 checks aprovados com gap: C4, C5, C32)
+**Verdict**: FAIL (rodada 2, em `061f8d5`: 1 check reprovado, C23. Na rodada 1, em `b57541a`, o reprovado era o C42, e os gaps eram C4, C5 e C32; os quatro fecharam na rodada 2. Detalhes em `## Rodada 2`)
 **Profile**: ui
-**Diff range**: 39cdc29..b57541a (commits da feature: `7c4141b`, `1f725c0`, `1431bf6`, `99d99fe`, e `b57541a`, que moveu o filtro de `web/src/conhecimento/Validade.tsx` para o genérico `FiltroNaUrl.tsx`; os commits de `prazos-de-atendimento` e `artigo-a-partir-do-chamado` no meio do range rodaram junto nas suítes inteiras)
-**Round**: 1
+**Diff range**: rodada 2 em 39cdc29..061f8d5; rodada 1 em 39cdc29..b57541a (commits da feature: `7c4141b`, `1f725c0`, `1431bf6`, `99d99fe`, e `b57541a`, que moveu o filtro de `web/src/conhecimento/Validade.tsx` para o genérico `FiltroNaUrl.tsx`; os commits de `prazos-de-atendimento` e `artigo-a-partir-do-chamado` no meio do range rodaram junto nas suítes inteiras)
+**Round**: 2 (a rodada 1 segue abaixo sem mudança; a rodada 2 está em `## Rodada 2`, no fim do arquivo)
 **Verifier**: sub-agente independente (author != verifier); não escreveu o plano, os checks, o código nem os testes
 **Data**: 17/11/2026
 
@@ -188,3 +188,111 @@ Sem peso no veredito:
    - (a) `toHaveTextContent(<número>)` num contêiner que também mostra uma nota com números não prova o valor. Compare o elemento do valor de forma exata.
    - (b) quando a prova de uma regra é só unitária na entidade, o check deve nomear também a rota que chama a regra. Do contrário, a ligação handler → entidade fica sem prova (F5, F6).
    - (c) um teste de "não gera" precisa de um item que gera no mesmo cenário. Sem ele, um filtro anterior pode segurar o caso sozinho (F22).
+
+## Rodada 2
+
+**Verdict (rodada 2)**: FAIL (1 check reprovado: C23). Os 4 achados da rodada 1 (C42, e os gaps de C4, C5 e C32) fecharam.
+**Round**: 2
+**Diff range**: 39cdc29..061f8d5. Os testes que fecham a rodada 1 estão em `c45ac55`. Depois dele entraram só commits de `prazos-de-atendimento` e `artigo-a-partir-do-chamado` (`f89920e`, `6ddc5c2`, `0cb56f1`, `061f8d5`), e nenhum toca código de produto (`git diff c45ac55 061f8d5 --stat -- Esclari.Api web Esclari.Api.Tests` lista só arquivos de teste daquelas features).
+**Verifier**: sub-agente novo e independente. Não escreveu o plano, os checks, o código nem os testes, e não fez a rodada 1.
+**Data**: 17/11/2026
+
+A emenda E1 (rotas de renovar no grupo `/api/admin`, AD-071) e a emenda E2 (provas mais fortes para C4, C5, C32 e C42) foram aplicadas na leitura dos checks.
+
+### Provas rodadas em `061f8d5`
+
+- `dotnet build Esclari.slnx --no-incremental`: exit 0, 0 erros.
+- `dotnet test Esclari.Api.Tests --logger trx`: `Aprovado! – Com falha: 0, Aprovado: 1178, Ignorado: 0, Total: 1178`, exit 0 (`D:\esclari-verif\vc2\api-full.trx`). Cada nome de teste citado no `checks.md` foi lido no TRX com `outcome=Passed` e aparece 1 vez (L-002), inclusive o novo `ValidadeConhecimentoTests.Nova_versao_pela_rota_refaz_a_validade`. `RetratoTests` 6/6 e `ArquiteturaTests` 82/82.
+- `npx vitest run --maxWorkers=4 --reporter=json`: `total=1129 passed=1129 failed=0`, exit 0. Cada prova `-t` rodou em separado, com a contagem conferida: C39 `2 passed | 4 skipped (6)`, C40 `2 passed | 4 skipped (6)`, C41 `1 passed | 5 skipped (6)`, C42 `2 passed | 3 skipped (5)`, e C43, C44 e C45 `1 passed | 4 skipped (5)` cada.
+- `docker compose up -d --build` no `HEAD` limpo, `npm run e2e:preparar` ("ja existe demo", "ja existe e2e") e `npx playwright test e2e/validade.spec.ts --workers=1`: `4 passed`, exit 0. Depois das faltas de e2e, a imagem foi reconstruída de novo no `HEAD` limpo (o CSS servido em :8080 não tem mais `420px`) e o e2e deu `4 passed` de novo.
+- `npm --prefix web run build`: exit 0.
+- `cd web && npm run coverage` exit 0 e `crapper --source-root src --use-existing-coverage --threshold 10` exit 0, máximo 9,8 (`Sidebar`, `ui/sidebar`). As funções da feature: `useFiltroNaUrl` 7,0, `EtiquetaValidade` 5,0, `BaseDeConhecimento` 4,0.
+- `dryer -s src/acesso -s src/administracao -s src/assistente -s src/chamados -s src/conhecimento -s src/indicadores` mais `-s` para cada um dos 30 `.ts`/`.tsx` sem teste da raiz de `web/src`, `--threshold 0.8`: exit 0, "No duplicate candidates found."
+- `mutator`: suspenso por decisão do usuário (AD-025), não rodou.
+
+### Checks
+
+Só os checks que mudam em relação à rodada 1 têm linha com evidência nova. Os outros repetem a evidência da rodada 1, com a prova rodada de novo em `061f8d5` e `Passed` no TRX ou no Vitest.
+
+| Check | Claim | Proof run | Evidence | Result |
+| --- | --- | --- | --- | --- |
+| C1 a C3, C6 a C22 | como na rodada 1 | TRX, cada nome Passed (1) | evidência da rodada 1 | PASS |
+| C4 | versão 2 de artigo refaz `validoAte` de 2027-01-10 para 2027-11-17 | TRX `ArtigoDominioTests.Nova_versao_refaz_a_validade` Passed (1) e `ValidadeConhecimentoTests.Nova_versao_pela_rota_refaz_a_validade` Passed (1) | `Esclari.Api.Tests/ValidadeConhecimentoTests.cs:112` (validade em 2027-01-10), `:120` (resposta do `PUT` com `"2027-11-17"`), `:122` (banco). F5 morreu | PASS |
+| C5 | versão 2 de documento refaz `validoAte` | TRX `DocumentoDominioTests.Nova_versao_refaz_a_validade` Passed (1) e `Nova_versao_pela_rota_refaz_a_validade` Passed (1) | `ValidadeConhecimentoTests.cs:113`, `:121` (resposta `201` de `POST .../versoes`), `:123`. F6 morreu | PASS |
+| C23 | item `ATIVO` a 7 dias gera `EM_7_DIAS`; a 8 dias, só o que já havia | TRX `AvisarValidadeTests.Marco_de_7_dias` Passed (1) | `AvisarValidadeTests.cs:69-79`. O item a 7 dias do teste não tem aviso anterior. Com a falta N11 (ordem de `Gravidade` trocada em `Dados/Avisos/AvisoValidade.cs:11`), um item que já recebeu `EM_30_DIAS` não recebe mais `EM_7_DIAS`, e a suíte passa (12/12 em `AvisarValidadeTests`). Esse é o caminho normal de todo item, que passa pelos 30 dias antes dos 7. O instrumento I2 confirmou que o defeito é real | FAIL |
+| C24 a C31, C33 a C41 | como na rodada 1 | TRX ou Vitest, cada prova passou com a contagem acima | evidência da rodada 1 | PASS |
+| C32 | artigo `ARQUIVADO`, `RASCUNHO` e documento `ARQUIVADO` vencidos: 0 avisos | TRX `AvisarValidadeTests.Arquivado_e_rascunho_nao_geram_aviso` Passed (1) | `AvisarValidadeTests.cs:248` (artigo ativo vencido no mesmo cenário), `:253`, `:255`. F22, N1 e N1b morreram | PASS |
+| C42 | seção com 12 vigentes, 2 vencem em 30 dias, 1 vencido e link "Ver vencidos" | vitest `-t "secao com totais e link"` 2 passed | `web/src/indicadores/baseDeConhecimento.test.tsx:36-38` comparam o `dd > span` de cada medida com `'12'`, `'2'` e `'1'` exatos. W7, W8 e W16 morreram | PASS |
+| C43 a C50 | como na rodada 1 | provas acima | evidência da rodada 1; C46 `4 passed`, C47 `RetratoTests` 6/6, C48 build 0 e `ArquiteturaTests` 82/82, C49 1178/1178, 1129/1129 e build do web 0, C50 `crapper` máx. 9,8 e `dryer` limpo | PASS |
+
+### Coverage
+
+O `## Coverage` do `checks.md` foi recomputado sobre a rodada 2. A linha "totais da seção" da rodada 1 agora tem prova: vigentes, vencem em 30 dias e vencidos em `baseDeConhecimento.test.tsx:36-38`.
+
+| Set (size) | Member -> proof | Unproven |
+| --- | --- | --- |
+| totais da seção (3) | vigentes, vencem em 30 dias e vencidos C42 `baseDeConhecimento.test.tsx:36-38` | - |
+| marcos de aviso (3) | `EM_30_DIAS` C22 · `EM_7_DIAS` C23 só para item sem aviso anterior · `VENCIDO` C24 | `EM_7_DIAS` depois de `EM_30_DIAS` (C23) |
+| demais conjuntos | como na rodada 1, cada membro achado no teste do check | - |
+
+### Test policy rows
+
+A regra de domínio tem teste na entidade, e agora a integração na rota HTTP também cobre a validade refeita por `PUT /api/admin/artigos/{id}` e `POST /api/admin/documentos/{id}/versoes` (`ValidadeConhecimentoTests.cs:107-124`). O gap 2 da rodada 1 fechou.
+
+### Faults injected
+
+Cada falta foi aplicada à mão com troca de texto exata (o trecho original aparecia 1 vez no arquivo), a prova rodou e o arquivo voltou com `git checkout -- <arquivo>`. Depois de cada uma, `git status --porcelain -- Esclari.Api Esclari.Api.Tests web` saiu vazio. As faltas de e2e exigiram reconstruir a imagem, e a imagem foi reconstruída de novo no `HEAD` limpo no fim.
+
+| Mutation | Location | Killed |
+| --- | --- | --- |
+| F5 (rodada 1) `PUT` de artigo mantém a validade antiga (`new Validade(a.ValidoAte, 0)`) | `Esclari.Api/Conhecimento/Artigos/AlterarArtigo.cs:26` | yes - `Nova_versao_pela_rota_refaz_a_validade` (1 de 19) |
+| F6 (rodada 1) nova versão de documento mantém a validade | `Conhecimento/Documentos/NovaVersaoDocumento.cs:26` | yes - `Nova_versao_pela_rota_refaz_a_validade` (1 de 25) |
+| F22 (rodada 1) `Novos` aceita artigo `RASCUNHO` | `Conhecimento/AvisarValidade.cs:60` | yes - `Arquivado_e_rascunho_nao_geram_aviso` |
+| W7 (rodada 1) total "Vencem em 30 dias" + 1 | `web/src/indicadores/BaseDeConhecimento.tsx:42` | yes - `secao com totais e link` |
+| W8 (rodada 1) total "Vencidos" + 1 | `BaseDeConhecimento.tsx:42` | yes - `secao com totais e link` |
+| N1 `Novos` aceita documento em qualquer estado | `AvisarValidade.cs:62` | yes - `Arquivado_e_rascunho_nao_geram_aviso` |
+| N1b `Novos` aceita artigo `ARQUIVADO` (`!= Rascunho`) | `AvisarValidade.cs:60` | yes - `Arquivado_e_rascunho_nao_geram_aviso` |
+| N2 `Documento.Renovar` aceita arquivado | `Esclari.Api/Dados/Documentos/Documento.cs:34` | yes - `Renovar_documento_arquivado_responde_409`, `DocumentoDominioTests.Nova_versao_refaz_a_validade` |
+| N3 renovar artigo sem `SaveChanges` | `Conhecimento/Artigos/RenovarArtigo.cs:20` | yes - `Renovar_artigo_ativo_nao_cria_versao`, `Renovar_rascunho_responde_200`, `Renovar_volta_a_busca_sem_reindexar` |
+| N4 busca de documento com `> hoje` | `Conhecimento/BuscarFontes.cs:34` | yes - `Documento_vencido_sai_da_busca` |
+| N6 e-mail também para administrador inativo | `AvisarValidade.cs:40` | yes - `Um_email_por_administrador_com_os_itens_por_marco` |
+| N7 link do grupo de vencidos com `?validade=em-30-dias` | `AvisarValidade.cs:21` | yes - `Um_email_por_administrador_com_os_itens_por_marco` |
+| N8 resumo conta os artigos no lugar dos documentos | `Esclari.Api/Indicadores/ConsultarValidade.cs:25` | yes - `Resumo_conta_vigentes_a_vencer_e_vencidos` |
+| N9 `Prazos` aceita 0 | `Esclari.Api/Prazos.cs:14` | yes - `Validade_do_conhecimento_aceita_de_1_a_60` |
+| N10 `artigo.valido_ate` mantém o default | migration `20261117190700_ValidadeDoConhecimento.cs:59` | yes - `Coluna_e_obrigatoria_sem_default` |
+| N11 ordem de `Gravidade` com `EM_7_DIAS` antes de `EM_30_DIAS` | `Esclari.Api/Dados/Avisos/AvisoValidade.cs:11` | no - survived (12/12 em `AvisarValidadeTests`) |
+| N12 resumo com `RequireAuthorization()` no lugar de `SoAdministrador()` | `ConsultarValidade.cs:15` | yes - `Resumo_exige_administrador` |
+| N13 a execução perdedora da colisão enfileira os e-mails mesmo assim | `AvisarValidade.cs:50` | yes - `AvisarValidadeConcorrenciaTests.Duas_execucoes_avisam_uma_vez` |
+| W13 filtro "Vencidos" aceita também `VENCE_EM_BREVE` | `web/src/conhecimento/Validade.tsx:50` | yes - `filtro de validade` |
+| W14 nota da medida troca artigos e documentos | `BaseDeConhecimento.tsx:19` | yes - `secao com totais e link` |
+| W15 "Renovar" aparece também em item vigente | `Validade.tsx:59` | yes - `etiqueta de validade` |
+| W16 "Vencem em 30 dias" lê a chave `vencidos` | `BaseDeConhecimento.tsx:15` | yes - `secao com totais e link` |
+| W17 data em `AAAA/MM/DD` | `Validade.tsx:11` | yes - 4 testes de `validade.test.tsx` |
+| W18 "Renovar" pede confirmação (`window.confirm`) | `Validade.tsx:65` | yes - `renovar sem confirmacao`, `renovar documento sem confirmacao` |
+| E2a linha da validade com `min-w-[420px] flex-nowrap` (imagem reconstruída) | `Validade.tsx:74` | equivalente para o C46 - o documento segue com `scrollWidth` 360, as etiquetas ficam inteiras e o "Renovar" fica em x=166 com 44 px; o excesso da linha (432 px num espaço de 326) é cortado por um ancestral, o que o C46 não afirma (nota R2-2) |
+| E2b etiqueta de vencido com `max-w-20` (imagem reconstruída) | `Validade.tsx:28` | yes - `e2e/validade.spec.ts:37` nos 2 viewports (2 de 4 falharam) |
+
+Resumo: 26 faltas, sendo 5 repetidas da rodada 1 e 21 novas. 24 mortas, 1 sobreviveu (N11) e 1 é equivalente para a afirmação (E2a). Há falta nova em cada área testada: domínio (N2, N11), rotas de renovar (N3), busca (N4), aviso e e-mail (N1, N1b, N6, N7), concorrência (N13), resumo e autorização (N8, N12), configuração (N9), migration (N10), lista do web (W13, W15, W17, W18), painel do web (W14, W16) e e2e (E2a, E2b).
+
+Instrumento I2 (não conta como falta): um teste temporário `Esclari.Api.Tests/TmpVerifInstrumentoTests.cs` criou um artigo a 7 dias com uma linha `EM_30_DIAS` anterior e rodou a tarefa. No código limpo ele passou (grava `EM_7_DIAS` e envia o e-mail com o título). Com N11 ele falhou. O arquivo foi apagado em seguida e nunca entrou em commit.
+
+### Gate
+
+Verified at `061f8d5`:
+- `dotnet test Esclari.Api.Tests` - 1178 passed, 0 failed
+- `npx vitest run --maxWorkers=4` (web) - 1129 passed, 0 failed
+- `npx playwright test e2e/validade.spec.ts --workers=1` - 4 passed
+- `dotnet build Esclari.slnx --no-incremental`, `npm --prefix web run build`, `npm run coverage` + `crapper` (máx. 9,8) e `dryer` ("No duplicate candidates found.") - exit 0
+- `python validate_verification.py validade-do-conhecimento --root D:\esclari` - exit 1 (`ERROR ... verdict is FAIL - route the ranked gaps back as fixes, then re-verify`), como esperado para um veredito FAIL
+
+### Gaps
+
+1. **C23 (FAIL): o marco de 7 dias depois do de 30 dias não é provado.** `Marco_de_7_dias` (`AvisarValidadeTests.cs:64-82`) cria o item a 7 dias sem aviso anterior. Na vida real todo item recebe `EM_30_DIAS` antes. Com a ordem de `Gravidade` trocada (N11), `AvisoValidade.JaAvisado` considera o `EM_30_DIAS` já gravado como mais grave que o `EM_7_DIAS`, e o lembrete de 7 dias nunca sai. A suíte inteira continua verde. Correção sugerida, só no teste e sem enfraquecer nada: no `Marco_de_7_dias`, gravar também uma linha `EM_30_DIAS` para o item a 7 dias (como o teste já faz para o de 8 dias, `:73`) e conferir que a execução acrescenta a linha `EM_7_DIAS` e que o e-mail traz o título "Trancamento". Depois, rodar N11 de novo. A prova do C23 não muda de nome, então basta uma emenda de prova no estilo da E2.
+
+### Notes
+
+Sem peso no veredito:
+
+1. **R2-1.** O código de produto não mudou entre `b57541a` e `061f8d5` nesta feature. A rodada 2 só confirma que os testes de `c45ac55` fecham os 4 achados da rodada 1: F5, F6, F22, W7 e W8 morreram.
+2. **R2-2.** Com E2a, uma linha da lista mais larga que a coluna fica cortada sem rolagem. O C46 afirma "sem rolagem horizontal", não "nada cortado", então a falta não contradiz o check. Se o dono quiser essa garantia, o e2e pode conferir que nenhuma linha da tabela tem `scrollWidth` maior que `clientWidth`.
+3. **R2-3.** Lição candidata para quem tiver a skill registrar com `lessons.py`: um teste de marco que avança (30 dias, depois 7 dias) precisa partir do estado anterior real (o aviso de 30 dias já gravado). Do contrário, a regra de "já avisado" fica sem prova.
