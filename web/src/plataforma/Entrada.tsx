@@ -11,7 +11,7 @@ type Etapa = { etapa: 'CODIGO' | 'CADASTRAR'; segredo: string | null; uri: strin
 
 const emGrupos = (segredo: string) => segredo.match(/.{1,4}/g)?.join(' ') ?? segredo
 
-function Moldura({ aviso, children }: { aviso?: string; children: ReactNode }) {
+export function Moldura({ aviso, children }: { aviso?: string; children: ReactNode }) {
   const tema = useTema()
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">

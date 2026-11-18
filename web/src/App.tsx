@@ -20,6 +20,7 @@ import { Artigos } from './conhecimento/Artigos'
 import { Documentos } from './conhecimento/Documentos'
 import { Indicadores } from './indicadores/Indicadores'
 import { Auditoria } from './plataforma/Auditoria'
+import { DefinirSenhaDaPlataforma } from './plataforma/DefinirSenha'
 import { DetalheDaInstituicao } from './plataforma/Detalhe'
 import { Instituicoes } from './plataforma/Instituicoes'
 import { Plataforma } from './plataforma/Plataforma'
@@ -55,6 +56,7 @@ function Rotas() {
       <AplicaAparencia />
       <Routes>
         <Route path="/" element={<Raiz />} />
+        <Route path="plataforma/definir-senha" element={<DefinirSenhaDaPlataforma />} />
         <Route path="plataforma" element={<Plataforma />}>
           <Route path="instituicoes" element={<Instituicoes />} />
           <Route path="instituicoes/:slug" element={<DetalheDaInstituicao />} />

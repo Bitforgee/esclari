@@ -113,3 +113,35 @@ describe('entrada no console', () => {
     expect(chamadas.map((c) => c.url)).toEqual(['/api/plataforma/eu'])
   })
 })
+
+describe('criar a senha do operador', () => {
+  afterEach(() => cleanup())
+
+  it('definir senha da plataforma pelo link do convite e ir para a entrada', async () => {
+    const chamadas = api({ 'POST /api/plataforma/auth/definir-senha': () => [204, undefined] })
+    abrir('/plataforma/definir-senha?token=abc123')
+
+    const nova = await screen.findByLabelText('Nova senha')
+    expect(screen.queryByLabelText('E-mail')).not.toBeInTheDocument()
+    await userEvent.type(nova, 'uma senha longa')
+    await userEvent.type(screen.getByLabelText('Repita a senha'), 'uma senha diferente')
+    expect(screen.getByText('As senhas não são iguais.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Criar senha' })).toBeDisabled()
+    await userEvent.clear(screen.getByLabelText('Repita a senha'))
+    await userEvent.type(screen.getByLabelText('Repita a senha'), 'uma senha longa')
+    await userEvent.click(screen.getByRole('button', { name: 'Criar senha' }))
+
+    expect(await screen.findByText('Senha criada. Agora entre no console e cadastre o aplicativo autenticador.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Entrar no console' })).toHaveAttribute('href', '/plataforma')
+    expect(chamadas.filter((c) => c.metodo === 'POST').map((c) => [c.url, c.corpo])).toEqual([['/api/plataforma/auth/definir-senha', { token: 'abc123', senha: 'uma senha longa' }]])
+  })
+
+  it('link vencido mostra a mensagem da API', async () => {
+    api({ 'POST /api/plataforma/auth/definir-senha': () => [400, { status: 400, detail: 'O link é inválido ou venceu. Peça um convite novo.', errors: { token: ['O link é inválido ou venceu. Peça um convite novo.'] } }] })
+    abrir('/plataforma/definir-senha?token=velho')
+    await userEvent.type(await screen.findByLabelText('Nova senha'), 'uma senha longa')
+    await userEvent.type(screen.getByLabelText('Repita a senha'), 'uma senha longa')
+    await userEvent.click(screen.getByRole('button', { name: 'Criar senha' }))
+    expect(await screen.findByText('O link é inválido ou venceu. Peça um convite novo.')).toBeInTheDocument()
+  })
+})
