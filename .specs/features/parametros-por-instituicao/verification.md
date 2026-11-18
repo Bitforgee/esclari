@@ -1,9 +1,9 @@
 # Parâmetros por instituição verification
 
-**Verdict**: PASS
+**Verdict**: PASS (C1..C21)
 **Profile**: standard
-**Diff range**: 2b1f6b0..67f9326
-**Round**: 1 - full
+**Diff range**: 2b1f6b0..7b0dcc1
+**Round**: 2 - scoped (C17..C21; rodada 1 completa nos C1..C16)
 **Verifier**: independent sub-agent (author != verifier)
 
 Os 16 checks têm prova que roda e passa em `HEAD` (`67f9326`), e as 3 falhas injetadas foram pegas. Verificação enxuta por decisão do dono (18/11): uma rodada, no máximo 3 falhas, sem Playwright e sem `mutator` (AD-025). Achados não bloqueantes no fim.
@@ -68,8 +68,32 @@ Isolamento: `git worktree add ..\esclari-verify-par HEAD`, removido com `git wor
 
 ## Achados não bloqueantes
 
-1. `ResolucaoHoras` e a previsão ao aluno: C9 só exercita `PrimeiraRespostaHoras`. Nenhum teste muda `ResolucaoHoras` própria e observa o efeito em `emAtrasoAgora`, no filtro ou no resumo de atrasos (`CalculoDetalhe.cs:36`, `FiltroDeChamados.cs:79`). Um consumidor que ignorasse só `ResolucaoHoras` própria passaria na suíte (não injetado nesta rodada).
-2. C13 só exercita `CriarArtigo`; os outros seis handlers com `NovaValidade` (`AlterarArtigo`, `CriarArtigoDoChamado`, `RenovarArtigo`, `CriarDocumento`, `NovaVersaoDocumento`, `RenovarDocumento`) usam `PrazosAtuais` no código, mas sem teste com validade própria. O check pede só "artigo novo".
+Os achados 1, 2, 4 e 5 da rodada 1 foram resolvidos pelos checks C17..C20 (ver Round 2). Restam:
+
 3. `Swept` cita idempotência em C3 ("mesmo `PUT` duas vezes deixa o mesmo estado"): nenhum teste envia o mesmo `PUT` duas vezes. O código é uma substituição total, então o risco é baixo.
-4. `AvisarAtrasos` (aviso por e-mail com meta própria, `AvisarAtrasos.cs:43,92`) usa a meta da instituição no código, sem teste de comportamento próprio.
-5. A previsão ao aluno em `TransferirConversa.cs:22,29` usa `PrazosAtuais`; também sem teste com meta própria.
+
+## Round 2
+
+Escopo: `git diff 7b0dcc1~1 7b0dcc1` (5 arquivos, +155/-5). `checks.md` só ganhou a seção S4 (C17..C21), o cabeçalho "21 checks in 4 slices" e a retirada da linha de Out of scope sobre o passo "Parâmetros"; texto e provas de C1..C16 intactos. Os testes novos são só adições (nenhuma asserção removida ou enfraquecida, nenhum teste pulado).
+
+| Check | Claim | Proof run | Evidence | Result |
+| --- | --- | --- | --- | --- |
+| C17 | `ResolucaoHoras` 2: atrasado 1 e `resolucaoMetaHoras` 2 na própria; 0 e 120 na outra | `PrazosPorInstituicaoTests.Resolucao_propria_no_atraso_e_nos_indicadores` Passed (1/1) | `PrazosPorInstituicaoTests.cs` - `Assert.Equal(1, ...)`, `Assert.Equal(0, ...)`, `Assert.Equal((2, 1), ...)`, `Assert.Equal((120, 0), ...)` | PASS |
+| C18 | e-mail "Meta: primeira resposta em 1 h; resolução em 30 h." e na outra "... 120 h." | `...Email_de_atrasos_com_as_metas_da_instituicao` Passed (1/1) | `Assert.NotEmpty` nas duas e `Assert.All(..., Assert.Contains("...30 h.")` / `"...120 h."` | PASS |
+| C19 | transferência devolve 6 e `prazoPrimeiraRespostaEm` = `criadoEm`+6 h; na outra 24 | `...Previsao_ao_aluno_com_a_meta_da_instituicao` Passed (1/1) | `Assert.Equal(6, horas)`, `Assert.Equal(criado.AddHours(6), previsao)`, depois 24 e `AddHours(24)` | PASS |
+| C20 | validade 4 meses em alterar/renovar artigo, artigo do chamado, criar/versionar/renovar documento; antes 12 | `...Validade_propria_em_versao_renovacao_e_artigo_do_chamado` Passed (1/1) | `Assert.Equal(doze, ...)` antes; `Assert.Equal([quatro, quatro, quatro], artigos)` e `documentos` | PASS |
+| C21 | passo "Parâmetros" entre "Carga inicial" e "Equipe inicial"; "Ajustar os parâmetros" abre a aba com os valores | `npm --prefix web test -- src/plataforma/parametros.test.tsx -t "passo parametros da implantacao abre a aba"` 1 passed, 2 skipped | `parametros.test.tsx` - ordem dos `h3` por `indexOf`, `getByRole('tab', { name: 'Parâmetros', selected: true })`, `toHaveValue(45)` | PASS |
+
+Gate: `dotnet test Esclari.Api.Tests` - 1308 passed, 0 failed. `npx vitest run` (em `web/`) - 131 arquivos, 1145 passed, 0 failed.
+
+### Faults injected (round 2)
+
+Isolamento: `git worktree add ..\esclari-verify-par2 HEAD`, cada falha sozinha e revertida com `git checkout -- .`; worktree removido com `--force` e `prune`. Sem `git stash`; árvore principal intocada.
+
+| Mutation | Location | Killed |
+| --- | --- | --- |
+| `Escrever` usa o `prazos` global (`var metas = prazos;`) em vez de `prazos.Para(i)` | `Esclari.Api/Chamados/Tarefas/AvisarAtrasos.cs:92` | yes - `Email_de_atrasos_com_as_metas_da_instituicao`: `Assert.All() Failure: 2 out of 2 items did not pass` |
+| `TransferirConversaHandler` recebe o singleton `Prazos` em vez de `PrazosAtuais` | `Esclari.Api/Assistente/Conversas/TransferirConversa.cs:18,22` | yes - `Previsao_ao_aluno_com_a_meta_da_instituicao`: `Expected: 6, Actual: 24` |
+| `RenovarDocumentoHandler` usa `Prazos` global na validade | `Esclari.Api/Conhecimento/Documentos/RenovarDocumento.cs:13,17` | yes - `Validade_propria_em_versao_renovacao_e_artigo_do_chamado`: coleção `[..., 02/11/2027, ...]` em vez de `02/03/2027` |
+
+Limite: `NovaVersaoDocumento.cs` e `AlterarArtigo` não foram injetados (máximo de 3 falhas); o mesmo teste cobre todos pela asserção dos três valores.
