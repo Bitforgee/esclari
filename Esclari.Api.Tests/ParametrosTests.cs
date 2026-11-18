@@ -145,4 +145,25 @@ public class ParametrosTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, (await f.Cliente().GetAsync(Rota(i))).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await f.Cliente().PutAsJsonAsync(Rota(i), new { })).StatusCode);
     }
+
+    [Fact]
+    public async Task Mesmo_put_duas_vezes_deixa_o_mesmo_estado()
+    {
+        var c = await Cliente();
+        var i = await f.Instituicao();
+        var corpo = new { abandonoMinutos = 45, confirmacaoDias = 2, primeiraRespostaHoras = 8, resolucaoHoras = 48 };
+
+        var primeira = await c.PutAsJsonAsync(Rota(i), corpo);
+        var depoisDaPrimeira = await f.Db(null, db => db.Instituicoes.AsNoTracking().SingleAsync(x => x.Id == i.Id));
+        var segunda = await c.PutAsJsonAsync(Rota(i), corpo);
+        var depoisDaSegunda = await f.Db(null, db => db.Instituicoes.AsNoTracking().SingleAsync(x => x.Id == i.Id));
+
+        Assert.Equal((HttpStatusCode.OK, HttpStatusCode.OK), (primeira.StatusCode, segunda.StatusCode));
+        Assert.Equal(await primeira.Content.ReadAsStringAsync(), await segunda.Content.ReadAsStringAsync());
+        Assert.Equal(new ParametrosDaInstituicao { AbandonoMinutos = 45, ConfirmacaoDias = 2, PrimeiraRespostaHoras = 8, ResolucaoHoras = 48 }, depoisDaPrimeira.Parametros);
+        Assert.Equal(depoisDaPrimeira.Parametros, depoisDaSegunda.Parametros);
+        var resumos = await f.Db(null, db => db.AuditoriaDaPlataforma.Where(a => a.InstituicaoAlvoId == i.Id && a.Acao == AcoesDaPlataforma.ParametrosAlterados).OrderBy(a => a.Id).Select(a => a.Resumo).ToListAsync());
+        Assert.Equal(2, resumos.Count);
+        Assert.EndsWith("nenhuma mudança", resumos[1]);
+    }
 }

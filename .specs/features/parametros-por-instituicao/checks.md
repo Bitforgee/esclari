@@ -3,7 +3,7 @@
 Profile: standard
 Plan: `.specs/features/parametros-por-instituicao/plan.md`
 
-21 checks in 4 slices · 3 one-way doors · 0 open
+22 checks in 4 slices · 3 one-way doors · 0 open
 
 Provas: API `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~<Classe>.<Teste>"` (precisa de `docker compose up -d postgres mailpit minio`); web `npm --prefix web test -- <arquivo> -t "<nome>"` (Vitest). Aprovação do plano: pedido do dono em 18/11 ("pode dar push nos commits e seguir com a implementação deste novo plano").
 
@@ -80,6 +80,9 @@ Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~PrazosPorInst
 **C21** - A aba "Implantação" mostra o passo "Parâmetros" entre "Carga inicial" e "Equipe inicial", e "Ajustar os parâmetros" abre a aba "Parâmetros" com os valores (AC 26 de `implantacao-de-instituicao`)
 Proof: `npm --prefix web test -- src/plataforma/parametros.test.tsx -t "passo parametros da implantacao abre a aba"`
 
+**C22** - O mesmo `PUT .../parametros` enviado duas vezes responde `200` com o mesmo corpo nas duas, deixa os mesmos sete valores gravados e a segunda linha de `PARAMETROS_ALTERADOS` termina em "nenhuma mudança" (AC 3)
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ParametrosTests.Mesmo_put_duas_vezes_deixa_o_mesmo_estado"`
+
 ## Coverage
 
 | Set (size) | Member -> proof | Unproven |
@@ -99,7 +102,7 @@ Proof: `npm --prefix web test -- src/plataforma/parametros.test.tsx -t "passo pa
 
 - validation: C4, C5
 - failure modes: C5 (nada gravado)
-- idempotency: C3 (mesmo `PUT` duas vezes deixa o mesmo estado)
+- idempotency: C22 (mesmo `PUT` duas vezes deixa o mesmo estado)
 - authorization: C6
 - concurrency: n/a - uma ou duas pessoas na equipe da plataforma
 - data lifecycle: C13 (`valido_ate` já gravado não muda)
