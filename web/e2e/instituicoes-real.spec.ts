@@ -84,6 +84,8 @@ test('operador da plataforma entra com 2FA, cria e desativa uma instituição', 
   await admin.getByLabel('E-mail').fill(emailDaDemo)
   await dialogo.getByRole('button', { name: 'Criar' }).click()
   await expect(painel.getByText(`Instituição Faculdade Demo criada. Enviamos o link de primeiro acesso para ${emailDaDemo}.`)).toBeVisible()
+  await expect(painel.getByRole('tab', { name: 'Implantação' })).toBeVisible()
+  await painel.getByRole('navigation', { name: 'Navegação' }).getByRole('link', { name: 'Instituições' }).click()
   await expect(painel.getByText(`/${daDemo}`, { exact: true }).first()).toBeVisible()
 
   const link = await linkDoEmail(api, emailDaDemo)

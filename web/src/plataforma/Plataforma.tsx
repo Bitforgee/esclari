@@ -70,7 +70,7 @@ function Barra({ operador, sair }: { operador: Operador; sair: () => void }) {
 
 function Casca({ operador, sair }: { operador: Operador; sair: () => void }) {
   const { pathname } = useLocation()
-  const titulo = Itens.find(([c]) => pathname.endsWith(`/${c}`))?.[1] ?? 'Console da plataforma'
+  const titulo = pathname.startsWith('/plataforma/instituicoes/') ? 'Instituição' : (Itens.find(([c]) => pathname.endsWith(`/${c}`))?.[1] ?? 'Console da plataforma')
   useEffect(() => {
     document.title = `${titulo} · Esclari`
   }, [titulo])

@@ -104,6 +104,10 @@ Proof: `npm --prefix web test -- src/plataforma/implantacao.test.tsx -t "equipe 
 - `PlataformaAuditoriaTests.Resumo_sem_dado_pessoal_e_ate_200_caracteres` e `AuditoriaDaPlataforma`: a lista fechada passa de 8 para 10 ações
 - `ArquiteturaTests`, `RetratoTests`, `SessaoTests`, `MediatorTests` e os retratos: contagens ganham os oito casos de uso e as rotas novas
 - `web/src/test/estrutura.test.ts` e os testes da fatia `plataforma`: ganham os arquivos novos
+- `web/src/plataforma/instituicoes.test.tsx` "criar fecha, avisa e recarrega a lista" vira "criar fecha, avisa e abre a instituição criada": depois de criar, a tela vai para o detalhe (AC 25) com o mesmo aviso e o link; C32 do `console-da-plataforma` continua com a mesma prova (o botão "Importar carga" do aviso abre o mesmo diálogo, agora no detalhe)
+- `PlataformaTests.InstituicaoAtual_so_onde_ja_era_e_na_plataforma`: a lista nominal de arquivos da `Plataforma` vira "qualquer arquivo de `Esclari.Api/Plataforma/`" (door 1)
+- `ImportarCargaInstituicao`: importar de novo o mesmo arquivo deixa de responder `400` "repetido" e passa a ignorar o que já existe pelo nome (AC 4)
+- `web/e2e/instituicoes-real.spec.ts`: depois de criar, volta à lista pelo menu (Playwright, fora das provas)
 
 ## Swept
 
@@ -125,5 +129,5 @@ Proof: `npm --prefix web test -- src/plataforma/implantacao.test.tsx -t "equipe 
 
 - Mechanism: one builder
 - Verificação enxuta por decisão do dono (18/11): Verifier independente, perfil `standard`, uma rodada, no máximo 3 falhas injetadas
-- Base da verificação: o commit que leva `checks.md` (o SHA entra aqui quando existir)
+- Base da verificação: `f2c6391` (commit de `checks.md`)
 - O passo "Parâmetros" da aba só aparece quando `parametros-por-instituicao` existir; hoje a aba mostra Carga inicial e Equipe inicial

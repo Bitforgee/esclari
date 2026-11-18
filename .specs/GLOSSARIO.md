@@ -92,6 +92,8 @@ uma vez no código, num grupo de constantes de `Esclari.Api/Dados/Entidades.cs`;
 
 | Valor gravado | Grupo | Significado |
 | --- | --- | --- |
+| `equipe inicial` | conceito | administradores e atendentes que o operador cria pelo console numa instituição, sempre por convite e sem senha; nunca alunos |
+| `prontidão` | conceito | quatro itens calculados na leitura (administrador com senha, atendente num setor, categoria com regra, artigo ativo) que dizem se a instituição já pode atender; com algum pendente, a situação é `CONFIGURANDO` |
 | `Operador da plataforma` | conta | quem na equipe do Esclari gerencia as instituições; conta própria (tabela `operador_plataforma`), separada de qualquer instituição, com e-mail, senha e código do aplicativo autenticador; entra em `/plataforma` e é criada só por `dotnet api.dll plataforma operador --email <e-mail> --nome <nome>` |
 
 ## Ação do e-mail (colunas `email_saida.acao_rotulo` e `email_saida.acao_url`)

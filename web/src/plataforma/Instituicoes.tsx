@@ -1,18 +1,15 @@
 import { useMutation } from '@tanstack/react-query'
 import { Building2, Plus } from 'lucide-react'
 import { useId, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useGravacao, useLeituras } from '../acao'
 import { api, ErroApi } from '../api'
 import { Cabecalho } from '../Cabecalho'
 import { Campo, ErroDoCampo, useFocoNoPrimeiroErro } from '../Campo'
-import { CampoArquivo } from '../CampoArquivo'
 import { Editor, useSujo } from '../Editor'
 import { ErroDe, errosDeCampo } from '../ErroDe'
 import { dataCurta, plural, porcentagem } from '../formatos'
-import { Literal } from '../Literal'
 import { CelulaLargo, Detalhe, MenuAcoes, Principal, Tabela } from '../Tabela'
-import { Alert } from '../ui/alert'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog'
@@ -21,10 +18,10 @@ import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { NativeSelect } from '../ui/native-select'
 import { TableCell, TableRow } from '../ui/table'
+import { type Alvo, ImportarCarga } from './Carga'
 
 type Saude = { ultimaAtividadeEm: string | null; semBaseTaxa30Dias: number | null }
 type Item = { slug: string; nome: string; fuso: string; ativa: boolean; criadaEm: string; administradores: number; situacao: string; saude: Saude; atencao: string[] }
-type Contagens = { setores: number; cursos: number; categorias: number; regras: number; artigos: number }
 
 const Etiquetas: Record<string, string> = {
   PARADA: 'Parada',
@@ -93,58 +90,6 @@ function Formulario({ ficha, mudar, erros }: { ficha: Ficha; mudar: (parcial: Pa
   )
 }
 
-const errosDoArquivo = (erro: unknown): string[] => (erro instanceof ErroApi ? (erro.corpo?.errors?.arquivo ?? []) : [])
-
-function ResultadoDaCarga({ r, erro }: { r?: Contagens; erro: Error | null }) {
-  const erros = errosDoArquivo(erro)
-  if (r)
-    return (
-      <Alert>
-        Importados: {plural(r.setores, 'setor', 'setores')}, {plural(r.cursos, 'curso', 'cursos')}, {plural(r.categorias, 'categoria', 'categorias')}, {plural(r.regras, 'regra', 'regras')}, {plural(r.artigos, 'artigo', 'artigos')}.
-      </Alert>
-    )
-  if (erros.length > 0)
-    return (
-      <Tabela colunas={[{ titulo: 'Erro' }]} itens={erros}>
-        {erros.map((e, i) => (
-          <TableRow key={i}>
-            <TableCell className={Principal}>{e}</TableCell>
-          </TableRow>
-        ))}
-      </Tabela>
-    )
-  return <ErroDe erro={erro} />
-}
-
-type Alvo = Pick<Item, 'slug' | 'nome'>
-
-function ImportarCarga({ alvo, fechar }: { alvo: Alvo; fechar: () => void }) {
-  const [arquivo, setArquivo] = useState<File>()
-  const importacao = useMutation({ mutationFn: (f: FormData) => api<Contagens>(`/api/plataforma/instituicoes/${alvo.slug}/carga`, f) })
-
-  function importar() {
-    const f = new FormData()
-    f.set('arquivo', arquivo!)
-    importacao.mutate(f)
-  }
-
-  return (
-    <Editor
-      titulo={`Importar carga: ${alvo.nome}`}
-      aberto
-      sujo={!!arquivo}
-      fechar={fechar}
-      salvar={importar}
-      botao="Importar"
-      pendente={importacao.isPending}
-      desabilitado={!arquivo}
-      alerta={<ResultadoDaCarga r={importacao.data} erro={importacao.error} />}
-    >
-      <CampoArquivo id="carga" rotulo="Arquivo de carga (JSON)" accept=".json,application/json" multiple={false} arquivos={arquivo ? [arquivo] : []} setArquivos={([a]) => setArquivo(a)} />
-    </Editor>
-  )
-}
-
 const Colunas = [{ titulo: 'Nome' }, { titulo: 'Situação' }, { titulo: 'Última atividade', largo: true }, { titulo: 'Não encontrei', largo: true }, { titulo: 'Administradores', largo: true }, { titulo: 'Criada em', largo: true }, { titulo: '' }]
 
 const ultima = (i: Item) => (i.saude.ultimaAtividadeEm ? dataCurta(i.saude.ultimaAtividadeEm, i.fuso) : 'Sem atividade')
@@ -172,7 +117,9 @@ function Linha({ i, importar, desativar, agir, pendente }: { i: Item; importar: 
   return (
     <TableRow>
       <TableCell className={`font-medium ${Principal}`}>
-        {i.nome}
+        <Link to={`/plataforma/instituicoes/${i.slug}`} className="underline-offset-4 hover:underline">
+          {i.nome}
+        </Link>
         <div translate="no" className="text-xs font-normal text-muted-foreground">/{i.slug}</div>
         <Detalhe>
           {plural(i.administradores, 'administrador', 'administradores')} · criada em {criada} · {ultima(i)} · {taxa(i)}
@@ -230,13 +177,13 @@ function Desativar({ alvo, fechar, enviar }: { alvo?: Item; fechar: () => void; 
 
 function useCriacao(recarregar: () => Promise<unknown>) {
   const [nova, setNova] = useState<Ficha>()
-  const [criada, setCriada] = useState<Ficha>()
+  const navegar = useNavigate()
   const mutacao = useMutation({
     mutationFn: (f: Ficha) => api('/api/plataforma/instituicoes', corpo(f)),
     onSuccess: async (_, f) => {
       setNova(undefined)
-      setCriada(f)
       await recarregar()
+      navegar(`/plataforma/instituicoes/${f.slug}`, { state: { criada: { slug: f.slug, nome: f.nome, email: f.email } } })
     },
   })
   const campos = errosDaCriacao(mutacao.error)
@@ -245,19 +192,8 @@ function useCriacao(recarregar: () => Promise<unknown>) {
     mutacao.reset()
     setNova({ ...Nova })
   }
-  return { nova, setNova, criada, mutacao, campos, geral, abrir }
+  return { nova, setNova, mutacao, campos, geral, abrir }
 }
-
-const AvisoDeCriacao = ({ criada, importar }: { criada: Ficha; importar: () => void }) => (
-  <Alert>
-    <div className="flex flex-col items-start gap-2">
-      <p className="m-0">Instituição {criada.nome} criada. Enviamos o link de primeiro acesso para <Literal>{criada.email}</Literal>. <Link to={`/${criada.slug}`} translate="no">/{criada.slug}</Link></p>
-      <Button variant="outline" onClick={importar}>
-        Importar carga
-      </Button>
-    </div>
-  </Alert>
-)
 
 const SemInstituicoes = { Icone: Building2, titulo: 'Nenhuma instituição', frase: 'Ainda não há instituição cadastrada. Crie a primeira.' }
 
@@ -282,7 +218,6 @@ export function Instituicoes() {
       <Cabecalho botao="Nova instituição" Icone={Plus} aoClicar={criacao.abrir} />
       <ErroDe erro={erro} oque="as instituições" tentar={recarregar} />
       <ErroDe erro={acao.error} />
-      {criacao.criada && <AvisoDeCriacao criada={criacao.criada} importar={() => setCarga({ slug: criacao.criada!.slug, nome: criacao.criada!.nome })} />}
       <Tabela colunas={Colunas} itens={dados?.lista} erro={erro} vazio={SemInstituicoes}>
         {dados?.lista.map((i) => (
           <Linha key={i.slug} i={i} importar={() => setCarga(i)} desativar={() => setDesativar(i)} agir={agir} pendente={acao.isPending} />

@@ -107,11 +107,12 @@ describe('instituições da plataforma', () => {
     await userEvent.type(admin.getByLabelText('E-mail'), 'admin@demo.edu.br')
   }
 
-  it('criar fecha, avisa e recarrega a lista', async () => {
+  it('criar fecha, avisa e abre a instituição criada', async () => {
     let lidas = 0
     const chamadas = tela({
       [`GET ${Lista}`]: () => [200, ++lidas === 1 ? [antiga] : [demo, antiga]],
       [`POST ${Lista}`]: () => [201, demo],
+      [`GET ${Lista}/faculdade-demo`]: () => [200, { slug: 'faculdade-demo', nome: 'Faculdade Demo', situacao: 'AGUARDANDO_PRIMEIRO_ACESSO', prontidao: { itens: [], pronta: false } }],
     })
     await preencher(await abrirNova())
     await userEvent.click(screen.getByRole('button', { name: 'Criar' }))
@@ -122,7 +123,8 @@ describe('instituições da plataforma', () => {
     ])
     expect(await screen.findByText(comTexto('Instituição Faculdade Demo criada. Enviamos o link de primeiro acesso para admin@demo.edu.br. /faculdade-demo'))).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '/faculdade-demo' })).toHaveAttribute('href', '/faculdade-demo')
-    expect(await linha('Faculdade Demo')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Faculdade Demo', level: 2 })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Implantação' })).toBeInTheDocument()
     expect(lidas).toBe(2)
   })
 

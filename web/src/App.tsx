@@ -20,6 +20,7 @@ import { Artigos } from './conhecimento/Artigos'
 import { Documentos } from './conhecimento/Documentos'
 import { Indicadores } from './indicadores/Indicadores'
 import { Auditoria } from './plataforma/Auditoria'
+import { DetalheDaInstituicao } from './plataforma/Detalhe'
 import { Instituicoes } from './plataforma/Instituicoes'
 import { Plataforma } from './plataforma/Plataforma'
 import { Toaster } from './ui/sonner'
@@ -56,6 +57,7 @@ function Rotas() {
         <Route path="/" element={<Raiz />} />
         <Route path="plataforma" element={<Plataforma />}>
           <Route path="instituicoes" element={<Instituicoes />} />
+          <Route path="instituicoes/:slug" element={<DetalheDaInstituicao />} />
           <Route path="auditoria" element={<Auditoria />} />
         </Route>
         <Route path="/:slug">
