@@ -87,6 +87,20 @@ public partial class NomeDoProdutoTests
     }
 
     [Fact]
+    public void State_registra_o_AD_do_remoto_e_pasta()
+    {
+        var linhas = File.ReadAllLines(Path.Combine(Raiz(), ".specs", "STATE.md"));
+        var ad = Assert.Single(linhas, l => l.StartsWith("| AD-059 |"));
+        Assert.Contains("Bitforgee/Esclari", ad);
+        Assert.Contains(@"D:\esclari", ad);
+        Assert.Contains("active", ad);
+        foreach (var arquivo in new[] { "AGENTS.md", "ROADMAP.md", Path.Combine(".specs", "STATE.md") })
+            Assert.Contains("Bitforgee/Esclari", File.ReadAllText(Path.Combine(Raiz(), arquivo)));
+        foreach (var arquivo in new[] { "AGENTS.md", Path.Combine(".specs", "STATE.md") })
+            Assert.Contains(@"D:\esclari", File.ReadAllText(Path.Combine(Raiz(), arquivo)));
+    }
+
+    [Fact]
     public void State_registra_o_AD_do_nome()
     {
         var linhas = File.ReadAllLines(Path.Combine(Raiz(), ".specs", "STATE.md"));

@@ -117,6 +117,7 @@ budget: 150k
 - Nunca chame a API real de IA nem envie e-mail real em teste.
 
 ## Colaboração (duas pessoas, cada uma com seu agente; AD-043)
+- Repositório: https://github.com/Bitforgee/Esclari; pasta local `D:\esclari` (AD-059).
 - Uma feature = uma pasta `.specs/features/<slug>/`. Commits direto na `main`, sem branch por feature e sem PR (AD-043, supersede o AD-039 nesse ponto); `git pull` antes de começar.
 - A feature leva `plan.md`, `checks.md` e `verification.md` na própria pasta; o Verify independente é a única revisão.
 - Novo `AD-NNN`: pegue o próximo número depois de atualizar a `main`; se colidir no merge, renumere o seu.

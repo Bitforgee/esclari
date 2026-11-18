@@ -57,14 +57,14 @@ Proof: `docker compose exec -T postgres psql -U postgres -d esclari -At -c "sele
 **C13** - `git remote get-url origin` responde `https://github.com/Bitforgee/Esclari` e `git ls-remote origin HEAD` sai com 0 (AC 13)
 Proof: `git remote get-url origin ; git ls-remote origin HEAD`
 
-**C14** - `AGENTS.md`, `ROADMAP.md` e `STATE.md` citam `Bitforgee/Esclari` e `D:\esclari-system` nas linhas vivas e o `STATE.md` tem um AD novo que registra a mudança (AC 14)
+**C14** - `AGENTS.md`, `ROADMAP.md` e `STATE.md` citam `Bitforgee/Esclari` nas linhas vivas, `AGENTS.md` e `STATE.md` citam a pasta `D:\esclari` (emenda E1, 18/11, AD-059) e o `STATE.md` tem um AD novo que registra a mudança (AC 14)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~NomeDoProdutoTests.State_registra_o_AD_do_remoto_e_pasta"`
 
 **C15** - O guarda `Nenhum_arquivo_rastreado_cita_One_fora_do_historico` passa com as exceções `github.com/Bitforgee/One` e `D:\one-system` removidas da lista (AC 15)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~NomeDoProdutoTests.Nenhum_arquivo_rastreado_cita_One_fora_do_historico"`
 
-**C16** - Os commits de S3 só existem depois que a pasta `D:\esclari-system` e o remoto novo existem (AC 16)
-Proof: `if (-not (Test-Path D:\esclari-system\.git)) { exit 1 } ; git ls-remote https://github.com/Bitforgee/Esclari HEAD`
+**C16** - Os commits de S3 só existem depois que a pasta `D:\esclari` e o remoto novo existem (AC 16; emenda E1, 18/11, AD-059: a pasta real é `D:\esclari`, não `D:\esclari-system`)
+Proof: `if (-not (Test-Path D:\esclari\.git)) { exit 1 } ; git ls-remote https://github.com/Bitforgee/Esclari HEAD`
 
 ## Coverage
 

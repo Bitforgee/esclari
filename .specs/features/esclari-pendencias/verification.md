@@ -130,3 +130,6 @@ HEAD `14b9146`. Examinados só os checks reprovados na rodada 1 (C12, C14, C16).
 | C16 | `checks.md:66` ainda exige `D:\esclari-system`; a pasta real é `D:\esclari` (AD-059), sem emenda do dono | FAIL (literal) |
 
 Não verificado: C8 prova real, gap 3 (teste dos ícones não roda o gerador), push. Os demais checks (C1 a C11, C13, C15) não foram reexecutados; valem os PASS da rodada 1.
+## Correção do dono (18/11, executada pelo orquestrador, não é verificação independente)
+
+Com o "ok" do dono: C12, apagadas do banco local as instituições `operadora-mwjmxeg9` e `demo-mwjmxeg9` e as 12 linhas filhas (usuário, setor, categoria, token, e-mail), numa transação; resta `demo` e `e2e`. C14, `STATE.md:100` e `AGENTS.md` passam a citar `Bitforgee/Esclari`, e entra o teste `NomeDoProdutoTests.State_registra_o_AD_do_remoto_e_pasta` (1/1). C16, emenda E1 do check para a pasta real `D:\esclari` (AD-059). Provas rodadas: pasta `.git` existe, `git ls-remote` devolve HEAD, `docker volume ls` sem `one*`, consulta `demo-%`/`operadora-%` devolve 0. O Verdict acima segue FAIL até um verificador independente reexecutar; os objetos no MinIO dessas duas instituições não foram apagados (bucket versionado).
