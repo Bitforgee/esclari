@@ -168,7 +168,7 @@ public class McpAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     {
         var i = await f.Instituicao();
         var clientes = new List<(string papel, HttpClient cliente, HttpStatusCode esperado)>();
-        foreach (var papel in new[] { Papeis.Atendente, Papeis.Aluno, Papeis.Operador })
+        foreach (var papel in new[] { Papeis.Atendente, Papeis.Aluno })
             clientes.Add((papel, await f.Entrar(i, await f.Usuario(i, [papel])), HttpStatusCode.Forbidden));
         clientes.Add(("anônimo", f.Cliente(), HttpStatusCode.Unauthorized));
 

@@ -4,7 +4,7 @@ namespace Esclari.Api.Tests;
 
 public class ProgramDespachoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 {
-    const string UsoInstituicao = "uso: instituicao criar --slug --nome --fuso --admin-cpf --admin-nome --admin-email | instituicao carga --slug --arquivo | instituicao avaliar-busca --slug --arquivo | instituicao operador --slug --cpf [--remover]";
+    const string UsoInstituicao = "uso: instituicao criar --slug --nome --fuso --admin-cpf --admin-nome --admin-email | instituicao carga --slug --arquivo | instituicao avaliar-busca --slug --arquivo";
 
     async Task<(int? codigo, string saida, string erro, int servicosPedidos)> Despachar(params string[] args)
     {
@@ -66,8 +66,7 @@ public class ProgramDespachoTests(EsclariFactory f) : IClassFixture<EsclariFacto
 
     [Theory]
     [InlineData("carga", "--arquivo", "x.json")]
-    [InlineData("operador", "--cpf", "000.000.000-00")]
-    public async Task Instituicao_carga_e_operador_entregam_o_resto_dos_argumentos(params string[] verboEOpcoes)
+    public async Task Instituicao_carga_entrega_o_resto_dos_argumentos(params string[] verboEOpcoes)
     {
         var slug = "nao-existe-" + Guid.NewGuid().ToString("N");
         var (codigo, saida, erro, pedidos) = await Despachar(["instituicao", verboEOpcoes[0], "--slug", slug, .. verboEOpcoes[1..]]);

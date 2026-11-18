@@ -9,7 +9,7 @@ public static class CargaInicial
         new(await db.Setores.ToDictionaryAsync(s => s.Nome), await db.Categorias.ToDictionaryAsync(c => c.Nome),
             (await db.Cursos.Select(c => c.Nome).ToListAsync()).ToHashSet(), (await db.Categorias.Where(c => db.Fluxos.Any(f => f.CategoriaId == c.Id && f.CursoId == null && f.Semestre == null)).Select(c => c.Nome).ToListAsync()).ToHashSet());
 
-    public static async Task<(int, int)> Gravar(EsclariDb db, ArquivoCarga arq, Existentes existentes, Plano plano, DateTime agora, string fuso, int mesesDeValidade)
+    public static async Task<(int, int)> Gravar(EsclariDb db, ArquivoCarga arq, Existentes existentes, Plano plano, DateTime agora, string fuso, int mesesDeValidade, AuditoriaPlataforma? auditoria = null)
     {
         await using var tx = await db.Database.BeginTransactionAsync();
         var novosSetores = plano.Setores.Values.Except(existentes.Setores.Values).ToList();
@@ -35,6 +35,7 @@ public static class CargaInicial
             db.Artigos.Add(artigo);
             db.TrechosFonte.Add(TrechoFonte.DoArtigo(versao, agora));
         }
+        if (auditoria is not null) db.AuditoriaDaPlataforma.Add(auditoria);
         await db.SaveChangesAsync();
         await tx.CommitAsync();
         return (novosSetores.Count, novasCategorias.Count);

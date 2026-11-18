@@ -42,6 +42,7 @@
     <Using Include="Esclari.Api.Dados.Trechos" />
     <Using Include="Esclari.Api.Dados.Usuarios" />
     <Using Include="Esclari.Api.Dados.Cadastros" />
+    <Using Include="Esclari.Api.Dados.Operadores" />
     <Using Include="Esclari.Api.Dados.Emails" />
     <Using Include="Esclari.Api.Dados.Push" />
     <Using Include="Esclari.Api.Dados.Fluxos" />

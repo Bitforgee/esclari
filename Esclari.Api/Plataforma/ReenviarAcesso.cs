@@ -2,13 +2,13 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Esclari.Api.Dados;
 
-namespace Esclari.Api.Instituicoes.Plataforma;
+namespace Esclari.Api.Plataforma;
 
-public sealed record ReenviarAcesso(string Slug) : IRequest<IResult>
+public sealed record ReenviarAcesso(string Slug, OperadorPlataforma Operador) : IRequest<IResult>
 {
     public sealed record Resposta(int Enviados);
 
-    public static void Mapear(RouteGroupBuilder g) => g.MapPost("/instituicoes/{slug}/reenviar-acesso", (string slug, IMediator m) => m.Send(new ReenviarAcesso(slug)));
+    public static void Mapear(RouteGroupBuilder g) => g.MapPost("/instituicoes/{slug}/reenviar-acesso", (string slug, HttpContext ctx, IMediator m) => m.Send(new ReenviarAcesso(slug, ctx.Operador())));
 }
 
 public sealed class ReenviarAcessoHandler(EsclariDb db, TimeProvider relogio, IConfiguration cfg) : IRequestHandler<ReenviarAcesso, IResult>
@@ -30,6 +30,7 @@ public sealed class ReenviarAcessoHandler(EsclariDb db, TimeProvider relogio, IC
             db.Tokens.Add(registro);
             db.EmailsSaida.Add(Criacao.EmailDeAcesso(cfg, instituicao, admin.Email, token, agora));
         }
+        db.AuditoriaDaPlataforma.Add(AuditoriaPlataforma.Registrar(AcoesDaPlataforma.AcessoReenviado, m.Operador.Id, instituicao.Id, $"Reenviou o acesso de {admins.Count} administrador(es) de {instituicao.Slug}", agora));
         await db.SaveChangesAsync(ct);
         return Results.Accepted(value: new ReenviarAcesso.Resposta(admins.Count));
     }

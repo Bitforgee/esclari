@@ -54,13 +54,13 @@ public class UsuarioDominioTests
     }
 
     [Fact]
-    public void Definir_papeis_mantem_OPERADOR_remove_os_ausentes_e_nao_duplica()
+    public void Definir_papeis_remove_os_ausentes_e_nao_duplica()
     {
-        var u = Usuario.Criar(Cpf.Tentar("11144477735")!, "Maria Teste", "maria@teste.esclari", [Papeis.Aluno, Papeis.Operador]);
+        var u = Usuario.Criar(Cpf.Tentar("11144477735")!, "Maria Teste", "maria@teste.esclari", [Papeis.Aluno, Papeis.Administrador]);
 
         u.DefinirPapeis([Papeis.Atendente, Papeis.Atendente]);
 
-        Assert.Equal([Papeis.Operador, Papeis.Atendente], u.Papeis.Select(p => p.Papel));
+        Assert.Equal([Papeis.Atendente], u.Papeis.Select(p => p.Papel));
     }
 
     [Fact]

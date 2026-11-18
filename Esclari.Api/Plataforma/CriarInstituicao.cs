@@ -2,15 +2,15 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Esclari.Api.Dados;
 
-namespace Esclari.Api.Instituicoes.Plataforma;
+namespace Esclari.Api.Plataforma;
 
-public sealed record CriarInstituicao(CriarInstituicao.Entrada Corpo) : IRequest<IResult>
+public sealed record CriarInstituicao(CriarInstituicao.Entrada Corpo, OperadorPlataforma Operador) : IRequest<IResult>
 {
     public sealed record Entrada(string? Slug, string? Nome, string? Fuso, Administrador? Admin);
     public sealed record Administrador(string? Cpf, string? Nome, string? Email);
     public sealed record Resposta(string Slug, string Nome, string Fuso, bool Ativa, DateTime CriadaEm, int Administradores);
 
-    public static void Mapear(RouteGroupBuilder g) => g.MapPost("/instituicoes", (Entrada i, IMediator m) => m.Send(new CriarInstituicao(i)));
+    public static void Mapear(RouteGroupBuilder g) => g.MapPost("/instituicoes", (Entrada i, HttpContext ctx, IMediator m) => m.Send(new CriarInstituicao(i, ctx.Operador())));
 }
 
 public sealed class CriarInstituicaoHandler(EsclariDb db, TimeProvider relogio, IConfiguration cfg) : IRequestHandler<CriarInstituicao, IResult>
@@ -28,7 +28,7 @@ public sealed class CriarInstituicaoHandler(EsclariDb db, TimeProvider relogio, 
         if (erros.Count > 0) return Problemas.Erro(409, EmUso);
 
         Instituicao i;
-        try { (i, _) = await Criacao.Gravar(db, n, relogio.GetUtcNow().UtcDateTime, cfg); }
+        try { (i, _) = await Criacao.Gravar(db, n, relogio.GetUtcNow().UtcDateTime, cfg, m.Operador); }
         catch (DbUpdateException ex) when (Problemas.Conflito(ex)) { return Problemas.Erro(409, EmUso); }
         return Results.Created($"/api/plataforma/instituicoes/{i.Slug}", new CriarInstituicao.Resposta(i.Slug, i.Nome, i.Fuso, i.Ativa, i.CriadaEm, 1));
     }

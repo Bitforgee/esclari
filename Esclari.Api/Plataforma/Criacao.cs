@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Esclari.Api.Dados;
 using Esclari.Api.Dados.Emails;
 
-namespace Esclari.Api.Instituicoes.Plataforma;
+namespace Esclari.Api.Plataforma;
 
 public record NovaInstituicao(string Slug, string Nome, string Fuso, Cpf? Cpf, string AdminNome, string Email);
 
@@ -11,12 +11,15 @@ public record ErroDeCampo(string Campo, string Mensagem, bool Repetido = false);
 
 public static partial class Criacao
 {
+    public const string SlugReservado = "plataforma";
+
     [GeneratedRegex("^[a-z0-9-]{3,30}$")] private static partial Regex SlugValido();
 
     public static async Task<List<ErroDeCampo>> Validar(EsclariDb db, NovaInstituicao n)
     {
         var erros = new List<ErroDeCampo>();
         if (!SlugValido().IsMatch(n.Slug)) erros.Add(new("slug", $"\"{n.Slug}\" deve casar com ^[a-z0-9-]{{3,30}}$"));
+        else if (n.Slug == SlugReservado) erros.Add(new("slug", $"\"{n.Slug}\" é reservado para o console da plataforma"));
         else if (await db.Instituicoes.AnyAsync(i => i.Slug == n.Slug)) erros.Add(new("slug", $"\"{n.Slug}\" já existe", Repetido: true));
         if (n.Nome == "") erros.Add(new("nome", "obrigatório"));
         if (!(TimeZoneInfo.TryFindSystemTimeZoneById(n.Fuso, out var tz) && tz.HasIanaId)) erros.Add(new("fuso", $"\"{n.Fuso}\" não é um fuso IANA (ex.: America/Cuiaba)"));
@@ -26,7 +29,7 @@ public static partial class Criacao
         return erros;
     }
 
-    public static async Task<(Instituicao, string)> Gravar(EsclariDb db, NovaInstituicao n, DateTime agora, IConfiguration? cfg)
+    public static async Task<(Instituicao, string)> Gravar(EsclariDb db, NovaInstituicao n, DateTime agora, IConfiguration? cfg, OperadorPlataforma? operador = null)
     {
         await using var tx = await db.Database.BeginTransactionAsync();
         var instituicao = Instituicao.Criar(n.Slug, n.Nome, n.Fuso, agora);
@@ -42,6 +45,7 @@ public static partial class Criacao
         var (token, registro) = TokenAcesso.Criar(n.Slug, admin.Id, agora);
         db.Tokens.Add(registro);
         if (cfg is not null) db.EmailsSaida.Add(EmailDeAcesso(cfg, instituicao, admin.Email, token, agora));
+        if (operador is not null) db.AuditoriaDaPlataforma.Add(AuditoriaPlataforma.Registrar(AcoesDaPlataforma.InstituicaoCriada, operador.Id, instituicao.Id, $"Criou a instituição {instituicao.Slug}", agora));
         await db.SaveChangesAsync();
         await tx.CommitAsync();
         return (instituicao, token);

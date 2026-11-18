@@ -239,7 +239,6 @@ public class MoodleLancamentoTests(EsclariFactory f) : IClassFixture<EsclariFact
     public static TheoryData<string> PapeisDeEquipe() =>
     [
         Papeis.Atendente, $"{Papeis.Aluno},{Papeis.Atendente}", Papeis.Administrador, $"{Papeis.Aluno},{Papeis.Administrador}",
-        Papeis.Operador, $"{Papeis.Aluno},{Papeis.Operador}",
     ];
 
     [Theory]

@@ -4,23 +4,22 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Esclari.Api.Dados;
-using Esclari.Api.Instituicoes.Plataforma;
+using Esclari.Api.Plataforma;
 using Esclari.Api.Tests.Infra;
 
 namespace Esclari.Api.Tests;
 
 public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 {
-    const string SoOperador = "Só operadores da plataforma podem usar esta área.";
     const string Lista = "/api/plataforma/instituicoes";
 
-    record Operando(Instituicao Instituicao, Usuario Usuario, HttpClient Cliente);
+    record Operando(Instituicao Instituicao, OperadorLogado Operador, HttpClient Cliente);
 
     async Task<Operando> UmOperador()
     {
         var i = await f.Instituicao();
-        var u = await f.Usuario(i, [Papeis.Administrador, Papeis.Operador]);
-        return new(i, u, await f.Entrar(i, u));
+        var logado = await f.Operador();
+        return new(i, logado, logado.Cliente);
     }
 
     static object Corpo(string slug = "demo", string nome = "Faculdade Demo", string fuso = "America/Cuiaba", string cpf = "", string adminNome = "Dona Admin", string email = "admin@demo.edu.br") =>
@@ -61,13 +60,13 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Pedido(HttpMethod.Get, Lista),
         Pedido(HttpMethod.Post, Lista, corpoJson: true),
         Pedido(HttpMethod.Post, $"{Lista}/qualquer/carga"),
-        Pedido(HttpMethod.Post, $"{Lista}/qualquer/desativar"),
+        Pedido(HttpMethod.Post, $"{Lista}/qualquer/desativar", corpoJson: true),
         Pedido(HttpMethod.Post, $"{Lista}/qualquer/reativar"),
         Pedido(HttpMethod.Post, $"{Lista}/qualquer/reenviar-acesso"),
     ];
 
     [Fact]
-    public async Task Rotas_403_sem_operador_e_401_sem_sessao()
+    public async Task Rotas_sem_sessao_da_plataforma_401()
     {
         var i = await f.Instituicao();
         var setor = await f.Db(i.Id, db => db.Setores.SingleAsync());
@@ -79,8 +78,7 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             foreach (var pedido in SeisRotas())
             {
                 var r = await c.SendAsync(pedido);
-                Assert.True(r.StatusCode == HttpStatusCode.Forbidden, $"{pedido.Method} {pedido.RequestUri}: {(int)r.StatusCode}");
-                Assert.Equal(SoOperador, (await r.Json()).GetProperty("detail").GetString());
+                Assert.True(r.StatusCode == HttpStatusCode.Unauthorized, $"{pedido.Method} {pedido.RequestUri}: {(int)r.StatusCode}");
                 feitos++;
             }
         Assert.Equal(18, feitos);
@@ -94,24 +92,6 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(24, feitos);
     }
 
-
-    [Fact]
-    public async Task Editar_usuario_preserva_operador()
-    {
-        var i = await f.Instituicao();
-        var setor = await f.Db(i.Id, db => db.Setores.SingleAsync());
-        var admin = await f.Entrar(i, await f.Usuario(i, [Papeis.Administrador]));
-        var alvo = await f.Usuario(i, [Papeis.Administrador, Papeis.Operador]);
-        Task<List<string>> PapeisDe() => f.Db(i.Id, db => db.UsuarioPapeis.Where(p => p.UsuarioId == alvo.Id).Select(p => p.Papel).OrderBy(p => p).ToListAsync());
-
-        var r = await admin.PutAsJsonAsync($"/api/admin/usuarios/{alvo.Id}", new { cpf = alvo.Cpf.Valor, nome = alvo.Nome, email = alvo.Email, papeis = new[] { Papeis.Administrador } });
-        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
-        Assert.Equal(["ADMINISTRADOR", "OPERADOR"], await PapeisDe());
-
-        r = await admin.PutAsJsonAsync($"/api/admin/usuarios/{alvo.Id}", new { cpf = alvo.Cpf.Valor, nome = alvo.Nome, email = alvo.Email, papeis = new[] { Papeis.Atendente }, setores = new[] { setor.Id } });
-        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
-        Assert.Equal(["ATENDENTE", "OPERADOR"], await PapeisDe());
-    }
 
     [Fact]
     public async Task Tela_usuarios_nao_da_operador()
@@ -158,9 +138,9 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var minhas = new[] { a.Slug, b.Slug, op.Instituicao.Slug, c.Slug };
         var itens = (await r.Json()).EnumerateArray().Where(x => minhas.Contains(x.GetProperty("slug").GetString())).ToList();
         Assert.Equal(minhas, itens.Select(x => x.GetProperty("slug").GetString()));
-        Assert.All(itens, x => Assert.Equal(["slug", "nome", "fuso", "ativa", "criadaEm", "administradores"], x.EnumerateObject().Select(p => p.Name)));
+        Assert.All(itens, x => Assert.Equal(["slug", "nome", "fuso", "ativa", "criadaEm", "administradores", "situacao", "saude", "atencao"], x.EnumerateObject().Select(p => p.Name)));
         Assert.Equal([true, true, true, false], itens.Select(x => x.GetProperty("ativa").GetBoolean()));
-        Assert.Equal([2, 0, 1, 0], itens.Select(x => x.GetProperty("administradores").GetInt32()));
+        Assert.Equal([2, 0, 0, 0], itens.Select(x => x.GetProperty("administradores").GetInt32()));
         Assert.Equal("America/Cuiaba", itens[0].GetProperty("fuso").GetString());
     }
 
@@ -341,7 +321,7 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var base_ = await f.Cliente().Login("nao-existe", adminDemo.Cpf.Valor);
         Assert.Equal(HttpStatusCode.OK, (await clienteAdmin.GetAsync("/api/auth/me")).StatusCode);
 
-        var r = await op.Cliente.PostAsync($"{Lista}/{demo.Slug}/desativar", null);
+        var r = await op.Cliente.PostAsJsonAsync($"{Lista}/{demo.Slug}/desativar", new { motivo = "Encerrado pela equipe" });
 
         Assert.Equal(HttpStatusCode.OK, r.StatusCode);
         var j = await r.Json();
@@ -365,22 +345,10 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         await f.Cliente().PostAsJsonAsync("/api/auth/primeiro-acesso", new { instituicao = demo.Slug, cpf = adminDemo.Cpf.Valor });
         Assert.Equal(1, await Tokens());
 
-        await op.Cliente.PostAsync($"{Lista}/{demo.Slug}/desativar", null);
+        await op.Cliente.PostAsJsonAsync($"{Lista}/{demo.Slug}/desativar", new { motivo = "Encerrado pela equipe" });
         await f.Cliente().PostAsJsonAsync("/api/auth/primeiro-acesso", new { instituicao = demo.Slug, cpf = adminDemo.Cpf.Valor });
 
         Assert.Equal((1, 0), (await Tokens(), await Emails()));
-    }
-
-    [Fact]
-    public async Task Nao_desativa_a_propria()
-    {
-        var op = await UmOperador();
-
-        var r = await op.Cliente.PostAsync($"{Lista}/{op.Instituicao.Slug}/desativar", null);
-
-        Assert.Equal(HttpStatusCode.Conflict, r.StatusCode);
-        Assert.Equal("Você não pode desativar a instituição em que está.", (await r.Json()).GetProperty("detail").GetString());
-        Assert.True((await f.Db(null, db => db.Instituicoes.SingleAsync(x => x.Id == op.Instituicao.Id))).Ativa);
     }
 
     [Fact]
@@ -389,7 +357,7 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var op = await UmOperador();
         var demo = await f.Instituicao();
         var adminDemo = await f.Usuario(demo, [Papeis.Administrador]);
-        await op.Cliente.PostAsync($"{Lista}/{demo.Slug}/desativar", null);
+        await op.Cliente.PostAsJsonAsync($"{Lista}/{demo.Slug}/desativar", new { motivo = "Encerrado pela equipe" });
         Assert.NotEqual(HttpStatusCode.OK, (await f.Cliente().Login(demo.Slug, adminDemo.Cpf.Valor)).StatusCode);
 
         var r = await op.Cliente.PostAsync($"{Lista}/{demo.Slug}/reativar", null);
@@ -461,7 +429,7 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 
         foreach (var acao in pedidos)
         {
-            var r = await op.Cliente.PostAsync($"{Lista}/nao-existe/{acao}", acao == "carga" ? Arquivo(CargaJson()) : null);
+            var r = await op.Cliente.PostAsync($"{Lista}/nao-existe/{acao}", acao == "carga" ? Arquivo(CargaJson()) : acao == "desativar" ? JsonContent.Create(new { motivo = "Encerrado pela equipe" }) : null);
             Assert.Equal(HttpStatusCode.NotFound, r.StatusCode);
             Assert.Equal("Instituição não encontrada.", (await r.Json()).GetProperty("detail").GetString());
         }
@@ -478,7 +446,7 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             .Where(p => !p.Contains($"{sep}bin{sep}") && !p.Contains($"{sep}obj{sep}"))
             .Select(p => Path.GetRelativePath(api, p).Replace(sep, '/'))
             .OrderBy(p => p, StringComparer.Ordinal)
-            .Where(p => !p.StartsWith("Acesso/") && p is not ("Sessao.cs" or "Agendador.cs" or "Instituicoes/Plataforma/Criacao.cs" or "Instituicoes/Plataforma/ReenviarAcesso.cs" or "Instituicoes/Carga/ImportarCargaInstituicao.cs" or "Instituicoes/Aparencia/BaixarImagemInstituicao.cs" or "Instituicoes/Carga/ManifestoInstituicao.cs" or "Instituicoes/Carga/ComandoCarga.cs" or "Instituicoes/Plataforma/ComandoOperador.cs" or "Assistente/Busca/ComandoAvaliarBusca.cs"))
+            .Where(p => !p.StartsWith("Acesso/") && p is not ("Sessao.cs" or "Agendador.cs" or "Plataforma/Criacao.cs" or "Plataforma/ReenviarAcesso.cs" or "Plataforma/ImportarCargaInstituicao.cs" or "Instituicoes/Aparencia/BaixarImagemInstituicao.cs" or "Instituicoes/Carga/ManifestoInstituicao.cs" or "Instituicoes/Carga/ComandoCarga.cs" or "Assistente/Busca/ComandoAvaliarBusca.cs"))
             .Where(p => atribui.IsMatch(File.ReadAllText(Path.Combine(api, p))));
         Assert.Equal(["Chamados/TempoReal/TempoRealHub.cs", "Mcp/AutenticacaoMcp.cs", "Mcp/ContextoMcp.cs"], fora);
     }

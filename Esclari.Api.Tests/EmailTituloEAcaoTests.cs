@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Esclari.Api.Dados;
-using Esclari.Api.Instituicoes.Plataforma;
+using Esclari.Api.Plataforma;
 using Esclari.Api.Tests.Infra;
 using static Esclari.Api.Dados.Chamados.EstadosChamado;
 

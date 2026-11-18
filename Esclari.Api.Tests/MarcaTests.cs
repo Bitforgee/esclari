@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Esclari.Api.Dados;
-using Esclari.Api.Instituicoes.Plataforma;
+using Esclari.Api.Plataforma;
 using Esclari.Api.Tests.Infra;
 
 namespace Esclari.Api.Tests;

@@ -1598,6 +1598,111 @@ namespace Esclari.Api.Dados.Migracoes
                     b.ToTable("vinculo_moodle");
                 });
 
+            modelBuilder.Entity("Esclari.Api.Dados.Operadores.AuditoriaPlataforma", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Acao")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("acao");
+
+                    b.Property<DateTime>("CriadaEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("criada_em");
+
+                    b.Property<long?>("InstituicaoAlvoId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("instituicao_alvo_id");
+
+                    b.Property<long>("OperadorId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("operador_id");
+
+                    b.Property<string>("Resumo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("resumo");
+
+                    b.HasKey("Id")
+                        .HasName("pk_auditoria_plataforma");
+
+                    b.HasIndex("CriadaEm")
+                        .HasDatabaseName("ix_auditoria_plataforma_criada_em");
+
+                    b.HasIndex("InstituicaoAlvoId")
+                        .HasDatabaseName("ix_auditoria_plataforma_instituicao_alvo_id");
+
+                    b.HasIndex("OperadorId")
+                        .HasDatabaseName("ix_auditoria_plataforma_operador_id");
+
+                    b.ToTable("auditoria_plataforma");
+                });
+
+            modelBuilder.Entity("Esclari.Api.Dados.Operadores.OperadorPlataforma", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean")
+                        .HasColumnName("ativo");
+
+                    b.Property<DateTime?>("ConviteExpiraEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("convite_expira_em");
+
+                    b.Property<string>("ConviteHash")
+                        .HasColumnType("char(64)")
+                        .HasColumnName("convite_hash");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("criado_em");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("nome");
+
+                    b.Property<string>("SenhaHash")
+                        .HasColumnType("text")
+                        .HasColumnName("senha_hash");
+
+                    b.Property<string>("TotpSegredo")
+                        .HasColumnType("text")
+                        .HasColumnName("totp_segredo");
+
+                    b.Property<long?>("TotpUltimoPasso")
+                        .HasColumnType("bigint")
+                        .HasColumnName("totp_ultimo_passo");
+
+                    b.HasKey("Id")
+                        .HasName("pk_operador_plataforma");
+
+                    b.HasIndex("ConviteHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_operador_plataforma_convite_hash");
+
+                    b.ToTable("operador_plataforma");
+                });
+
             modelBuilder.Entity("Esclari.Api.Dados.Push.PushSaida", b =>
                 {
                     b.Property<long>("Id")
@@ -2471,6 +2576,22 @@ namespace Esclari.Api.Dados.Migracoes
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_vinculo_moodle_usuario_usuario_id");
+                });
+
+            modelBuilder.Entity("Esclari.Api.Dados.Operadores.AuditoriaPlataforma", b =>
+                {
+                    b.HasOne("Esclari.Api.Dados.Instituicao", null)
+                        .WithMany()
+                        .HasForeignKey("InstituicaoAlvoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_auditoria_plataforma_instituicoes_instituicao_alvo_id");
+
+                    b.HasOne("Esclari.Api.Dados.Operadores.OperadorPlataforma", null)
+                        .WithMany()
+                        .HasForeignKey("OperadorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_auditoria_plataforma_operadores_plataforma_operador_id");
                 });
 
             modelBuilder.Entity("Esclari.Api.Dados.Push.PushSaida", b =>

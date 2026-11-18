@@ -45,7 +45,7 @@ public class Usuario : IDaInstituicao
     public void DefinirPapeis(IEnumerable<string> papeis)
     {
         var novos = papeis.Distinct().ToList();
-        Papeis.RemoveAll(p => p.Papel != Vocabulario.Operador && !novos.Contains(p.Papel));
+        Papeis.RemoveAll(p => !novos.Contains(p.Papel));
         foreach (var papel in novos) AdicionarPapel(papel);
     }
 

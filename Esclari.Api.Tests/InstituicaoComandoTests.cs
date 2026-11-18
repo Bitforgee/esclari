@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Esclari.Api.Dados;
-using Esclari.Api.Instituicoes.Plataforma;
+using Esclari.Api.Plataforma;
 using Esclari.Api.Tests.Infra;
 
 namespace Esclari.Api.Tests;

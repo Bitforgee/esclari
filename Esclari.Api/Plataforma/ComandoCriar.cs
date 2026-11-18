@@ -1,6 +1,6 @@
 using Esclari.Api.Dados;
 
-namespace Esclari.Api.Instituicoes.Plataforma;
+namespace Esclari.Api.Plataforma;
 
 public sealed class ComandoCriar(EsclariDb db, TimeProvider relogio, IConfiguration cfg)
 {

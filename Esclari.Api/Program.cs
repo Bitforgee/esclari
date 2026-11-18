@@ -8,7 +8,7 @@ using Esclari.Api.Chamados.Push;
 using Esclari.Api.Conhecimento;
 using Esclari.Api.Indicadores;
 using Esclari.Api.Instituicoes;
-using Esclari.Api.Instituicoes.Plataforma;
+using Esclari.Api.Plataforma;
 using Esclari.Api.Mcp;
 
 namespace Esclari.Api;
@@ -34,6 +34,7 @@ public class Program
         api.MapConhecimento();
         api.MapAdministracao();
         api.MapIndicadores();
+        app.MapPlataforma();
         app.MapFallback("/api/{**resto}", () => Problemas.Erro(404, "Recurso não encontrado."));
         app.MapFallbackToFile("index.html");
         app.Run();
@@ -43,11 +44,11 @@ public class Program
     static WebApplication Montar(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        if (args is ["instituicao", ..]) builder.Logging.ClearProviders();
+        if (args is ["instituicao" or "plataforma", ..]) builder.Logging.ClearProviders();
         builder.Services.TryAddSingleton(TimeProvider.System);
         builder.Services.AddPersistencia().AddArmazenamento().AddSeguranca().AddTratamentoDeErros()
             .AddAssistente().AddChamados().AddIndexacaoDeTrechos().AddEnvioDePush().AddConhecimento()
-            .AddIndicadores().AddInstituicoes().AddAdministracao().AddMcp().AddAcesso();
+            .AddIndicadores().AddInstituicoes().AddAdministracao().AddMcp().AddAcesso().AddPlataforma();
         var app = builder.Build();
         _ = app.Services.GetRequiredService<Prazos>();
         app.Services.MigrarBanco();
@@ -57,6 +58,7 @@ public class Program
     public static Task<int>? Despachar(string[] args, Func<IServiceProvider> servicos, TextWriter saida, TextWriter erro) => args switch
     {
         ["push", .. var resto] => Task.FromResult(PushComando.Executar(resto, saida, erro)),
+        ["plataforma", .. var comando] => PlataformaComando.Executar(servicos(), comando, saida, erro),
         ["instituicao", "avaliar-busca", ..] => ComandoAvaliarBusca.Executar(servicos(), args[1..], saida, erro),
         ["instituicao", .. var resto] => InstituicaoComando.Executar(servicos(), resto, saida, erro),
         _ => null,

@@ -44,6 +44,8 @@ public class EsclariDb(DbContextOptions<EsclariDb> options) : DbContext(options)
     public DbSet<LtiLancamento> LtiLancamentos => Set<LtiLancamento>();
     public DbSet<TokenMcp> TokensMcp => Set<TokenMcp>();
     public DbSet<AvisoValidade> AvisosValidade => Set<AvisoValidade>();
+    public DbSet<OperadorPlataforma> OperadoresPlataforma => Set<OperadorPlataforma>();
+    public DbSet<AuditoriaPlataforma> AuditoriaDaPlataforma => Set<AuditoriaPlataforma>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -84,6 +86,8 @@ mb.ApplyConfiguration(new InstituicaoMapeamento());
         mb.ApplyConfiguration(new MensagemConversaMapeamento());
         mb.ApplyConfiguration(new EmailSaidaMapeamento());
         mb.ApplyConfiguration(new AvisoValidadeMapeamento());
+        mb.ApplyConfiguration(new OperadorPlataformaMapeamento());
+        mb.ApplyConfiguration(new AuditoriaPlataformaMapeamento());
 
         var configurar = GetType().GetMethod(nameof(DaInstituicao), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
         foreach (var tipo in mb.Model.GetEntityTypes().Select(e => e.ClrType).Where(t => typeof(IDaInstituicao).IsAssignableFrom(t)).ToList())

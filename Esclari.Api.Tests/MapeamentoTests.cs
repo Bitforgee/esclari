@@ -49,7 +49,7 @@ public class MapeamentoTests
         using var db = NovoContexto();
         var entidades = db.Model.GetEntityTypes().Select(e => e.ClrType.Name).Order().ToList();
 
-        Assert.Equal(35, configuracoes.Count);
+        Assert.Equal(37, configuracoes.Count);
         Assert.Equal(entidades, configuracoes.Select(c => c.entidade).Order());
         Assert.Equal(configuracoes.Select(c => c.classe).Order(), configuracoes.Select(c => c.classe).Distinct().Order());
 

@@ -27,6 +27,8 @@ public class Instituicao
     public static Instituicao Criar(string slug, string nome, string fuso, DateTime agora) =>
         new() { Slug = slug, Nome = nome, Fuso = fuso, CriadaEm = agora };
 
+    public void AlterarIdentificacao(string nome, string fuso) => (Nome, Fuso) = (nome, fuso);
+
     public void Desativar() => Ativa = false;
 
     public void Reativar() => Ativa = true;

@@ -1,7 +1,6 @@
 using Esclari.Api.Dados;
 using Esclari.Api.Instituicoes.Aparencia;
 using Esclari.Api.Instituicoes.Carga;
-using Esclari.Api.Instituicoes.Plataforma;
 
 namespace Esclari.Api.Instituicoes;
 
@@ -18,13 +17,5 @@ public static class InstituicoesExtensoes
         AlterarAparencia.Mapear(admin);
         EnviarImagemInstituicao.Mapear(admin);
         RemoverImagemInstituicao.Mapear(admin);
-        var plataforma = api.MapGroup("/plataforma").AddEndpointFilter(async (c, next) =>
-            c.HttpContext.Usuario().Tem(Papeis.Operador) ? await next(c) : Problemas.Erro(403, ErrosDaPlataforma.NaoEOperador));
-        ListarInstituicoes.Mapear(plataforma);
-        CriarInstituicao.Mapear(plataforma);
-        ImportarCargaInstituicao.Mapear(plataforma);
-        DesativarInstituicao.Mapear(plataforma);
-        ReativarInstituicao.Mapear(plataforma);
-        ReenviarAcesso.Mapear(plataforma);
     }
 }

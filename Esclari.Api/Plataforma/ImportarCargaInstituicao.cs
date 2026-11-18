@@ -2,19 +2,19 @@ using System.Text.Json;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Esclari.Api.Dados;
-using Esclari.Api.Instituicoes.Plataforma;
+using Esclari.Api.Instituicoes.Carga;
 
-namespace Esclari.Api.Instituicoes.Carga;
+namespace Esclari.Api.Plataforma;
 
-public sealed record ImportarCargaInstituicao(string Slug, IFormCollection Form) : IRequest<IResult>
+public sealed record ImportarCargaInstituicao(string Slug, IFormCollection Form, OperadorPlataforma Operador) : IRequest<IResult>
 {
     public sealed record Resposta(int Setores, int Cursos, int Categorias, int Regras, int Artigos);
 
     public const long Limite = 2 * 1024 * 1024;
 
     public static void Mapear(RouteGroupBuilder g) =>
-        g.MapPost("/instituicoes/{slug}/carga", async (string slug, HttpRequest req, IMediator m) =>
-            await m.Send(new ImportarCargaInstituicao(slug, req.HasFormContentType ? await req.ReadFormAsync() : FormCollection.Empty)));
+        g.MapPost("/instituicoes/{slug}/carga", async (string slug, HttpContext ctx, IMediator m) =>
+            await m.Send(new ImportarCargaInstituicao(slug, ctx.Request.HasFormContentType ? await ctx.Request.ReadFormAsync() : FormCollection.Empty, ctx.Operador())));
 }
 
 public sealed class ImportarCargaInstituicaoHandler(EsclariDb db, TimeProvider relogio, Prazos prazos) : IRequestHandler<ImportarCargaInstituicao, IResult>
@@ -43,7 +43,9 @@ public sealed class ImportarCargaInstituicaoHandler(EsclariDb db, TimeProvider r
         var (erros, plano) = CargaValidacao.Validar(arq, existentes);
         if (erros.Count > 0) return Recusa(erros);
 
-        var (setores, categorias) = await CargaInicial.Gravar(db, arq, existentes, plano, relogio.GetUtcNow().UtcDateTime, instituicao.Fuso, prazos.ValidadeConhecimentoMeses);
+        var agora = relogio.GetUtcNow().UtcDateTime;
+        var auditoria = AuditoriaPlataforma.Registrar(AcoesDaPlataforma.CargaImportada, m.Operador.Id, instituicao.Id, $"Importou a carga de {instituicao.Slug}", agora);
+        var (setores, categorias) = await CargaInicial.Gravar(db, arq, existentes, plano, agora, instituicao.Fuso, prazos.ValidadeConhecimentoMeses, auditoria);
         return Results.Ok(new ImportarCargaInstituicao.Resposta(setores, plano.Cursos.Count, categorias, plano.Regras.Count, plano.Artigos.Count));
     }
 }

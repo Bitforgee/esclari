@@ -42,10 +42,29 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     }
 
     [Fact]
+    public async Task Tabelas_da_plataforma_sao_as_unicas_sem_instituicao()
+    {
+        var colunas = await Colunas();
+        var semInstituicao = colunas.Select(c => c.tabela).Distinct()
+            .Where(t => t != "instituicao" && !colunas.Any(c => c.tabela == t && c.coluna == "instituicao_id" && !c.nula));
+        Assert.Equal(["auditoria_plataforma", "operador_plataforma"], semInstituicao.Order());
+        Assert.Contains(colunas, c => c.tabela == "auditoria_plataforma" && c.coluna == "instituicao_alvo_id" && c.nula);
+
+        await using var con = new NpgsqlConnection(f.ConnectionString);
+        await con.OpenAsync();
+        await using var idx = new NpgsqlCommand("SELECT indexdef FROM pg_indexes WHERE indexname = 'ux_operador_plataforma_email'", con);
+        var def = (string?)await idx.ExecuteScalarAsync();
+        Assert.Contains("UNIQUE", def);
+        Assert.Matches(@"lower\(\(?email\b", def);
+        await using var fk = new NpgsqlCommand("SELECT count(*) FROM information_schema.table_constraints WHERE table_name = 'auditoria_plataforma' AND constraint_type = 'FOREIGN KEY'", con);
+        Assert.True((long)(await fk.ExecuteScalarAsync())! >= 1);
+    }
+
+    [Fact]
     public async Task Toda_entidade_tem_instituicao_e_filtro()
     {
         var modelo = await f.Db(null, db => Task.FromResult(db.Model));
-        var entidades = modelo.GetEntityTypes().Where(e => e.ClrType != typeof(Instituicao)).ToList();
+        var entidades = modelo.GetEntityTypes().Where(e => e.ClrType != typeof(Instituicao) && e.ClrType != typeof(OperadorPlataforma) && e.ClrType != typeof(AuditoriaPlataforma)).ToList();
 
         Assert.Equal(TabelasDaInstituicao.Order(), entidades.Select(e => e.GetTableName()!).Order());
         foreach (var e in entidades)
@@ -263,7 +282,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Matches(@"(?m)^\s*dotnet_diagnostic\.CA1502\.severity\s*=\s*warning\s*$", File.ReadAllText(Path.Combine(Raiz(), ".editorconfig")));
     }
 
-    static readonly string[] Fatias = ["Acesso", "Assistente", "Chamados", "Conhecimento", "Indicadores", "Administracao", "Instituicoes", "Mcp"];
+    static readonly string[] Fatias = ["Acesso", "Assistente", "Chamados", "Conhecimento", "Indicadores", "Administracao", "Instituicoes", "Mcp", "Plataforma"];
 
     static IEnumerable<string> DaPasta(string pasta) => Directory.EnumerateFiles(Path.Combine(Api, pasta), "*.cs", SearchOption.AllDirectories);
 
@@ -288,10 +307,10 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         ["Administracao"] = ["Categorias", "Cursos", "Setores", "Usuarios", "RespostasProntas", "Fluxos", "Matriculas", "Integracoes"],
         ["Assistente"] = ["Conversas", "Respostas", "Busca"],
         ["Conhecimento"] = ["Artigos", "Documentos"],
-        ["Instituicoes"] = ["Aparencia", "Carga", "Plataforma"],
+        ["Instituicoes"] = ["Aparencia", "Carga"],
     };
 
-    static readonly string[] FatiasPlanas = ["Acesso", "Mcp", "Indicadores"];
+    static readonly string[] FatiasPlanas = ["Acesso", "Mcp", "Indicadores", "Plataforma"];
 
     static Dictionary<string, List<string>> ArquivosPorPasta(string fatia)
     {
@@ -309,7 +328,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     [Fact]
     public void Subpastas_das_fatias()
     {
-        Assert.Equal(22, SubpastasPermitidas.Values.Sum(s => s.Length));
+        Assert.Equal(21, SubpastasPermitidas.Values.Sum(s => s.Length));
         foreach (var (fatia, permitidas) in SubpastasPermitidas)
         {
             var porPasta = ArquivosPorPasta(fatia);
@@ -327,7 +346,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     [Fact]
     public void Fatias_planas()
     {
-        Assert.Equal(["Acesso", "Indicadores", "Mcp"], FatiasPlanas.Order());
+        Assert.Equal(["Acesso", "Indicadores", "Mcp", "Plataforma"], FatiasPlanas.Order());
         Assert.Equal(Fatias.Order(), FatiasPlanas.Concat(SubpastasPermitidas.Keys).Order());
         foreach (var fatia in FatiasPlanas)
         {
@@ -402,10 +421,9 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         ConferirMapa("Instituicoes", new()
         {
             ["Aparencia"] = ["AlterarAparencia", "VerAparencia", "AparenciaDados", "ContrasteDaCor", "EnviarImagemInstituicao", "BaixarImagemInstituicao", "RemoverImagemInstituicao"],
-            ["Carga"] = ["CargaInicial", "CargaValidacao", "ComandoCarga", "ContratosDaCarga", "ImportarCargaInstituicao", "ManifestoInstituicao", "ArquivoDeComando"],
-            ["Plataforma"] = ["CriarInstituicao", "Criacao", "ComandoCriar", "DesativarInstituicao", "ReativarInstituicao", "ReenviarAcesso", "ListarInstituicoes", "ComandoOperador", "InstituicaoComando", "ErrosDaPlataforma"],
+            ["Carga"] = ["CargaInicial", "CargaValidacao", "ComandoCarga", "ContratosDaCarga", "ManifestoInstituicao", "ArquivoDeComando"],
             [""] = ["InstituicoesExtensoes"],
-        }, 25);
+        }, 14);
 
     [Fact]
     public void Namespace_igual_a_pasta()
@@ -425,6 +443,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         ("Assistente", "Chamados"), ("Assistente", "Conhecimento"),
         ("Chamados", "Conhecimento"),
         ("Indicadores", "Conhecimento"),
+        ("Plataforma", "Acesso"), ("Plataforma", "Instituicoes"),
         ("Mcp", "Assistente"), ("Mcp", "Chamados"), ("Mcp", "Conhecimento"), ("Mcp", "Indicadores"),
     ];
 
@@ -487,8 +506,8 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     public void Um_arquivo_por_caso_de_uso()
     {
         var mensagens = Mensagens().Select(m => m.mensagem).ToList();
-        Assert.Equal(95, mensagens.Count);
-        var porFatia = new Dictionary<string, int> { ["Acesso"] = 9, ["Assistente"] = 9, ["Chamados"] = 20, ["Conhecimento"] = 14, ["Indicadores"] = 3, ["Administracao"] = 28, ["Instituicoes"] = 12 };
+        Assert.Equal(101, mensagens.Count);
+        var porFatia = new Dictionary<string, int> { ["Acesso"] = 9, ["Assistente"] = 9, ["Chamados"] = 20, ["Conhecimento"] = 14, ["Indicadores"] = 3, ["Administracao"] = 28, ["Instituicoes"] = 6, ["Plataforma"] = 12 };
         foreach (var (fatia, n) in porFatia)
             Assert.True(mensagens.Count(t => FatiaDo(t) == fatia) == n, $"{fatia}: {mensagens.Count(t => FatiaDo(t) == fatia)}, esperado {n}");
         var declaraMensagem = new Regex(@"\b(class|record|struct)\s+\w+[^{;]*?:\s*[^{;]*?(\bIRequest<|\bIAcaoChamado\b)");
@@ -510,7 +529,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var handlers = typeof(Program).Assembly.GetTypes().Where(Concreto)
             .Select(t => (handler: t, contrato: Fechado(t, typeof(Mediator.IRequestHandler<,>)))).Where(x => x.contrato is not null).ToList();
         var mensagens = Mensagens().Select(m => m.mensagem).ToList();
-        Assert.Equal(95, handlers.Count);
+        Assert.Equal(101, handlers.Count);
         Assert.Equal(mensagens.Order(Comparer<Type>.Create((a, b) => string.CompareOrdinal(a.FullName, b.FullName))),
             handlers.Select(h => h.contrato!.GetGenericArguments()[0]).Order(Comparer<Type>.Create((a, b) => string.CompareOrdinal(a.FullName, b.FullName))));
         foreach (var (handler, contrato) in handlers)
@@ -547,20 +566,21 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             .Where(x => x.maps.Count > 0).ToDictionary(x => x.arquivo, x => x.maps);
         var casos = Mensagens().Select(m => Relativo(ArquivoDo(m.mensagem))).ToHashSet();
 
-        Assert.Equal(98, porArquivo.Values.Sum(m => m.Count));
+        Assert.Equal(106, porArquivo.Values.Sum(m => m.Count));
         foreach (var caso in casos)
             Assert.True(porArquivo.GetValueOrDefault(caso)?.Count == 1, $"{caso}: {porArquivo.GetValueOrDefault(caso)?.Count ?? 0} Map*");
         Assert.Equal([".MapFallback(", ".MapFallbackToFile("], porArquivo["Program.cs"].Order());
-        var resto = Assert.Single(porArquivo.Keys.Except(casos).Except(["Program.cs"]));
-        Assert.Single(porArquivo[resto]);
-        Assert.Matches(new Regex(@"\.MapPost\(""/auth/logout"""), SemComentarios(Path.Combine(Api, resto)));
+        var resto = porArquivo.Keys.Except(casos).Except(["Program.cs"]).Order().ToList();
+        Assert.Equal(["Acesso/Logout.cs", "Plataforma/SairEEuDaPlataforma.cs"], resto);
+        Assert.Matches(new Regex(@"\.MapPost\(""/auth/logout"""), SemComentarios(Path.Combine(Api, resto[0])));
+        Assert.Matches(new Regex(@"\.MapPost\(""/auth/sair"""), SemComentarios(Path.Combine(Api, resto[1])));
     }
 
     [Fact]
     public void Fora_do_mediator()
     {
         var logout = Assert.Single(CodigoApi(), p => File.ReadAllText(p).Contains("\"/auth/logout\""));
-        foreach (var arquivo in new[] { Path.Combine(Api, "Agendador.cs"), Path.Combine(Api, "Sessao.cs"), Path.Combine(Api, "Instituicoes", "Plataforma", "InstituicaoComando.cs"), logout })
+        foreach (var arquivo in new[] { Path.Combine(Api, "Agendador.cs"), Path.Combine(Api, "Sessao.cs"), Path.Combine(Api, "Plataforma", "InstituicaoComando.cs"), logout })
         {
             var codigo = File.ReadAllText(arquivo);
             foreach (var proibido in new[] { "IMediator", "ISender", "using Mediator" })
@@ -575,7 +595,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         foreach (var (mensagem, _) in Mensagens())
             Assert.All(mensagem.GetProperties(), p => Assert.DoesNotContain(p.PropertyType, proibidos));
         var handlers = typeof(Program).Assembly.GetTypes().Where(Concreto).Where(t => Fechado(t, typeof(Mediator.IRequestHandler<,>)) is not null).ToList();
-        Assert.Equal(95, handlers.Count);
+        Assert.Equal(101, handlers.Count);
         foreach (var t in handlers.Append(typeof(Esclari.Api.Chamados.Permissao.AgirNoChamado<,>)))
             foreach (var c in t.GetConstructors())
                 Assert.All(c.GetParameters(), p => Assert.DoesNotContain(p.ParameterType, proibidos));
@@ -652,6 +672,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     static readonly Dictionary<string, string[]> EntidadesPorPasta = new()
     {
         [""] = ["Instituicao", "ImagemInstituicao"],
+        ["Operadores"] = ["OperadorPlataforma", "AuditoriaPlataforma"],
         ["Chamados"] = ["Chamado", "MensagemChamado", "Anexo", "EventoChamado"],
         ["Conversas"] = ["Conversa", "MensagemConversa", "CitacaoArtigo", "AnexoConversa"],
         ["Artigos"] = ["Artigo", "VersaoArtigo"],
@@ -674,7 +695,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     {
         var modelo = await f.Db(null, db => Task.FromResult(db.Model));
         var tipos = modelo.GetEntityTypes().Select(e => e.ClrType).ToList();
-        Assert.Equal(35, tipos.Count);
+        Assert.Equal(37, tipos.Count);
         Assert.Equal(EntidadesPorPasta.Values.SelectMany(n => n).Order(), tipos.Select(t => t.Name).Order());
         foreach (var (pasta, nomes) in EntidadesPorPasta)
             foreach (var nome in nomes)
@@ -851,6 +872,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         "CriarRespostaPronta", "AlterarRespostaPronta", "CriarFluxo", "SalvarRascunho", "SimularFluxo", "SubirChamado", "CriarUsuario", "AlterarUsuario", "NovaConversa", "NovaMensagem",
         "AvaliarConversa", "TransferirConversa", "AtendimentoDireto", "ResolverChamado", "RejeitarChamado", "CancelarChamado", "EncaminharChamado",
         "ReclassificarChamado", "MarcarDuplicado", "CriarArtigo", "CriarArtigoDoChamado", "AlterarArtigo", "AtivarPush", "AlterarAparencia", "CriarInstituicao", "AlterarMoodle", "CriarTokenMcp",
+        "CodigoDaPlataforma", "DefinirSenhaDaPlataforma", "DesativarInstituicao", "EditarInstituicao", "EntrarNaPlataforma",
     ];
 
     static IEnumerable<Type> TiposDaApi() => typeof(Program).Assembly.GetTypes()
@@ -867,7 +889,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(["Principal", "Resposta"], parametros.Select(p => p.Name));
 
         var entradas = TiposDaApi().Where(t => t.IsNested && t.Name == "Entrada").ToList();
-        Assert.Equal(37, entradas.Count);
+        Assert.Equal(42, entradas.Count);
         Assert.Equal(AsEntradas.Order(), entradas.Select(t => t.DeclaringType!.Name).Order());
         var mensagens = Mensagens().Select(m => m.mensagem).ToList();
         Assert.All(entradas, t => Assert.Contains(t.DeclaringType!, mensagens));
@@ -875,7 +897,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var endpoints = f.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>().ToList();
         var comCorpo = endpoints.Select(e => (e, corpo: e.Metadata.GetMetadata<Microsoft.AspNetCore.Http.Metadata.IAcceptsMetadata>()))
             .Where(x => x.corpo is not null && x.corpo.ContentTypes.Contains("application/json") && x.e.RoutePattern.RawText?.StartsWith("/api/mcp/") != true).ToList();
-        Assert.Equal(37, comCorpo.Count);
+        Assert.Equal(42, comCorpo.Count);
         var porNome = Comparer<Type>.Create((a, b) => string.CompareOrdinal(a.FullName, b.FullName));
         Assert.Equal(entradas.Order(porNome), comCorpo.Select(x => x.corpo!.RequestType!).Order(porNome));
         foreach (var (e, corpo) in comCorpo)
@@ -888,13 +910,13 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         }
     }
 
-    static readonly string[] SemCorpoJson = ["DescartarRascunho", "DefinirSenha", "TrocarSenha", "BaixarAnexo", "BaixarAnexoConversa", "BaixarVersaoDocumento", "AtivarPush", "DesativarPush", "RemoverImagemInstituicao", "BaixarImagemInstituicao", "IniciarLoginMoodle", "LancamentoMoodle", "RevogarTokenMcp", "ExportarChamados"];
+    static readonly string[] SemCorpoJson = ["DescartarRascunho", "DefinirSenha", "TrocarSenha", "BaixarAnexo", "BaixarAnexoConversa", "BaixarVersaoDocumento", "AtivarPush", "DesativarPush", "RemoverImagemInstituicao", "BaixarImagemInstituicao", "IniciarLoginMoodle", "LancamentoMoodle", "RevogarTokenMcp", "ExportarChamados", "CodigoDaPlataforma", "DefinirSenhaDaPlataforma"];
 
     static readonly string[] ComRespostaAninhada =
     [
         "Login", "PrimeiroAcesso", "Eu", "VerInstituicao", "NovaConversa", "NovaMensagem", "VerConversa", "AvaliarConversa", "TransferirConversa",
         "AtendimentoDireto", "EncerrarConversa", "SimularFluxo", "VerDestino", "ListarChamados", "BuscarChamados", "FiltrosDaBusca", "RespostasProntasDoSetor", "VerVersaoArtigo", "ImportarMatriculas", "VerChavePush", "VerAparencia", "AlterarAparencia", "EnviarImagemInstituicao", "ManifestoInstituicao",
-        "ListarInstituicoes", "CriarInstituicao", "ImportarCargaInstituicao", "DesativarInstituicao", "ReativarInstituicao", "ReenviarAcesso",
+        "DetalheDaInstituicao", "EntrarNaPlataforma", "ListarAuditoria", "CriarInstituicao", "ImportarCargaInstituicao", "DesativarInstituicao", "ReativarInstituicao", "ReenviarAcesso",
         "ChavesMoodle", "VerMoodle", "AlterarMoodle", "VerMcp", "CriarTokenMcp", "ConsultarValidade",
     ];
 
@@ -927,9 +949,9 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     public void Resposta_por_caso_de_uso()
     {
         var mensagens = Mensagens().Select(m => m.mensagem).ToList();
-        Assert.Equal(95, mensagens.Count);
+        Assert.Equal(101, mensagens.Count);
         var comJson = mensagens.Where(m => !SemCorpoJson.Contains(m.Name)).ToList();
-        Assert.Equal(81, comJson.Count);
+        Assert.Equal(85, comJson.Count);
 
         var aninhadas = TiposDaApi().Where(t => t.IsNested && t.Name == "Resposta" && mensagens.Contains(t.DeclaringType!)).Select(t => t.DeclaringType!.Name).Order().ToList();
         Assert.Equal(ComRespostaAninhada.Order(), aninhadas);
@@ -938,7 +960,12 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 
         foreach (var m in comJson)
         {
-            if (m.Name is "ConsultarIndicadores" or "ConsultarIndicadoresDetalhe")
+            if (m.Name is "ListarInstituicoes" or "EditarInstituicao")
+            {
+                Assert.Contains("ConsultaDasInstituicoes.", TextoDoCaso(m));
+                Assert.DoesNotContain(m.Name, aninhadas);
+            }
+            else if (m.Name is "ConsultarIndicadores" or "ConsultarIndicadoresDetalhe")
             {
                 Assert.Contains(m.Name == "ConsultarIndicadores" ? "Results.Ok(CalculoIndicadores.Calcular(" : "Results.Ok(CalculoDetalhe.Calcular(", TextoDoCaso(m));
                 Assert.DoesNotContain(m.Name, aninhadas);
@@ -952,7 +979,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
                 Assert.DoesNotContain(m.Name, aninhadas);
             }
         }
-        Assert.Equal(comJson.Count, ComRespostaAninhada.Length + doShared.Count + 2);
+        Assert.Equal(comJson.Count, ComRespostaAninhada.Length + doShared.Count + 4);
         Assert.All(SemCorpoJson, n => Assert.DoesNotContain(n, aninhadas.Concat(doShared.Keys)));
 
         var shared = OsNoveShared.Select(x => Path.Combine(Api, x.fatia, SubpastaDoShared[x.record], x.record + ".cs")).ToList();
@@ -1341,6 +1368,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     [
         "Agendador.cs",
         "Acesso/CookieDeSessao.cs",
+        "Plataforma/SessaoDaPlataforma.cs",
     ];
 
     static readonly string[] Excecoes_Caso_de_uso_sem_chamada_estatica_de_outro =
