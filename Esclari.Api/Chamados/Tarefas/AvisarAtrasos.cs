@@ -19,11 +19,18 @@ public sealed class AvisarAtrasos(IConfiguration cfg, Prazos prazos, ILogger<Age
 
     sealed record Carta(string Para, string Assunto, string Corpo, List<Avisado> Chamados, string Titulo, AcaoDoEmail Acao);
 
-    public Task<List<ItemAgendado>> Ler(EsclariDb db, DateTime agora)
+    public async Task<List<ItemAgendado>> Ler(EsclariDb db, DateTime agora)
+    {
+        var itens = new List<ItemAgendado>();
+        foreach (var (id, p) in await prazos.PorInstituicao(db)) itens.AddRange(await DaInstituicao(db, id, p, agora));
+        return itens;
+    }
+
+    static Task<List<ItemAgendado>> DaInstituicao(EsclariDb db, long instituicaoId, Prazos prazos, DateTime agora)
     {
         var (primeira, resolucao, resumo) = (agora - prazos.PrimeiraResposta, agora - prazos.Resolucao, agora - Repeticao);
         return db.Chamados.IgnoreQueryFilters()
-            .Where(c => (c.Estado == Aberto || c.Estado == EmAtendimento) && (c.AtrasoAvisadoEm == null || c.AtrasoAvisadoEm <= resumo))
+            .Where(c => c.InstituicaoId == instituicaoId && (c.Estado == Aberto || c.Estado == EmAtendimento) && (c.AtrasoAvisadoEm == null || c.AtrasoAvisadoEm <= resumo))
             .Where(c => c.CriadoEm <= resolucao || (c.CriadoEm <= primeira && !db.MensagensChamado.IgnoreQueryFilters()
                 .Any(m => m.ChamadoId == c.Id && m.Tipo == TiposMensagem.Publica && m.AutorId != null && m.AutorId != c.SolicitanteId)))
             .Select(c => c.InstituicaoId).Distinct()
@@ -33,7 +40,8 @@ public sealed class AvisarAtrasos(IConfiguration cfg, Prazos prazos, ILogger<Age
     public async Task Executar(EsclariDb db, IReadOnlyList<ItemAgendado> itens, DateTime agora, CancellationToken parar)
     {
         var instituicao = await db.Instituicoes.SingleAsync(i => i.Id == itens[0].InstituicaoId, parar);
-        var vencidos = await FiltroDeChamados.Atrasados(db, db.Chamados, prazos.Metas, agora);
+        var metas = prazos.Para(instituicao);
+        var vencidos = await FiltroDeChamados.Atrasados(db, db.Chamados, metas.Metas, agora);
         var ids = vencidos.Keys.ToList();
         var resumo = agora - Repeticao;
         var pendentes = (await db.Chamados.Where(c => ids.Contains(c.Id) && (c.AtrasoAvisadoEm == null || c.AtrasoAvisadoEm <= resumo)).ToListAsync(parar))
@@ -81,7 +89,8 @@ public sealed class AvisarAtrasos(IConfiguration cfg, Prazos prazos, ILogger<Age
         var corpo = new StringBuilder(doSetor
             ? "Estes chamados passaram da meta de atendimento e esperam a equipe.\n"
             : "Resumo diário: estes chamados estão fora da meta de atendimento.\n");
-        corpo.Append($"Meta: primeira resposta em {prazos.PrimeiraRespostaHoras} h; resolução em {prazos.ResolucaoHoras} h.\n\n");
+        var metas = prazos.Para(i);
+        corpo.Append($"Meta: primeira resposta em {metas.PrimeiraRespostaHoras} h; resolução em {metas.ResolucaoHoras} h.\n\n");
         foreach (var a in chamados)
             corpo.Append($"- {a.Chamado.Numero} · {a.Chamado.Titulo} · {Rotulo(a.Vencido.Tipo)} · atrasado há {Tempo(agora - a.Vencido.VenceuEm)}\n  {Avisos.Link(cfg, i, a.Chamado)}\n");
         var todos = $"{Tokens.UrlBase(cfg)}/{i.Slug}/{(doSetor ? "fila" : "chamados")}?atraso=true";

@@ -24,6 +24,26 @@ public class Instituicao
     public string? ContatoTelefone { get; private set; }
     public string? ContatoEmail { get; private set; }
 
+    public int? PrazoAbandonoMinutos { get; private set; }
+    public int? PrazoConfirmacaoDias { get; private set; }
+    public int? PrazoLembreteAguardandoDias { get; private set; }
+    public int? PrazoResolverAguardandoDias { get; private set; }
+    public int? PrazoValidadeConhecimentoMeses { get; private set; }
+    public int? PrazoPrimeiraRespostaHoras { get; private set; }
+    public int? PrazoResolucaoHoras { get; private set; }
+
+    public ParametrosDaInstituicao Parametros => new()
+    {
+        AbandonoMinutos = PrazoAbandonoMinutos, ConfirmacaoDias = PrazoConfirmacaoDias, LembreteAguardandoDias = PrazoLembreteAguardandoDias, ResolverAguardandoDias = PrazoResolverAguardandoDias,
+        ValidadeConhecimentoMeses = PrazoValidadeConhecimentoMeses, PrimeiraRespostaHoras = PrazoPrimeiraRespostaHoras, ResolucaoHoras = PrazoResolucaoHoras,
+    };
+
+    public void DefinirParametros(ParametrosDaInstituicao p)
+    {
+        (PrazoAbandonoMinutos, PrazoConfirmacaoDias, PrazoLembreteAguardandoDias, PrazoResolverAguardandoDias) = (p.AbandonoMinutos, p.ConfirmacaoDias, p.LembreteAguardandoDias, p.ResolverAguardandoDias);
+        (PrazoValidadeConhecimentoMeses, PrazoPrimeiraRespostaHoras, PrazoResolucaoHoras) = (p.ValidadeConhecimentoMeses, p.PrimeiraRespostaHoras, p.ResolucaoHoras);
+    }
+
     public static Instituicao Criar(string slug, string nome, string fuso, DateTime agora) =>
         new() { Slug = slug, Nome = nome, Fuso = fuso, CriadaEm = agora };
 

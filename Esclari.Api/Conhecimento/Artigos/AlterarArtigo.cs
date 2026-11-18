@@ -12,10 +12,11 @@ public sealed record AlterarArtigo(long Id, AlterarArtigo.Entrada Corpo) : IRequ
         g.MapPut("/artigos/{id:long}", (long id, AlterarArtigo.Entrada i, IMediator m) => m.Send(new AlterarArtigo(id, i)));
 }
 
-public sealed class AlterarArtigoHandler(EsclariDb db, TimeProvider relogio, Prazos prazos) : IRequestHandler<AlterarArtigo, IResult>
+public sealed class AlterarArtigoHandler(EsclariDb db, TimeProvider relogio, PrazosAtuais atuais) : IRequestHandler<AlterarArtigo, IResult>
 {
     public async ValueTask<IResult> Handle(AlterarArtigo m, CancellationToken ct)
     {
+        var prazos = await atuais.Ler();
         var i = m.Corpo;
         var a = await ArtigoComVersoes.Ler(db, m.Id);
         if (a is null) return Problemas.Erro(404, "Artigo não encontrado.");

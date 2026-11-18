@@ -11,10 +11,11 @@ public sealed record NovaVersaoDocumento(long Id, IFormCollection Form) : IReque
             await m.Send(new NovaVersaoDocumento(id, req.HasFormContentType ? await req.ReadFormAsync() : FormCollection.Empty)));
 }
 
-public sealed class NovaVersaoDocumentoHandler(EsclariDb db, TimeProvider relogio, Armazenamento armazenamento, Prazos prazos) : IRequestHandler<NovaVersaoDocumento, IResult>
+public sealed class NovaVersaoDocumentoHandler(EsclariDb db, TimeProvider relogio, Armazenamento armazenamento, PrazosAtuais atuais) : IRequestHandler<NovaVersaoDocumento, IResult>
 {
     public async ValueTask<IResult> Handle(NovaVersaoDocumento m, CancellationToken ct)
     {
+        var prazos = await atuais.Ler();
         var d = await Ler(db, m.Id);
         if (d is null) return Problemas.Erro(404, "Documento não encontrado.");
         var (pdf, erro) = await LeitorDePdf.Ler(m.Form.Files["arquivo"]);

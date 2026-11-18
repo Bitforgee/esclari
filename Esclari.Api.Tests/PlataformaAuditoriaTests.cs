@@ -36,6 +36,7 @@ public class PlataformaAuditoriaTests(EsclariFactory f) : IClassFixture<EsclariF
         await c.PostAsync($"{Lista}/{slug}/reenviar-acesso", null);
         await c.PostAsJsonAsync($"{Lista}/{slug}/desativar", new { motivo = "Contrato encerrado" });
         await c.PostAsync($"{Lista}/{slug}/reativar", null);
+        await c.PutAsJsonAsync($"{Lista}/{slug}/parametros", new { confirmacaoDias = 5 });
         var membro = await c.PostAsJsonAsync($"{Lista}/{slug}/equipe", new { cpf = Semente.NovoCpf(), nome = "Ana Equipe", email = $"{Guid.NewGuid():N}@teste.edu.br", papeis = new[] { "ADMINISTRADOR" } });
         var membroId = (await membro.Json()).GetProperty("id").GetInt64();
         await c.PostAsync($"{Lista}/{slug}/equipe/{membroId}/desativar", null);
@@ -47,7 +48,7 @@ public class PlataformaAuditoriaTests(EsclariFactory f) : IClassFixture<EsclariF
 
         Assert.Equal(AcoesDaPlataforma.Todas.Order(), linhas.Select(l => l.Acao).Order());
         Assert.All(linhas, l => Assert.NotEqual("", l.Resumo));
-        Assert.All(linhas.Where(l => l.Acao.StartsWith("INSTITUICAO_") || l.Acao is "ACESSO_REENVIADO" or "CARGA_IMPORTADA" or "USUARIO_CRIADO" or "USUARIO_ALTERADO"), l => Assert.Equal(alvo, l.InstituicaoAlvoId));
+        Assert.All(linhas.Where(l => l.Acao.StartsWith("INSTITUICAO_") || l.Acao is "ACESSO_REENVIADO" or "CARGA_IMPORTADA" or "USUARIO_CRIADO" or "USUARIO_ALTERADO" or "PARAMETROS_ALTERADOS"), l => Assert.Equal(alvo, l.InstituicaoAlvoId));
         Assert.All(linhas.Where(l => l.Acao.StartsWith("OPERADOR_")), l => Assert.Null(l.InstituicaoAlvoId));
     }
 
@@ -98,6 +99,7 @@ public class PlataformaAuditoriaTests(EsclariFactory f) : IClassFixture<EsclariF
         await op.Cliente.PostAsync($"{Lista}/{slug}/carga", carga);
         await op.Cliente.PostAsJsonAsync($"{Lista}/{slug}/desativar", new { motivo = new string('m', 200) });
         await op.Cliente.PostAsync($"{Lista}/{slug}/reativar", null);
+        await op.Cliente.PutAsJsonAsync($"{Lista}/{slug}/parametros", new { confirmacaoDias = 5 });
         await op.Cliente.PostAsJsonAsync($"{Lista}/{slug}/desativar", new { motivo = new string('m', 200) });
         var membro = await op.Cliente.PostAsJsonAsync($"{Lista}/{slug}/equipe", new { cpf = Semente.NovoCpf(), nome = "Ana Equipe", email = $"{Guid.NewGuid():N}@teste.edu.br", papeis = new[] { "ADMINISTRADOR" } });
         var membroId = (await membro.Json()).GetProperty("id").GetInt64();
@@ -164,7 +166,7 @@ public class PlataformaAuditoriaTests(EsclariFactory f) : IClassFixture<EsclariF
         var agora = f.Relogio.GetUtcNow().UtcDateTime;
 
         foreach (var acao in AcoesDaPlataforma.Todas) Assert.Equal(acao, AuditoriaPlataforma.Registrar(acao, 1, null, "resumo", agora).Acao);
-        Assert.Equal(10, AcoesDaPlataforma.Todas.Count);
+        Assert.Equal(11, AcoesDaPlataforma.Todas.Count);
         Assert.Throws<ArgumentException>(() => AuditoriaPlataforma.Registrar("QUALQUER_COISA", 1, null, "resumo", agora));
         Assert.Equal(200, AuditoriaPlataforma.Registrar(AcoesDaPlataforma.OperadorEntrou, 1, null, new string('r', 500), agora).Resumo.Length);
         var tamanho = await f.Db(null, db => db.Database.SqlQueryRaw<int>("SELECT character_maximum_length AS \"Value\" FROM information_schema.columns WHERE table_name = 'auditoria_plataforma' AND column_name = 'resumo'").SingleAsync());

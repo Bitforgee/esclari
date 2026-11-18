@@ -11,10 +11,11 @@ public sealed record CriarArtigo(CriarArtigo.Entrada Corpo) : IRequest<IResult>
     public static void Mapear(RouteGroupBuilder g) => g.MapPost("/artigos", (CriarArtigo.Entrada i, IMediator m) => m.Send(new CriarArtigo(i)));
 }
 
-public sealed class CriarArtigoHandler(EsclariDb db, TimeProvider relogio, Prazos prazos) : IRequestHandler<CriarArtigo, IResult>
+public sealed class CriarArtigoHandler(EsclariDb db, TimeProvider relogio, PrazosAtuais atuais) : IRequestHandler<CriarArtigo, IResult>
 {
     public async ValueTask<IResult> Handle(CriarArtigo m, CancellationToken ct)
     {
+        var prazos = await atuais.Ler();
         var i = m.Corpo;
         if (await Validar(db, i.Titulo, i.Perguntas, i.CategoriaId, i.Resposta, i.Links, i.VisivelDe, i.VisivelAte) is { } erro) return erro;
         var validade = await db.NovaValidade(relogio, prazos);

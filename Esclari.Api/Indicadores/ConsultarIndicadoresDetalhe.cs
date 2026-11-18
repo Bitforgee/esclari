@@ -10,10 +10,11 @@ public sealed record ConsultarIndicadoresDetalhe(DateOnly? De, DateOnly? Ate, lo
             m.Send(new ConsultarIndicadoresDetalhe(de, ate, setorId, ctx.Usuario(), ctx.Instituicao())));
 }
 
-public sealed class ConsultarIndicadoresDetalheHandler(EsclariDb db, TimeProvider relogio, Prazos prazos) : IRequestHandler<ConsultarIndicadoresDetalhe, IResult>
+public sealed class ConsultarIndicadoresDetalheHandler(EsclariDb db, TimeProvider relogio, PrazosAtuais atuais) : IRequestHandler<ConsultarIndicadoresDetalhe, IResult>
 {
     public async ValueTask<IResult> Handle(ConsultarIndicadoresDetalhe m, CancellationToken ct)
     {
+        var prazos = await atuais.Ler();
         var leitor = new LeitorIndicadores(db);
         var (pedido, recusa) = await leitor.Validar(m.Usuario, m.De, m.Ate, m.SetorId);
         if (recusa is not null) return recusa;

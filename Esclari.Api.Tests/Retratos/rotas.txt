@@ -113,5 +113,7 @@ POST /api/plataforma/instituicoes/{slug}/equipe anonimo=False autorizacao=True l
 POST /api/plataforma/instituicoes/{slug}/equipe/{id:long}/convite anonimo=False autorizacao=True limite=-
 POST /api/plataforma/instituicoes/{slug}/equipe/{id:long}/desativar anonimo=False autorizacao=True limite=-
 POST /api/plataforma/instituicoes/{slug}/equipe/{id:long}/reativar anonimo=False autorizacao=True limite=-
+GET /api/plataforma/instituicoes/{slug}/parametros anonimo=False autorizacao=True limite=-
+PUT /api/plataforma/instituicoes/{slug}/parametros anonimo=False autorizacao=True limite=-
 * /api/{**resto} anonimo=False autorizacao=False limite=-
 GET,HEAD {*path:nonfile} anonimo=False autorizacao=False limite=-

@@ -17,12 +17,13 @@ public sealed record BuscarChamados(FiltroDeChamados Filtro, int? Pagina, long U
             m.Send(new BuscarChamados(filtro, pagina, ctx.Usuario().Id)));
 }
 
-public sealed class BuscarChamadosHandler(EsclariDb db, TimeProvider relogio, Prazos prazos) : IRequestHandler<BuscarChamados, IResult>
+public sealed class BuscarChamadosHandler(EsclariDb db, TimeProvider relogio, PrazosAtuais atuais) : IRequestHandler<BuscarChamados, IResult>
 {
     record Linha(long Id, string Numero, string Titulo, string Estado, string Setor, string Categoria, string? Responsavel, DateTime CriadoEm);
 
     public async ValueTask<IResult> Handle(BuscarChamados m, CancellationToken ct)
     {
+        var prazos = await atuais.Ler();
         var (pedido, recusa) = await m.Filtro.Consultar(db, m.UsuarioId, prazos, relogio.GetUtcNow().UtcDateTime);
         if (recusa is not null) return recusa;
         if (m.Pagina is < 1) return Problemas.Invalido("A página deve ser 1 ou maior.", "pagina");

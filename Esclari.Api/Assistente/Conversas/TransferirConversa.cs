@@ -15,10 +15,11 @@ public sealed record TransferirConversa(long Id, TransferirConversa.Entrada? Cor
         g.MapPost("/conversas/{id:long}/transferir", (long id, TransferirConversa.Entrada? i, HttpContext ctx, IMediator m) => m.Send(new TransferirConversa(id, i, ctx.Usuario(), ctx.Instituicao())));
 }
 
-public sealed class TransferirConversaHandler(EsclariDb db, TimeProvider relogio, Prazos prazos) : IRequestHandler<TransferirConversa, IResult>
+public sealed class TransferirConversaHandler(EsclariDb db, TimeProvider relogio, PrazosAtuais atuais) : IRequestHandler<TransferirConversa, IResult>
 {
     public async ValueTask<IResult> Handle(TransferirConversa m, CancellationToken ct)
     {
+        var prazos = await atuais.Ler();
         var conversa = await DoAluno(db, m.Usuario, m.Id);
         if (conversa is null) return NaoEncontrada();
         if (conversa.Desfecho is not null) return JaEncerrada();

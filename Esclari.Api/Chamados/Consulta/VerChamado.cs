@@ -9,10 +9,11 @@ public sealed record VerChamado(string Numero, Usuario Usuario) : IRequest<IResu
         g.MapGet("/chamados/{numero}", (string numero, HttpContext ctx, IMediator m) => m.Send(new VerChamado(numero, ctx.Usuario())));
 }
 
-public sealed class VerChamadoHandler(EsclariDb db, Prazos prazos) : IRequestHandler<VerChamado, IResult>
+public sealed class VerChamadoHandler(EsclariDb db, PrazosAtuais atuais) : IRequestHandler<VerChamado, IResult>
 {
     public async ValueTask<IResult> Handle(VerChamado m, CancellationToken ct)
     {
+        var prazos = await atuais.Ler();
         var (chamado, papel) = await ChamadoDoUsuario.Carregar(db, m.Usuario, m.Numero);
         return chamado is null ? ChamadoDoUsuario.NaoEncontrado() : Results.Ok(await DetalheChamado.Montar(db, m.Usuario.Id, chamado, papel!, prazos));
     }

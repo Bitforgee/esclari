@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Esclari.Api.Dados;
+
 namespace Esclari.Api;
 
 public record Prazos(int AbandonoMinutos, int ConfirmacaoDias, int LembreteAguardandoDias, int ResolverAguardandoDias, int ValidadeConhecimentoMeses = 12,
@@ -29,6 +32,17 @@ public record Prazos(int AbandonoMinutos, int ConfirmacaoDias, int LembreteAguar
         if (horas is < 1 or > MaximoDeHoras) throw new InvalidOperationException($"{chave} deve ficar entre 1 e {MaximoDeHoras} horas (recebido: {horas}).");
         return horas;
     }
+
+    public Prazos Para(Instituicao i) => Com(i.Parametros);
+
+    public Prazos Com(ParametrosDaInstituicao p) => new(
+        p.AbandonoMinutos ?? AbandonoMinutos, p.ConfirmacaoDias ?? ConfirmacaoDias, p.LembreteAguardandoDias ?? LembreteAguardandoDias, p.ResolverAguardandoDias ?? ResolverAguardandoDias,
+        p.ValidadeConhecimentoMeses ?? ValidadeConhecimentoMeses, p.PrimeiraRespostaHoras ?? PrimeiraRespostaHoras, p.ResolucaoHoras ?? ResolucaoHoras);
+
+    public async Task<IReadOnlyList<(long Id, Prazos Prazos)>> PorInstituicao(EsclariDb db) =>
+        [.. (await db.Instituicoes.AsNoTracking().ToListAsync()).Select(i => (i.Id, Para(i)))];
+
+    public async Task<Prazos> DaInstituicao(EsclariDb db, long instituicaoId) => Para(await db.Instituicoes.AsNoTracking().SingleAsync(i => i.Id == instituicaoId));
 
     public TimeSpan Abandono => TimeSpan.FromMinutes(AbandonoMinutos);
     public TimeSpan Confirmacao => TimeSpan.FromDays(ConfirmacaoDias);

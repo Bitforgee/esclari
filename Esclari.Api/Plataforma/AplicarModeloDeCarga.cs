@@ -19,7 +19,7 @@ public sealed class AplicarModeloDeCargaHandler(EsclariDb db, TimeProvider relog
         var instituicao = await db.Instituicoes.FirstOrDefaultAsync(i => i.Slug == m.Slug, ct);
         var modelo = ModelosDeCarga.Achar(m.Id);
         if (instituicao is null || modelo is null) return Problemas.Erro(404, ErrosDaPlataforma.NaoEncontrada);
-        var (c, erro) = await CargaDoOperador.Aplicar(db, instituicao, modelo.Arquivo, false, relogio.GetUtcNow().UtcDateTime, prazos.ValidadeConhecimentoMeses, m.Operador);
+        var (c, erro) = await CargaDoOperador.Aplicar(db, instituicao, modelo.Arquivo, false, relogio.GetUtcNow().UtcDateTime, prazos.Para(instituicao).ValidadeConhecimentoMeses, m.Operador);
         return erro ?? Results.Ok(new AplicarModeloDeCarga.Resposta(c!.Setores, c.Cursos, c.Categorias, c.Regras, c.Artigos));
     }
 }

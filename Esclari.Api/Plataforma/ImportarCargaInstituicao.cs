@@ -28,7 +28,7 @@ public sealed class ImportarCargaInstituicaoHandler(EsclariDb db, TimeProvider r
         await using (var corpo = arquivo.OpenReadStream()) await corpo.CopyToAsync(memoria, ct);
         var (arq, recusa) = CargaDoOperador.Ler(memoria.ToArray());
         if (recusa is not null) return recusa;
-        var (c, erro) = await CargaDoOperador.Aplicar(db, instituicao, arq!, m.Simular, relogio.GetUtcNow().UtcDateTime, prazos.ValidadeConhecimentoMeses, m.Operador);
+        var (c, erro) = await CargaDoOperador.Aplicar(db, instituicao, arq!, m.Simular, relogio.GetUtcNow().UtcDateTime, prazos.Para(instituicao).ValidadeConhecimentoMeses, m.Operador);
         return erro ?? Results.Ok(new ImportarCargaInstituicao.Resposta(c!.Setores, c.Cursos, c.Categorias, c.Regras, c.Artigos));
     }
 }

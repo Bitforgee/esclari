@@ -87,7 +87,7 @@ public static class ConsultaDasInstituicoes
         var dias = l.MaisAntigoAbertoEm is { } antigo ? (int?)Math.Floor((agora - antigo).TotalDays) : null;
         var saude = new Saude(l.UltimaAtividadeEm, l.ChamadosAbertos, dias, l.Conversas30Dias, l.Respostas30Dias,
             l.Respostas30Dias == 0 ? null : (double)l.SemBase30Dias / l.Respostas30Dias, l.AlunosAtivos, l.EquipeAtiva, l.EmailsComFalha, l.ConteudoVencido);
-        return new(i.Slug, i.Nome, i.Fuso, i.Ativa, i.CriadaEm, l.AdministradoresAtivos, Situacao(i, l), saude, i.Ativa ? Atencao(i, saude, agora, prazos) : [], Prontidao.De(l));
+        return new(i.Slug, i.Nome, i.Fuso, i.Ativa, i.CriadaEm, l.AdministradoresAtivos, Situacao(i, l), saude, i.Ativa ? Atencao(i, saude, agora, prazos.Para(i)) : [], Prontidao.De(l));
     }
 
     static string Situacao(Instituicao i, LinhaDeSaude l) =>

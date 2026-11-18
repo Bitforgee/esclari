@@ -15,7 +15,7 @@ public sealed class ComandoCarga(EsclariDb db, TimeProvider relogio, Prazos praz
         var (erros, plano) = CargaValidacao.Validar(arq, existentes);
         if (erros.Count > 0) return erros;
 
-        var (setores, categorias) = await CargaInicial.Gravar(db, arq, existentes, plano, relogio.GetUtcNow().UtcDateTime, instituicao.Fuso, prazos.ValidadeConhecimentoMeses);
+        var (setores, categorias) = await CargaInicial.Gravar(db, arq, existentes, plano, relogio.GetUtcNow().UtcDateTime, instituicao.Fuso, prazos.Para(instituicao).ValidadeConhecimentoMeses);
         saida.WriteLine($"setores: {setores}");
         saida.WriteLine($"cursos: {plano.Cursos.Count}");
         saida.WriteLine($"categorias: {categorias}");

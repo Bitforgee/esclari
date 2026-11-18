@@ -1363,6 +1363,34 @@ namespace Esclari.Api.Dados.Migracoes
                         .HasColumnType("text")
                         .HasColumnName("nome_curto");
 
+                    b.Property<int?>("PrazoAbandonoMinutos")
+                        .HasColumnType("integer")
+                        .HasColumnName("prazo_abandono_minutos");
+
+                    b.Property<int?>("PrazoConfirmacaoDias")
+                        .HasColumnType("integer")
+                        .HasColumnName("prazo_confirmacao_dias");
+
+                    b.Property<int?>("PrazoLembreteAguardandoDias")
+                        .HasColumnType("integer")
+                        .HasColumnName("prazo_lembrete_aguardando_dias");
+
+                    b.Property<int?>("PrazoPrimeiraRespostaHoras")
+                        .HasColumnType("integer")
+                        .HasColumnName("prazo_primeira_resposta_horas");
+
+                    b.Property<int?>("PrazoResolucaoHoras")
+                        .HasColumnType("integer")
+                        .HasColumnName("prazo_resolucao_horas");
+
+                    b.Property<int?>("PrazoResolverAguardandoDias")
+                        .HasColumnType("integer")
+                        .HasColumnName("prazo_resolver_aguardando_dias");
+
+                    b.Property<int?>("PrazoValidadeConhecimentoMeses")
+                        .HasColumnType("integer")
+                        .HasColumnName("prazo_validade_conhecimento_meses");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(30)

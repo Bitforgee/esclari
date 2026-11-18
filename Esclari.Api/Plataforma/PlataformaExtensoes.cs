@@ -39,5 +39,7 @@ public static class PlataformaExtensoes
         ConvidarMembro.Mapear(restrita);
         DesativarMembro.Mapear(restrita);
         ReativarMembro.Mapear(restrita);
+        VerParametros.Mapear(restrita);
+        AlterarParametros.Mapear(restrita);
     }
 }

@@ -11,6 +11,7 @@ public static class Persistencia
         s.AddDbContext<EsclariDb>((sp, o) => o.UseNpgsql(sp.GetRequiredService<IConfiguration>().GetConnectionString("Esclari"), n => n.UseVector()).AddInterceptors(sp.GetServices<IInterceptor>()));
         s.AddSingleton<EnviadorSmtp>();
         s.AddSingleton(sp => Prazos.Ler(sp.GetRequiredService<IConfiguration>()));
+        s.AddScoped<PrazosAtuais>();
         s.AddSingleton<Agendador>();
         s.AddHostedService(sp => sp.GetRequiredService<Agendador>());
         return s;

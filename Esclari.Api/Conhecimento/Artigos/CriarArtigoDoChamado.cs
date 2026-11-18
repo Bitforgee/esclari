@@ -16,10 +16,11 @@ public sealed record CriarArtigoDoChamado(string Numero, CriarArtigoDoChamado.En
     static CriarArtigoDoChamado Do(string numero, Entrada corpo, Usuario u) => new(numero, corpo, u.Id, u.Tem(Papeis.Atendente), u.Tem(Papeis.Administrador));
 }
 
-public sealed class CriarArtigoDoChamadoHandler(EsclariDb db, TimeProvider relogio, Prazos prazos, ILogger<CriarArtigoDoChamadoHandler> log) : IRequestHandler<CriarArtigoDoChamado, IResult>
+public sealed class CriarArtigoDoChamadoHandler(EsclariDb db, TimeProvider relogio, PrazosAtuais atuais, ILogger<CriarArtigoDoChamadoHandler> log) : IRequestHandler<CriarArtigoDoChamado, IResult>
 {
     public async ValueTask<IResult> Handle(CriarArtigoDoChamado m, CancellationToken ct)
     {
+        var prazos = await atuais.Ler();
         var c = await db.Chamados.FirstOrDefaultAsync(x => x.Numero == m.Numero, ct);
         if (c is null) return NaoEncontrado();
         if (await Acesso(c, m) is { } recusa) return recusa;

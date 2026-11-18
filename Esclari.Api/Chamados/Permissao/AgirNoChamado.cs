@@ -15,7 +15,7 @@ public interface IAcaoChamado : IRequest<IResult>
     ValueTask<IResult?> Validar(AcessoChamado a, EsclariDb db);
 }
 
-public sealed class AgirNoChamado<TMessage, TResponse>(EsclariDb db, AcessoChamado acesso, TimeProvider relogio, Prazos prazos)
+public sealed class AgirNoChamado<TMessage, TResponse>(EsclariDb db, AcessoChamado acesso, TimeProvider relogio, PrazosAtuais atuais)
     : IPipelineBehavior<TMessage, TResponse> where TMessage : IAcaoChamado where TResponse : IResult
 {
     public async ValueTask<TResponse> Handle(TMessage m, MessageHandlerDelegate<TMessage, TResponse> next, CancellationToken ct) =>
@@ -32,7 +32,7 @@ public sealed class AgirNoChamado<TMessage, TResponse>(EsclariDb db, AcessoChama
         var aplicada = await aplicar();
         if (aplicada is not EmptyHttpResult) return aplicada;
         await db.SaveChangesAsync();
-        var corpo = await DetalheChamado.Montar(db, m.Usuario.Id, chamado, papel!, prazos);
+        var corpo = await DetalheChamado.Montar(db, m.Usuario.Id, chamado, papel!, await atuais.Ler());
         return m.Criado ? Results.Created($"/api/chamados/{m.Numero}", corpo) : Results.Ok(corpo);
     }
 }

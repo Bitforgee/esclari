@@ -18,10 +18,11 @@ public sealed record ResolverChamado(string Numero, ResolverChamado.Entrada Corp
         ValueTask.FromResult(Texto(Corpo.Texto, "texto", "Escreva a resolução, com até 4000 caracteres."));
 }
 
-public sealed class ResolverChamadoHandler(EsclariDb db, AcessoChamado a, IConfiguration cfg, Prazos prazos) : IRequestHandler<ResolverChamado, IResult>
+public sealed class ResolverChamadoHandler(EsclariDb db, AcessoChamado a, IConfiguration cfg, PrazosAtuais atuais) : IRequestHandler<ResolverChamado, IResult>
 {
     public async ValueTask<IResult> Handle(ResolverChamado m, CancellationToken ct)
     {
+        var prazos = await atuais.Ler();
         a.Chamado.Resolver(m.Usuario.Id, m.Usuario.Nome, m.Corpo.Texto!, a.Agora);
         await Avisos.Resolvido(db, cfg, prazos, m.Instituicao, a.Chamado, m.Corpo.Texto!, a.Agora);
         return Results.Empty;

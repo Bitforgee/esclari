@@ -14,6 +14,7 @@ public class ServicosTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     [
         "Singleton Esclari.Api.EnviadorSmtp -> Esclari.Api.EnviadorSmtp",
         "Singleton Esclari.Api.Plataforma.ProtecaoDaPlataforma -> Esclari.Api.Plataforma.ProtecaoDaPlataforma",
+        "Scoped Esclari.Api.PrazosAtuais -> Esclari.Api.PrazosAtuais",
         "Singleton Esclari.Api.ITarefaAgendada -> Esclari.Api.Acesso.ApagarLancamentos",
         "Singleton Esclari.Api.ITarefaAgendada -> Esclari.Api.Assistente.Conversas.AbandonarConversas",
         "Singleton Esclari.Api.ITarefaAgendada -> Esclari.Api.Chamados.Tarefas.FecharResolvidos",

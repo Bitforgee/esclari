@@ -12,10 +12,11 @@ public sealed record CriarDocumento(IFormCollection Form) : IRequest<IResult>
             await m.Send(new CriarDocumento(req.HasFormContentType ? await req.ReadFormAsync() : FormCollection.Empty)));
 }
 
-public sealed class CriarDocumentoHandler(EsclariDb db, TimeProvider relogio, Armazenamento armazenamento, Prazos prazos) : IRequestHandler<CriarDocumento, IResult>
+public sealed class CriarDocumentoHandler(EsclariDb db, TimeProvider relogio, Armazenamento armazenamento, PrazosAtuais atuais) : IRequestHandler<CriarDocumento, IResult>
 {
     public async ValueTask<IResult> Handle(CriarDocumento m, CancellationToken ct)
     {
+        var prazos = await atuais.Ler();
         var form = m.Form;
         var titulo = form["titulo"].ToString();
         if (!TituloDeConhecimento.Valido(titulo)) return Problemas.Invalido(TituloDeConhecimento.Recusa, "titulo");

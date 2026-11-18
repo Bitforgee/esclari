@@ -30,10 +30,11 @@ public sealed record ResponderChamado(string Numero, IFormCollection Form, Usuar
     }
 }
 
-public sealed class ResponderChamadoHandler(EsclariDb db, AcessoChamado a, Armazenamento armazenamento, IConfiguration cfg, Prazos prazos) : IRequestHandler<ResponderChamado, IResult>
+public sealed class ResponderChamadoHandler(EsclariDb db, AcessoChamado a, Armazenamento armazenamento, IConfiguration cfg, PrazosAtuais atuais) : IRequestHandler<ResponderChamado, IResult>
 {
     public async ValueTask<IResult> Handle(ResponderChamado m, CancellationToken ct)
     {
+        var prazos = await atuais.Ler();
         var c = a.Chamado;
         if (m.Tipo == TiposMensagem.Nota) { c.Anotar(m.Usuario.Id, m.Texto, a.Agora); return Results.Empty; }
         var lidos = new List<Arquivos.Lido>();
