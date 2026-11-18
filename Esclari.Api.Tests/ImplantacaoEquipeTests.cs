@@ -144,6 +144,8 @@ public class ImplantacaoEquipeTests(EsclariFactory f) : IClassFixture<EsclariFac
         var r = await c.PostAsync($"{Equipe(i)}/{id}/convite", null);
 
         Assert.Equal(HttpStatusCode.NoContent, r.StatusCode);
+        var email = await f.Db(i.Id, db => db.Usuarios.Where(u => u.Id == id).Select(u => u.Email).SingleAsync());
+        Assert.Equal(2, await f.Db(null, db => db.EmailsSaida.IgnoreQueryFilters().CountAsync(e => e.InstituicaoId == i.Id && e.Destinatario == email)));
         var tokens = await f.Db(i.Id, db => db.Tokens.Where(t => t.UsuarioId == id).OrderBy(t => t.Id).ToListAsync());
         Assert.Equal(2, tokens.Count);
         Assert.False(tokens[0].Valido(f.Relogio.GetUtcNow().UtcDateTime));

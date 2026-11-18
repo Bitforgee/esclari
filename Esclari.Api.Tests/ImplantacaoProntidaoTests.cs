@@ -29,10 +29,10 @@ public class ImplantacaoProntidaoTests(EsclariFactory f) : IClassFixture<Esclari
         Assert.All(Itens(vazio).Values, ok => Assert.False(ok));
         Assert.False(vazio.GetProperty("prontidao").GetProperty("pronta").GetBoolean());
 
-        var admin = await f.Usuario(i, [Papeis.Administrador]);
+        await f.Usuario(i, [Papeis.Administrador], senha: null);
+        Assert.False(Itens(await Prontidao(i))["ADMINISTRADOR_COM_SENHA"]);
+        await f.Usuario(i, [Papeis.Administrador]);
         Assert.True(Itens(await Prontidao(i))["ADMINISTRADOR_COM_SENHA"]);
-        await c.PostAsync($"/api/plataforma/instituicoes/{i.Slug}/equipe/{admin.Id}/desativar", null);
-        Assert.Equal(HttpStatusCode.Conflict, (await c.PostAsync($"/api/plataforma/instituicoes/{i.Slug}/equipe/{admin.Id}/desativar", null)).StatusCode);
 
         var setor = await f.Setor(i, "Financeiro");
         var atendente = await f.Usuario(i, [Papeis.Atendente]);
@@ -44,13 +44,30 @@ public class ImplantacaoProntidaoTests(EsclariFactory f) : IClassFixture<Esclari
             await db.SaveChangesAsync();
         });
         Assert.True(Itens(await Prontidao(i))["ATENDENTE_NO_SETOR"]);
+        await f.Db(i.Id, db => db.Usuarios.Where(x => x.Id == atendente.Id).ExecuteUpdateAsync(s => s.SetProperty(x => x.Ativo, false)));
+        Assert.False(Itens(await Prontidao(i))["ATENDENTE_NO_SETOR"]);
+        await f.Db(i.Id, db => db.Usuarios.Where(x => x.Id == atendente.Id).ExecuteUpdateAsync(s => s.SetProperty(x => x.Ativo, true)));
 
+        Assert.False(Itens(await Prontidao(i))["CATEGORIA_COM_REGRA"]);
+        await f.Db(i.Id, async db =>
+        {
+            var padrao = await db.Categorias.SingleAsync(x => x.Padrao);
+            var fluxo = Fluxo.Criar(padrao.Id, null, null);
+            fluxo.SalvarRascunho([new EtapaFluxo.Dados(DestinosEtapa.Setor, (await db.Setores.FirstAsync()).Id, null, null, null)]);
+            fluxo.Publicar(f.Relogio.GetUtcNow().UtcDateTime);
+            db.Fluxos.Add(fluxo);
+            await db.SaveChangesAsync();
+        });
         Assert.False(Itens(await Prontidao(i))["CATEGORIA_COM_REGRA"]);
         await c.PostAsync($"/api/plataforma/instituicoes/{i.Slug}/carga/modelo/padrao-esclari", null);
         Assert.True(Itens(await Prontidao(i))["CATEGORIA_COM_REGRA"]);
 
         Assert.False(Itens(await Prontidao(i))["ARTIGO_ATIVO"]);
         var categoria = await f.Db(i.Id, db => db.Categorias.Where(x => !x.Padrao).Select(x => x.Id).FirstAsync());
+        var vencido = await f.Artigo(i, "Antigo", "Texto vencido.", categoriaId: categoria);
+        var ontem = DateOnly.FromDateTime(f.Relogio.GetUtcNow().UtcDateTime).AddDays(-1);
+        await f.Db(i.Id, db => db.Artigos.Where(x => x.Id == vencido.Id).ExecuteUpdateAsync(s => s.SetProperty(x => x.ValidoAte, ontem)));
+        Assert.False(Itens(await Prontidao(i))["ARTIGO_ATIVO"]);
         await f.Artigo(i, "Boleto", "Veja o portal.", categoriaId: categoria);
         var depois = await Prontidao(i);
         Assert.True(Itens(depois)["ARTIGO_ATIVO"], depois.ToString());
