@@ -121,7 +121,7 @@ public class AvisarAtrasosTests(EsclariFactory f) : IClassFixture<EsclariFactory
         var (emails, marcas) = ((await f.EmailsDeAtraso(i)).Count, await f.Marcas(i));
         Assert.True(emails > 0);
 
-        f.Relogio.Advance(AvisarAtrasos.Repeticao - TimeSpan.FromMinutes(1));
+        f.Relogio.Advance(TimeSpan.FromHours(24) - TimeSpan.FromMinutes(1));
         await Agendador.Executar();
 
         Assert.Equal(emails, (await f.EmailsDeAtraso(i)).Count);
@@ -138,7 +138,7 @@ public class AvisarAtrasosTests(EsclariFactory f) : IClassFixture<EsclariFactory
         var admin = Assert.Single(await f.EmailsDosAdministradores(i));
         Assert.Equal(2, antes.Count);
 
-        f.Relogio.Advance(AvisarAtrasos.Repeticao);
+        f.Relogio.Advance(TimeSpan.FromHours(24));
         await Agendador.Executar();
 
         var novos = (await f.EmailsDeAtraso(i)).Skip(antes.Count).ToList();

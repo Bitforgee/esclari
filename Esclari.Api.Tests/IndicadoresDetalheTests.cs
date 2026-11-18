@@ -38,7 +38,7 @@ public class IndicadoresDetalheTests(EsclariFactory f) : IClassFixture<EsclariFa
             return c;
         });
 
-    async Task Chamado(Mundo m, DateTime criado, string estado, (double h, string de, string para)[] transicoes, string? motivo = null, Setor? setor = null)
+    async Task Chamado(Mundo m, DateTime criado, string estado, (double h, string de, string para)[] transicoes, string? motivo = null, Setor? setor = null, (double h, string tipo)[]? daEquipe = null)
     {
         var conversa = await Conversa(m, criado, Desfechos.Transferida);
         await f.Db(m.I.Id, async db =>
@@ -51,6 +51,7 @@ public class IndicadoresDetalheTests(EsclariFactory f) : IClassFixture<EsclariFa
             db.Chamados.Add(c);
             await db.SaveChangesAsync();
             db.EventosChamado.AddRange(transicoes.Select(t => new EventoChamado { ChamadoId = c.Id, Tipo = "TRANSICAO", De = t.de, Para = t.para, CriadoEm = criado.AddHours(t.h) }));
+            db.MensagensChamado.AddRange((daEquipe ?? []).Select(x => new MensagemChamado { ChamadoId = c.Id, AutorId = m.Atendente.Id, Tipo = x.tipo, Texto = "Da equipe", CriadaEm = criado.AddHours(x.h) }));
             await db.SaveChangesAsync();
         });
     }
@@ -175,6 +176,14 @@ public class IndicadoresDetalheTests(EsclariFactory f) : IClassFixture<EsclariFa
         Assert.Equal(JsonValueKind.Null, p.GetProperty("primeiraRespostaNoPrazo").ValueKind);
         Assert.Equal(JsonValueKind.Null, p.GetProperty("resolucaoNoPrazo").ValueKind);
         Assert.False((await Pedir(m.Admin, "")).TryGetProperty("prazos", out _));
+
+        await Chamado(m, Agora.AddHours(-140), EmAtendimento, [(1, Aberto, EmAtendimento), (10, EmAtendimento, AguardandoAluno), (40, AguardandoAluno, EmAtendimento)], daEquipe: [(2, TiposMensagem.Publica)]);
+        await Chamado(m, Agora.AddHours(-25), Aberto, [], daEquipe: [(1, TiposMensagem.Nota)]);
+        await Chamado(m, Agora.AddHours(-30), EmAtendimento, [(1, Aberto, EmAtendimento)], daEquipe: [(2, TiposMensagem.Publica)]);
+
+        var depois = (await Pedir(m.Admin, "/detalhe")).GetProperty("prazos");
+
+        Assert.Equal((4, 5), (depois.GetProperty("emAtrasoAgora").GetInt32(), depois.GetProperty("maisAntigoEmAtrasoDias").GetInt32()));
     }
 
     [Fact]

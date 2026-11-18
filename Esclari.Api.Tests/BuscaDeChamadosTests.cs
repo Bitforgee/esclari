@@ -446,6 +446,33 @@ public class BuscaDeChamadosTests(EsclariFactory f) : IClassFixture<EsclariFacto
         Assert.Equal(new[] { emDia, aguardando, resolvido }.Order(), emDiaLista.Order());
         Assert.Equal(5, todos.Count);
         Assert.Equal(2, (await Buscar(b.A.Cliente, "&atraso=true")).GetProperty("total").GetInt32());
+
+        var pausado = await b.Chamado(EmAtendimento);
+        await Ok(await Balcao.Mensagem(b.A.Cliente, pausado, "Envie o comprovante, por favor."));
+        await f.Criado(b.Instituicao, pausado, Agora.AddHours(-140));
+        await f.Db(b.Instituicao.Id, async db =>
+        {
+            var id = await db.Chamados.Where(c => c.Numero == pausado).Select(c => c.Id).SingleAsync();
+            db.EventosChamado.AddRange(
+                new EventoChamado { ChamadoId = id, Tipo = TiposEvento.Transicao, De = EmAtendimento, Para = AguardandoAluno, CriadoEm = Agora.AddHours(-130) },
+                new EventoChamado { ChamadoId = id, Tipo = TiposEvento.Transicao, De = AguardandoAluno, Para = EmAtendimento, CriadoEm = Agora.AddHours(-100) });
+            await db.SaveChangesAsync();
+        });
+        var soNota = await b.Chamado(Aberto);
+        await Ok(await Balcao.Mensagem(b.A.Cliente, soNota, "Verificar com o financeiro.", "NOTA"));
+        await f.Criado(b.Instituicao, soNota, Agora.AddHours(-26));
+        var respondido = await b.Chamado(Aberto);
+        await Ok(await Balcao.Mensagem(b.A.Cliente, respondido, "Já estamos vendo."));
+        await f.Criado(b.Instituicao, respondido, Agora.AddHours(-30));
+        Assert.Equal(EmAtendimento, (await b.Ler(pausado)).Estado);
+
+        var atrasos = AtrasoPorNumero(await Buscar(b.A.Cliente));
+
+        Assert.Equal(JsonValueKind.Null, atrasos[pausado].ValueKind);
+        Assert.Equal("PRIMEIRA_RESPOSTA", atrasos[soNota].GetString());
+        Assert.Equal(JsonValueKind.Null, atrasos[respondido].ValueKind);
+        Assert.Equal(new[] { resolucao, primeira, soNota }.Order(), (await NumerosDe(b.A.Cliente, "&atraso=true")).Order());
+        Assert.Equal(new[] { emDia, aguardando, resolvido, pausado, respondido }.Order(), (await NumerosDe(b.A.Cliente, "&atraso=false")).Order());
     }
 
     [Fact]
