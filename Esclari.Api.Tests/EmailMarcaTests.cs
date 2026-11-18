@@ -116,7 +116,7 @@ public class EmailMarcaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 
         Assert.Contains("<img src=\"cid:logo\" alt=\"Esclari\"", html);
         Assert.Contains("max-height:40px", html);
-        Assert.Matches("font-size:20px[^\"]*\">Univag &amp; Cia<", html);
+        Assert.Matches("font-size:20px;font-weight:bold[^\"]*\">Univag &amp; Cia<", html);
         var inline = Assert.Single(msg.GetProperty("Inline").EnumerateArray());
         Assert.Equal("logo", inline.GetProperty("ContentID").GetString());
         Assert.Equal("image/png", inline.GetProperty("ContentType").GetString());

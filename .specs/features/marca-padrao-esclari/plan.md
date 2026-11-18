@@ -67,7 +67,7 @@ None - nothing consumed outside. O manifest e a rota de instituição mantêm a 
 9. WHERE a instituição não tem cor própria, the system SHALL devolver `theme_color` igual a `#f7f5ee` no manifest dela; WHERE tem, SHALL devolver a cor dela
 10. WHERE a instituição não tem ícone, the system SHALL devolver no manifest os ícones do Esclari (`/icons/icon-192.png`, `/icons/icon-512.png` e `/icons/icon-maskable-512.png`) e, WHERE tem, o ícone dela
 11. WHEN a gestão troca ou limpa a logo, o ícone ou a cor THEN the system SHALL manter o `id`, o `scope` e o endereço do manifest como estão
-12. WHERE a instituição não tem `nomeCurto`, the system SHALL usar o `nome` da instituição como `name` e `short_name` do manifest, como hoje
+12. WHERE a instituição não tem `nomeCurto`, the system SHALL usar o `nome` da instituição como `name` e as iniciais do `nome` como `short_name` do manifest, como hoje
 
 ### S3: E-mail (P1)
 

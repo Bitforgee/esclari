@@ -12,28 +12,28 @@ Provas: web `npm --prefix web test -- <arquivo> -t "<nome>"` (Vitest); API `dotn
 ### S1 - Telas e aplicativo instalado · 5 arquivos web e 1 da API · ~14k
 
 **C1** - Sem ícone da instituição, o cabeçalho da barra lateral mostra `<img src="/marca/favicon.svg">` ao lado do nome, `alt` vazio, e nenhum selo com as iniciais da instituição (AC 1, AC 8)
-Proof: `npm --prefix web test -- src/marcaPadrao.test.tsx -t "sem icone o cabecalho mostra o simbolo do Esclari"`
+Proof: `npm --prefix web test -- src/acesso/marcaPadrao.test.tsx -t "sem icone o cabecalho mostra o simbolo do Esclari"`
 
 **C2** - Com ícone, o cabeçalho mostra `/api/instituicoes/univag/imagens/icone?v=2` (AC 2)
-Proof: `npm --prefix web test -- src/marcaPadrao.test.tsx -t "com icone mostra o icone da instituicao"`
+Proof: `npm --prefix web test -- src/acesso/marcaPadrao.test.tsx -t "com icone mostra o icone da instituicao"`
 
 **C3** - Sem logo, a tela de entrada mostra `<img alt="Esclari">` com `/marca/logo-horizontal.svg` no tema claro e `/marca/logo-horizontal-escuro.svg` nos temas Escuro e Preto, e o nome da instituição como `h1` (AC 3)
-Proof: `npm --prefix web test -- src/marcaPadrao.test.tsx -t "entrada sem logo mostra a logo do Esclari"`
+Proof: `npm --prefix web test -- src/acesso/marcaPadrao.test.tsx -t "entrada sem logo mostra a logo do Esclari"`
 
 **C4** - Com logo, a tela de entrada e a barra lateral mostram `/api/instituicoes/univag/imagens/logo?v=3` e nenhuma imagem de `/marca/` visível (o símbolo do estado recolhido da barra e o do cabeçalho do celular ficam ocultos nesse tamanho) (AC 4)
-Proof: `npm --prefix web test -- src/marcaPadrao.test.tsx -t "com logo mostra so a logo da instituicao"`
+Proof: `npm --prefix web test -- src/acesso/marcaPadrao.test.tsx -t "com logo mostra so a logo da instituicao"`
 
 **C5** - No tema Escuro e no Preto a logo própria fica dentro de um elemento com a classe `bg-white`; no tema claro, não (AC 5)
-Proof: `npm --prefix web test -- src/marcaPadrao.test.tsx -t "logo propria no tema escuro fica sobre placa branca"`
+Proof: `npm --prefix web test -- src/acesso/marcaPadrao.test.tsx -t "logo propria no tema escuro fica sobre placa branca"`
 
 **C6** - Sem foto, o avatar do assistente no cabeçalho da conversa é `/marca/favicon.svg`; com foto, é `/api/instituicoes/univag/imagens/assistente?v=4` (AC 6)
-Proof: `npm --prefix web test -- src/marcaPadrao.test.tsx -t "assistente sem foto usa o simbolo do Esclari"`
+Proof: `npm --prefix web test -- src/acesso/marcaPadrao.test.tsx -t "assistente sem foto usa o simbolo do Esclari"`
 
 **C7** - Com cor própria e sem logo, a tela de entrada ainda mostra a logo do Esclari e `--marca` vale a cor da instituição no documento (AC 7)
-Proof: `npm --prefix web test -- src/marcaPadrao.test.tsx -t "cor propria nao troca a logo do Esclari"`
+Proof: `npm --prefix web test -- src/acesso/marcaPadrao.test.tsx -t "cor propria nao troca a logo do Esclari"`
 
 **C8** - O avatar da pessoa logada continua com as iniciais do nome dela (AC 8)
-Proof: `npm --prefix web test -- src/marcaPadrao.test.tsx -t "iniciais so no avatar da pessoa"`
+Proof: `npm --prefix web test -- src/acesso/marcaPadrao.test.tsx -t "iniciais so no avatar da pessoa"`
 
 **C9** - O manifest sem cor própria devolve `theme_color` `#f7f5ee` e, com cor `#8a1538`, devolve `#8a1538` (AC 9)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ManifestoTests.Manifesto_padrao_sem_aparencia"`
@@ -43,10 +43,10 @@ Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ManifestoTest
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ManifestoTests.Sem_icone_proprio_lista_o_maskable"`
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ManifestoTests.Com_icone_proprio_so_lista_any"`
 
-**C11** - Depois de a gestão trocar a cor e enviar logo e ícone, `id`, `scope`, `start_url` e o endereço do manifest são os mesmos de antes (AC 11)
+**C11** - Depois de a gestão trocar a cor e o nome curto e enviar o ícone, `id`, `scope`, `start_url` e o endereço do manifest são os mesmos de antes (AC 11)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ManifestoTests.Trocar_a_marca_nao_muda_id_scope_nem_start_url"`
 
-**C12** - Sem `nomeCurto`, `name` e `short_name` do manifest são o `nome` da instituição (AC 12)
+**C12** - Sem `nomeCurto`, `name` do manifest é o `nome` da instituição e `short_name` são as iniciais dele (`Centro Universitário Vale` -> `CV`) (AC 12)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~ManifestoTests.Manifesto_padrao_sem_aparencia"`
 
 ### S2 - E-mail · 3 arquivos · ~7k
@@ -77,6 +77,7 @@ Proof: `npm --prefix web test -- src/administracao/aparencia/identidade.test.tsx
 
 **C20** - Ícone que não é PNG quadrado de 512 px ou mais e cor com contraste abaixo de 4,5 para 1 continuam recusados, e a marca atual não muda (AC 20)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~AparenciaAdminTests.Icone_nao_quadrado_ou_pequeno_400"`
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~AparenciaAdminTests.Cor_invalida_ou_sem_contraste_400"`
 Proof: `npm --prefix web test -- src/administracao/aparencia/aparencia.test.tsx -t "contraste ao lado da cor e Salvar desabilitado"`
 
 **C21** - (door 1) Uma instituição criada sem imagens e sem cor tem `NULL` em `logo`, `icone`, `login`, `assistente` e `cor`, e `GET /api/instituicoes/{slug}` devolve `null` nesses campos, sem copiar a marca do Esclari para a linha
@@ -131,4 +132,5 @@ Mudam por consequência direta do plano (`## Impact`, linha "tests"), e só esta
 - Mechanism: one builder
 - Verificação enxuta por decisão do dono (18/11): Verifier independente, perfil `standard`, uma rodada, no máximo 3 falhas injetadas e uma só invocação por alvo de prova
 - Base da verificação: o commit que leva `plan.md` e `checks.md` (o SHA entra aqui quando existir)
-- **Settled mid-build:** (1) o PNG mora em `Esclari.Api/Instituicoes/Aparencia/`, não em `Esclari.Api/Marca/`, porque `Fatias_do_api` trata toda pasta da raiz como fatia; o recurso embutido se chama `logo-horizontal-email.png` (`LogicalName`), porque `Raiz_sem_fatias` recusa o nome de uma fatia dentro de um arquivo da raiz. (2) `LayoutEmail.Html(logo: false)` continua existindo e o teste dele não muda; o e-mail real passa sempre `logo: true` e `logoDoEsclari`. (3) No celular e no estado recolhido da barra o símbolo do Esclari aparece também quando há logo própria e não há ícone (C4 ajustado para o que é visível). (4) O botão que se chamava `Remover` virou `Usar a marca do Esclari`, e `Usar a cor padrão` fica depois do campo de cor, para não quebrar a parada única do Tab nas cores prontas. (5) Os testes de C17 a C19 vivem em src/administracao/aparencia/identidade.test.tsx, porque strutura.test.ts fixa em 53 o número de arquivos de dministracao e lista os da subpasta parencia.
+- **Settled mid-build:** (1) o PNG mora em `Esclari.Api/Instituicoes/Aparencia/`, não em `Esclari.Api/Marca/`, porque `Fatias_do_api` trata toda pasta da raiz como fatia; o recurso embutido se chama `logo-horizontal-email.png` (`LogicalName`), porque `Raiz_sem_fatias` recusa o nome de uma fatia dentro de um arquivo da raiz. (2) `LayoutEmail.Html(logo: false)` continua existindo e o teste dele não muda; o e-mail real passa sempre `logo: true` e `logoDoEsclari`. (3) No celular e no estado recolhido da barra o símbolo do Esclari aparece também quando há logo própria e não há ícone (C4 ajustado para o que é visível). (4) O botão que se chamava `Remover` virou `Usar a marca do Esclari`, e `Usar a cor padrão` fica depois do campo de cor, para não quebrar a parada única do Tab nas cores prontas. (5) Os testes de C17 a C19 vivem em src/administracao/aparencia/identidade.test.tsx, porque strutura.test.ts fixa em 53 o número de arquivos de dministracao e lista os da subpasta parencia. (6) Correção de texto pedida pelo Verifier (C12): o manifest de hoje usa as iniciais do nome como short_name quando falta 
+omeCurto; AC 12 e C12 passam a dizer isso, sem mudar o comportamento nem o teste. Também entram a prova da API para a recusa de cor sem contraste (C20) e a asserção de negrito em C13. A lista de asserções que mudaram ganha o teste iniciais da prévia iguais às do login, reescrito para afirmar a logo do Esclari.
