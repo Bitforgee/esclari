@@ -11,7 +11,7 @@ Provas: API `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~<Classe>
 
 ### S1 - A conta da plataforma e a entrada · API · ~40k
 
-**C1** - A tabela `operador_plataforma` não tem a coluna `instituicao_id`, e um operador criado não aparece em `GET /api/usuarios` de nenhuma instituição (AC 1)
+**C1** - A tabela `operador_plataforma` não tem a coluna `instituicao_id`, e um operador criado não aparece em `GET /api/admin/usuarios` de nenhuma instituição (AC 1)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~PlataformaAcessoTests.Operador_nao_pertence_a_instituicao"`
 
 **C2** - `plataforma operador --email ana@equipe.esclari --nome "Ana Dev"` cria o operador sem senha, grava `OPERADOR_ALTERADO` na auditoria e imprime o link `.../plataforma/definir-senha?token=` válido por 60 minutos (AC 2)
@@ -48,7 +48,7 @@ Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~PlataformaAce
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~PlataformaAcessoTests.Corpo_invalido_400"`
 
 **C13** - A sexta chamada no mesmo minuto a `entrar`, a `codigo` ou a `definir-senha` responde `429`, porque o limitador `auth` é um só por endereço (AC 13)
-Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~PlataformaAcessoTests.Limitador_auth_429_na_sexta_tentativa"`
+Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~PlataformaLimiteTests.Limitador_auth_429_na_sexta_tentativa"`
 
 **C14** - A sessão da plataforma responde `401` depois de 31 minutos sem requisição, e depois de 8 horas e 1 minuto mesmo com uso a cada 20 minutos (AC 14)
 Proof: `dotnet test Esclari.Api.Tests --filter "FullyQualifiedName~PlataformaAcessoTests.Sessao_expira_aos_30_minutos_sem_uso_e_aos_8_horas"`
@@ -229,6 +229,9 @@ Mudam por consequência direta do plano (`## Impact`, linha "tests"), e só esta
 - `web/src/administracao/instituicoes/instituicoes.test.tsx`: muda para `web/src/plataforma/instituicoes.test.tsx`, com as mesmas afirmações sobre a tabela e os diálogos
 - `web/src/test/estrutura.test.ts`: a lista de fatias ganha `plataforma` e a contagem de arquivos de `administracao` perde os de `instituicoes`
 - `web/e2e/instituicoes*.spec.ts`, `casca.spec.ts`, `ux.spec.ts` e `simulada.ts`: trocam o operador-papel pelo operador da plataforma (Playwright, fora das provas desta feature)
+- `OperadorComandoTests` (apagado, o verbo `instituicao operador` não existe mais), `Nao_desativa_a_propria` e `Editar_usuario_preserva_operador` (apagados, sem o papel e sem a regra da própria instituição): substituídos por `PlataformaComandoTests`, `PlataformaInstituicoesTests` e `MigracaoOperadorTests`
+- `ProgramDespachoTests`: a linha de uso de `instituicao` perde `instituicao operador`, e o teste de `carga` e `operador` fica só com `carga`
+- `RetratoTests`, `SessaoTests`, `ServicosTests`, `MapeamentoTests`, `MediatorTests` e os retratos `rotas.txt`: contagens e listas ganham as rotas, entidades e o serviço `ProtecaoDaPlataforma` do console
 
 ## Swept
 
@@ -251,4 +254,6 @@ Mudam por consequência direta do plano (`## Impact`, linha "tests"), e só esta
 - API ~50k (plataforma/, migration, ajustes de `ArquiteturaTests`, testes novos), web ~35k (`web/src/plataforma/`, menu, estrutura, testes), ~85k no total, abaixo do orçamento de 150k - one builder
 - Mechanism: one builder
 - Verificação enxuta por decisão do dono (18/11): Verifier independente, perfil `standard`, uma rodada, no máximo 3 falhas injetadas e uma só invocação por alvo de prova
-- Base da verificação: o commit que leva `checks.md` (o SHA entra aqui quando existir)
+- Base da verificação: `3c2c49f` (commit de `checks.md`)
+- Acertos de texto durante o Build (nenhuma obrigação mudou, só o nome do que prova): C1 usa a rota `GET /api/admin/usuarios`; a prova de C13 está em `PlataformaLimiteTests` (fábrica com limites ligados), não em `PlataformaAcessoTests`; a `uri` de C8 leva o e-mail sem escapar; `Plataforma` é fatia plana (porta 8: `ReferenciasEntreFatias` ganha `Plataforma`→`Acesso` e `Plataforma`→`Instituicoes`) e `ImportarCargaInstituicao` mora nela
+- Prova de C49: `ArquiteturaTests.Tabelas_da_plataforma_sao_as_unicas_sem_instituicao`

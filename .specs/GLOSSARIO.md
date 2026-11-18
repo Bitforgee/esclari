@@ -92,7 +92,7 @@ uma vez no código, num grupo de constantes de `Esclari.Api/Dados/Entidades.cs`;
 
 | Valor gravado | Grupo | Significado |
 | --- | --- | --- |
-| `OPERADOR` | papel | quem na equipe do Esclari gerencia todas as instituições pela área `/api/plataforma` e pela tela Instituições; vive no usuário da própria instituição e só é dado ou tirado por `dotnet api.dll instituicao operador --slug <slug> --cpf <cpf> [--remover]`, nunca pela tela Usuários |
+| `Operador da plataforma` | conta | quem na equipe do Esclari gerencia as instituições; conta própria (tabela `operador_plataforma`), separada de qualquer instituição, com e-mail, senha e código do aplicativo autenticador; entra em `/plataforma` e é criada só por `dotnet api.dll plataforma operador --email <e-mail> --nome <nome>` |
 
 ## Ação do e-mail (colunas `email_saida.acao_rotulo` e `email_saida.acao_url`)
 

@@ -83,10 +83,10 @@ budget: 150k
 
 ## Arquitetura da API (AD-017, AD-019, AD-024, AD-056)
 - Fatias verticais por assunto: `Esclari.Api/<Fatia>/`, namespace `Esclari.Api.<Fatia>` (`Acesso`, `Administracao`,
-  `Assistente`, `Chamados`, `Conhecimento`, `Indicadores`, `Instituicoes`). Compartilhado só em `Esclari.Api/Dados/` e `Esclari.Api/*.cs`.
+  `Assistente`, `Chamados`, `Conhecimento`, `Indicadores`, `Instituicoes`, `Plataforma`). Compartilhado só em `Esclari.Api/Dados/` e `Esclari.Api/*.cs`.
 - Subpasta por assunto (AD-056): `Chamados`, `Administracao`, `Assistente`, `Conhecimento` e `Instituicoes` se dividem em
   `Esclari.Api/<Fatia>/<Subpasta>/` (um nível só, nomes da lista fechada do AD-056, no máximo 12 arquivos por subpasta e 4 na raiz da
-  fatia); o namespace segue a pasta (`Esclari.Api.<Fatia>.<Subpasta>`). `Acesso`, `Mcp` e `Indicadores` ficam planas.
+  fatia); o namespace segue a pasta (`Esclari.Api.<Fatia>.<Subpasta>`). `Acesso`, `Mcp`, `Indicadores` e `Plataforma` ficam planas.
 - Um arquivo por caso de uso: `record` de request com `static Mapear(RouteGroupBuilder)` da própria rota,
   `Entrada`/resposta nomeadas no mesmo arquivo e o `...Handler` (`IRequestHandler`, pacote `Mediator` 3.x, não MediatR).
   Modelo: `Esclari.Api/Chamados/Acoes/ResolverChamado.cs`. Sem objeto anônimo na resposta, sem DTO compartilhado entre fatias.
@@ -101,7 +101,7 @@ budget: 150k
 
 ## Web (AD-017, AD-020, AD-023)
 - Fatias em `web/src/<fatia>/` (`acesso`, `administracao`, `assistente`, `chamados`, `conhecimento`,
-  `indicadores`), com o teste de cada tela dentro da fatia. Pastas sem tela: `ui/` e `ilustracoes/`.
+  `indicadores`, `plataforma`), com o teste de cada tela dentro da fatia. Pastas sem tela: `ui/` e `ilustracoes/`.
   Regra testada em `web/src/test/estrutura.test.ts`.
 - `web/src/ui/` é código copiado do shadcn/ui (`new-york`); só ele importa `radix-ui`, `cva`, `clsx`, `tailwind-merge`.
   Ícones Lucide; dados com TanStack Query; formulários com React Hook Form + Zod; rotas com `react-router`; avisos com Sonner.
