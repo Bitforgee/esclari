@@ -5,7 +5,6 @@ import { Campo } from './Campo'
 import { abrir, api, chamado, instituicao, me, type Rota } from './test/util'
 
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
-const operador = me({ papeis: ['ADMINISTRADOR', 'OPERADOR'], matriculas: [] })
 const invalido = (errors: Record<string, string[]>) => [422, { status: 422, detail: 'Dados inválidos.', errors }] as [number, unknown]
 const idsInvalidos = () => [...document.querySelectorAll('[aria-invalid="true"]')].map((e) => e.id)
 const focado = () => document.activeElement as HTMLElement
@@ -75,11 +74,11 @@ describe('foco no primeiro campo com erro', () => {
 
   it('C11 Instituicoes foca o primeiro campo inválido do servidor', async () => {
     api({
-      'GET /api/auth/me': () => [200, operador],
+      'GET /api/plataforma/eu': () => [200, { id: 1, nome: 'Marina', email: 'marina@esclari.com.br' }],
       'GET /api/plataforma/instituicoes': () => [200, []],
       'POST /api/plataforma/instituicoes': () => invalido({ 'admin.email': ['E-mail inválido.'], 'admin.cpf': ['CPF inválido.'] }),
     })
-    abrir('/univag/instituicoes')
+    abrir('/plataforma/instituicoes')
     await userEvent.click(await screen.findByRole('button', { name: 'Nova instituição' }))
     const d = within(await screen.findByRole('dialog'))
     await userEvent.click(d.getByRole('button', { name: /^(Criar|Salvar)/ }))
@@ -103,8 +102,8 @@ async function abrirUsuario() {
 }
 
 async function abrirNovaInstituicao() {
-  api({ 'GET /api/auth/me': () => [200, operador], 'GET /api/plataforma/instituicoes': () => [200, []] })
-  abrir('/univag/instituicoes')
+  api({ 'GET /api/plataforma/eu': () => [200, { id: 1, nome: 'Marina', email: 'marina@esclari.com.br' }], 'GET /api/plataforma/instituicoes': () => [200, []] })
+  abrir('/plataforma/instituicoes')
   await userEvent.click(await screen.findByRole('button', { name: 'Nova instituição' }))
   return within(await screen.findByRole('dialog'))
 }

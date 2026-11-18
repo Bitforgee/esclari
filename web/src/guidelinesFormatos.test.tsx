@@ -14,7 +14,6 @@ const codigo = Object.entries(fontes).filter(([caminho]) => !/\.test\.tsx?$/.tes
 const fonte = (arquivo: string) => fontes[`/src/${arquivo}`]
 
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
-const operador = me({ papeis: ['ADMINISTRADOR', 'OPERADOR'], matriculas: [] })
 const publica = (inst: object): Record<string, Rota> => ({ 'GET /api/instituicoes/univag': () => [200, inst] })
 
 afterEach(() => {
@@ -89,11 +88,11 @@ describe('tamanho, unidade e plural', () => {
 
   it('C37 a lista de instituições escreve 1 administrador e 2 administradores', async () => {
     const lista = [
-      { slug: 'um', nome: 'Faculdade Um', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 1 },
-      { slug: 'dois', nome: 'Faculdade Dois', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 2 },
+      { slug: 'um', nome: 'Faculdade Um', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 1, situacao: 'ATIVA', saude: { ultimaAtividadeEm: null, semBaseTaxa30Dias: null }, atencao: [] },
+      { slug: 'dois', nome: 'Faculdade Dois', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 2, situacao: 'ATIVA', saude: { ultimaAtividadeEm: null, semBaseTaxa30Dias: null }, atencao: [] },
     ]
-    api({ 'GET /api/auth/me': () => [200, operador], 'GET /api/plataforma/instituicoes': () => [200, lista] })
-    abrir('/univag/instituicoes')
+    api({ 'GET /api/plataforma/eu': () => [200, { id: 1, nome: 'Marina', email: 'marina@esclari.com.br' }], 'GET /api/plataforma/instituicoes': () => [200, lista] })
+    abrir('/plataforma/instituicoes')
     const linha = async (nome: string) => (await screen.findByText(nome)).closest('tr') as HTMLElement
     expect(await linha('Faculdade Um')).toHaveTextContent('1 administrador · criada em')
     expect(await linha('Faculdade Um')).not.toHaveTextContent('1 administradores')
@@ -101,13 +100,13 @@ describe('tamanho, unidade e plural', () => {
   })
 
   it('C37 a carga importada escreve 1 setor e 2 cursos', async () => {
-    const lista = [{ slug: 'demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 2 }]
+    const lista = [{ slug: 'demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 2, situacao: 'ATIVA', saude: { ultimaAtividadeEm: null, semBaseTaxa30Dias: null }, atencao: [] }]
     api({
-      'GET /api/auth/me': () => [200, operador],
+      'GET /api/plataforma/eu': () => [200, { id: 1, nome: 'Marina', email: 'marina@esclari.com.br' }],
       'GET /api/plataforma/instituicoes': () => [200, lista],
       'POST /api/plataforma/instituicoes/demo/carga': () => [200, { setores: 1, cursos: 2, categorias: 1, regras: 0, artigos: 1 }],
     })
-    abrir('/univag/instituicoes')
+    abrir('/plataforma/instituicoes')
     await escolher('Faculdade Demo', 'Importar carga')
     const d = within(await screen.findByRole('dialog', { name: /Importar carga/ }))
     await userEvent.upload(d.getByLabelText(/Arquivo de carga/), new File(['{}'], 'carga.json', { type: 'application/json' }))
@@ -129,9 +128,9 @@ describe('datas curtas', () => {
   const token = { id: 1, nome: 'Cursor', usuario: 'Ana', final: 'wxyz', criadoEm: '2026-11-01T15:00:00Z', expiraEm: '2027-01-30T15:00:00Z', ultimoUsoEm: null, estado: 'ATIVO' }
 
   it('C38 Instituições e Mcp mostram dd/mm/aaaa no fuso da instituição', async () => {
-    const lista = [{ slug: 'demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T01:00:00Z', administradores: 2 }]
-    api({ 'GET /api/auth/me': () => [200, operador], 'GET /api/plataforma/instituicoes': () => [200, lista] })
-    const montada = abrir('/univag/instituicoes')
+    const lista = [{ slug: 'demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T01:00:00Z', administradores: 2, situacao: 'ATIVA', saude: { ultimaAtividadeEm: null, semBaseTaxa30Dias: null }, atencao: [] }]
+    api({ 'GET /api/plataforma/eu': () => [200, { id: 1, nome: 'Marina', email: 'marina@esclari.com.br' }], 'GET /api/plataforma/instituicoes': () => [200, lista] })
+    const montada = abrir('/plataforma/instituicoes')
     const linha = ((await screen.findByText('Faculdade Demo')).closest('tr') as HTMLElement)
     expect(within(linha).getAllByRole('cell').map((c) => c.textContent)).toContain('01/11/2026')
     montada.unmount()
@@ -150,7 +149,7 @@ describe('datas curtas', () => {
 
   it('C38 o código usa Intl.DateTimeFormat com dateStyle short e nenhum slice sobre a data formatada', () => {
     expect(fonte('formatos.ts')).toMatch(/Intl\.DateTimeFormat\('pt-BR',\s*\{\s*dateStyle:\s*'short'/)
-    for (const arquivo of ['administracao/instituicoes/Instituicoes.tsx', 'administracao/integracoes/Mcp.tsx']) {
+    for (const arquivo of ['plataforma/Instituicoes.tsx', 'administracao/integracoes/Mcp.tsx']) {
       expect(fonte(arquivo), arquivo).not.toMatch(/formatarData\([^)]*\)\.slice\(0,\s*10\)/)
       expect(fonte(arquivo), arquivo).toContain('dataCurta(')
     }
@@ -231,9 +230,9 @@ describe('translate no', () => {
   })
 
   it('C44 o endereço da instituição na lista da plataforma sai com translate no', async () => {
-    const lista = [{ slug: 'demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 2 }]
-    api({ 'GET /api/auth/me': () => [200, operador], 'GET /api/plataforma/instituicoes': () => [200, lista] })
-    abrir('/univag/instituicoes')
+    const lista = [{ slug: 'demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 2, situacao: 'ATIVA', saude: { ultimaAtividadeEm: null, semBaseTaxa30Dias: null }, atencao: [] }]
+    api({ 'GET /api/plataforma/eu': () => [200, { id: 1, nome: 'Marina', email: 'marina@esclari.com.br' }], 'GET /api/plataforma/instituicoes': () => [200, lista] })
+    abrir('/plataforma/instituicoes')
     expect(fixo(await screen.findByText('/demo'))).toHaveAttribute('translate', 'no')
   })
 })
@@ -290,11 +289,11 @@ describe('translate no nos tokens que faltavam', () => {
 
   it('C44 o e-mail do aviso de instituição criada fica em span só do token', async () => {
     api({
-      'GET /api/auth/me': () => [200, operador],
+      'GET /api/plataforma/eu': () => [200, { id: 1, nome: 'Marina', email: 'marina@esclari.com.br' }],
       'GET /api/plataforma/instituicoes': () => [200, []],
-      'POST /api/plataforma/instituicoes': () => [201, { slug: 'demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 1 }],
+      'POST /api/plataforma/instituicoes': () => [201, { slug: 'demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 1, situacao: 'ATIVA', saude: { ultimaAtividadeEm: null, semBaseTaxa30Dias: null }, atencao: [] }],
     })
-    abrir('/univag/instituicoes')
+    abrir('/plataforma/instituicoes')
     await userEvent.click(await screen.findByRole('button', { name: 'Nova instituição' }))
     const d = within(await screen.findByRole('dialog'))
     const [nome, nomeDoAdmin] = d.getAllByLabelText('Nome')

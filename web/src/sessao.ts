@@ -10,7 +10,6 @@ export function telaInicial(u: { papeis: string[]; deveTrocarSenha: boolean }): 
   if (u.papeis.includes('ALUNO')) return 'assistente'
   if (u.papeis.includes('ATENDENTE')) return 'fila'
   if (u.papeis.includes('ADMINISTRADOR')) return 'artigos'
-  if (u.papeis.includes('OPERADOR')) return 'instituicoes'
   return 'assistente'
 }
 

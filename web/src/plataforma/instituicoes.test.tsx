@@ -1,16 +1,17 @@
 import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
-import { abrir, acoesDe, api, cabecalhos, comTexto, escolher, me, type Rota } from '../../test/util'
+import { abrir, acoesDe, api, cabecalhos, comTexto, escolher, type Rota } from '../test/util'
 
-const operador = me({ papeis: ['ADMINISTRADOR', 'OPERADOR'], matriculas: [] })
-const demo = { slug: 'demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 2 }
-const antiga = { slug: 'antiga', nome: 'Faculdade Antiga', fuso: 'America/Sao_Paulo', ativa: false, criadaEm: '2026-09-15T12:00:00Z', administradores: 0 }
+const operador = { id: 1, nome: 'Marina Souza', email: 'marina@esclari.com.br' }
+const saude = { ultimaAtividadeEm: '2026-11-16T12:00:00Z', semBaseTaxa30Dias: 0.125 }
+const demo = { slug: 'demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 2, situacao: 'ATIVA', saude, atencao: [] as string[] }
+const antiga = { slug: 'antiga', nome: 'Faculdade Antiga', fuso: 'America/Sao_Paulo', ativa: false, criadaEm: '2026-09-15T12:00:00Z', administradores: 0, situacao: 'DESATIVADA', saude: { ultimaAtividadeEm: null, semBaseTaxa30Dias: null }, atencao: [] as string[] }
 const Lista = '/api/plataforma/instituicoes'
 
-function tela(rotas: Record<string, Rota> = {}, lista = [demo, antiga]) {
-  const chamadas = api({ 'GET /api/auth/me': () => [200, operador], [`GET ${Lista}`]: () => [200, lista], ...rotas })
-  abrir('/univag/instituicoes')
+function tela(rotas: Record<string, Rota> = {}, lista: unknown[] = [demo, antiga]) {
+  const chamadas = api({ 'GET /api/plataforma/eu': () => [200, operador], [`GET ${Lista}`]: () => [200, lista], ...rotas })
+  abrir('/plataforma/instituicoes')
   return chamadas
 }
 
@@ -18,70 +19,54 @@ const linha = async (nome: string) => (await screen.findByText(nome)).closest('t
 const gravacoes = (chamadas: { metodo: string; url: string; corpo: any }[]) => chamadas.filter((c) => c.metodo !== 'GET').map((c) => [c.metodo, c.url, c.corpo])
 const avisos = () => screen.getByRole('region', { name: /^Notificações/ })
 
-const grupos = (raiz: HTMLElement) =>
-  within(raiz).getAllByRole('group').map((g) => [g.getAttribute('aria-labelledby') && document.getElementById(g.getAttribute('aria-labelledby')!)?.textContent, within(g).getAllByRole('link').map((l) => l.textContent)])
-
-describe('instituições', () => {
+describe('instituições da plataforma', () => {
   afterEach(() => {
+    cleanup()
     localStorage.clear()
-    window.innerWidth = 1024
   })
 
-  it('grupo Plataforma só para operador', async () => {
-    api({ 'GET /api/auth/me': () => [200, operador] })
-    abrir('/univag/trocar-senha')
-    const nav = await screen.findByRole('navigation')
-    const todos = grupos(nav)
-    expect(todos.at(-1)).toEqual(['Plataforma', ['Instituições']])
-    expect(todos.map(([nome]) => nome)).toEqual(['Atendimento', 'Conhecimento', 'Administração', 'Plataforma'])
-    const link = within(nav).getByRole('link', { name: 'Instituições' })
-    expect(link).toHaveAttribute('href', '/univag/instituicoes')
-    expect(link.querySelector('svg')).toHaveClass('lucide-building-2')
-    cleanup()
-
-    window.innerWidth = 500
-    api({ 'GET /api/auth/me': () => [200, operador] })
-    abrir('/univag/trocar-senha')
-    await userEvent.click(await screen.findByRole('button', { name: 'Alternar barra lateral' }))
-    expect(grupos(await screen.findByRole('dialog', { name: 'Menu' })).at(-1)).toEqual(['Plataforma', ['Instituições']])
-    cleanup()
-    window.innerWidth = 1024
-
-    for (const papeis of [['ADMINISTRADOR'], ['ATENDENTE'], ['ALUNO']]) {
-      api({ 'GET /api/auth/me': () => [200, me({ papeis })] })
-      abrir('/univag/trocar-senha')
-      const barra = await screen.findByRole('navigation')
-      expect(within(barra).queryByRole('group', { name: 'Plataforma' }), papeis.join()).not.toBeInTheDocument()
-      expect(within(barra).queryByRole('link', { name: 'Instituições' }), papeis.join()).not.toBeInTheDocument()
-      cleanup()
-    }
-  })
-
-  it('lista com selo, administradores e ações', async () => {
+  it('lista com situação, saúde e ações', async () => {
     tela()
     const ativa = await linha('Faculdade Demo')
-    expect(cabecalhos()).toEqual(['Nome', 'Situação', 'Administradores', 'Criada em', 'Ações'])
+    expect(cabecalhos()).toEqual(['Nome', 'Situação', 'Última atividade', 'Não encontrei', 'Administradores', 'Criada em', 'Ações'])
     const celulas = within(ativa).getAllByRole('cell')
     expect(celulas[0]).toHaveTextContent('Faculdade Demo/demo')
     expect(within(celulas[0]).getByText('/demo')).toHaveClass('text-xs')
     expect(celulas[1]).toHaveTextContent(/^Ativa$/)
-    expect(celulas[2]).toHaveTextContent(/^2$/)
-    expect(celulas[3]).toHaveTextContent(/^02\/11\/2026$/)
+    expect(celulas[2]).toHaveTextContent(/^16\/11\/2026$/)
+    expect(celulas[3]).toHaveTextContent(/^12,5\s%$/)
+    expect(celulas[4]).toHaveTextContent(/^2$/)
+    expect(celulas[5]).toHaveTextContent(/^02\/11\/2026$/)
     const inativa = await linha('Faculdade Antiga')
-    expect(within(inativa).getAllByRole('cell')[1]).toHaveTextContent(/^Desativada$/)
-    expect(within(inativa).getByText('/antiga')).toBeInTheDocument()
-    expect(within(inativa).getAllByRole('cell')[3]).toHaveTextContent(/^15\/09\/2026$/)
+    const dela = within(inativa).getAllByRole('cell')
+    expect(dela[1]).toHaveTextContent(/^Desativada$/)
+    expect(dela[2]).toHaveTextContent(/^Sem atividade$/)
+    expect(dela[3]).toHaveTextContent(/^-$/)
 
     expect(await acoesDe('Faculdade Demo')).toEqual(['Importar carga', 'Reenviar acesso do admin', 'Desativar!'])
     expect(await acoesDe('Faculdade Antiga')).toEqual(['Importar carga', 'Reenviar acesso do admin', 'Reativar'])
     expect(screen.getByRole('button', { name: 'Nova instituição' })).toBeInTheDocument()
   })
 
+  it('etiquetas de atenção e situação de primeiro acesso', async () => {
+    const etiquetas = ['PARADA', 'MUITOS_SEM_BASE', 'EMAILS_FALHANDO', 'CONTEUDO_VENCIDO', 'FILA_ANTIGA']
+    tela({}, [{ ...demo, atencao: etiquetas }, { ...antiga, ativa: true, situacao: 'AGUARDANDO_PRIMEIRO_ACESSO' }])
+    const celula = within(await linha('Faculdade Demo')).getAllByRole('cell')[1]
+    expect(within(celula).getAllByText(/./).map((e) => e.textContent)).toEqual(['Ativa', 'Parada', "Muitos 'não encontrei'", 'E-mails falhando', 'Conteúdo vencido', 'Fila antiga'])
+    expect(within(within(await linha('Faculdade Antiga')).getAllByRole('cell')[1]).getByText('Aguardando primeiro acesso')).toBeInTheDocument()
+  })
+
+  it('lista vazia mostra a frase e o botão de criar', async () => {
+    tela({}, [])
+    expect(await screen.findByText('Ainda não há instituição cadastrada. Crie a primeira.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Nova instituição' })).toBeInTheDocument()
+  })
+
   it('carregando mostra 3 esqueletos', async () => {
-    api({ 'GET /api/auth/me': () => [200, operador], [`GET ${Lista}`]: () => new Promise(() => {}) })
-    abrir('/univag/instituicoes')
+    api({ 'GET /api/plataforma/eu': () => [200, operador], [`GET ${Lista}`]: () => new Promise(() => {}) })
+    abrir('/plataforma/instituicoes')
     expect(await screen.findByRole('heading', { name: 'Instituições', level: 1 })).toBeInTheDocument()
-    expect(document.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(3)
+    await waitFor(() => expect(document.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(3))
   })
 
   async function abrirNova() {
@@ -215,10 +200,10 @@ describe('instituições', () => {
     expect(d.queryByText('setores[1].nome: "A" repetido')).not.toBeInTheDocument()
   })
 
-  it('desativar confirma, reativar e reenviar agem direto', async () => {
+  it('desativar pede o motivo, reativar e reenviar agem direto', async () => {
     let desativada = false
     const chamadas = tela({
-      [`GET ${Lista}`]: () => [200, [{ ...demo, ativa: !desativada }, antiga]],
+      [`GET ${Lista}`]: () => [200, [{ ...demo, ativa: !desativada, situacao: desativada ? 'DESATIVADA' : 'ATIVA' }, antiga]],
       [`POST ${Lista}/demo/desativar`]: () => {
         desativada = true
         return [200, { slug: 'demo', ativa: false }]
@@ -230,13 +215,23 @@ describe('instituições', () => {
     await escolher('Faculdade Demo', 'Desativar')
     const d = within(await screen.findByRole('dialog'))
     expect(d.getByText('Desativar Faculdade Demo? Ninguém dessa instituição consegue entrar até você reativar.')).toBeInTheDocument()
+    expect(d.getByRole('button', { name: 'Desativar' })).toBeDisabled()
+    await userEvent.type(d.getByLabelText('Motivo'), '  ')
+    expect(d.getByRole('button', { name: 'Desativar' })).toBeDisabled()
     await userEvent.click(d.getByRole('button', { name: 'Voltar' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(gravacoes(chamadas)).toEqual([])
 
     await escolher('Faculdade Demo', 'Desativar')
-    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Desativar' }))
-    await waitFor(() => expect(gravacoes(chamadas)).toEqual([['POST', `${Lista}/demo/desativar`, {}]]))
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    await escolher('Faculdade Demo', 'Desativar')
+    const segunda = within(await screen.findByRole('dialog'))
+    expect(segunda.getByLabelText('Motivo')).toHaveValue('')
+    await userEvent.type(segunda.getByLabelText('Motivo'), 'Contrato encerrado')
+    await userEvent.click(segunda.getByRole('button', { name: 'Desativar' }))
+    await waitFor(() => expect(gravacoes(chamadas)).toEqual([['POST', `${Lista}/demo/desativar`, { motivo: 'Contrato encerrado' }]]))
     await waitFor(async () => expect(within(await linha('Faculdade Demo')).getAllByRole('cell')[1]).toHaveTextContent(/^Desativada$/))
 
     await escolher('Faculdade Antiga', 'Reativar')
@@ -247,5 +242,20 @@ describe('instituições', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(await within(avisos()).findByText('Enviamos o link para 2 administrador(es).')).toBeInTheDocument()
     expect(gravacoes(chamadas).map(([, url]) => url)).toEqual([`${Lista}/demo/desativar`, `${Lista}/antiga/reativar`, `${Lista}/demo/reenviar-acesso`])
+  })
+
+  it('401 com a sessão aberta volta à entrada com o aviso', async () => {
+    let lidas = 0
+    api({
+      'GET /api/plataforma/eu': () => [200, operador],
+      [`GET ${Lista}`]: () => (++lidas === 1 ? [200, [demo]] : [401, { status: 401, detail: 'Sua sessão terminou. Entre de novo.' }]),
+      [`POST ${Lista}/demo/reenviar-acesso`]: () => [401, { status: 401, detail: 'Sua sessão terminou. Entre de novo.' }],
+    })
+    abrir('/plataforma/instituicoes')
+    await linha('Faculdade Demo')
+    await escolher('Faculdade Demo', 'Reenviar acesso do admin')
+    expect(await screen.findByText('Sua sessão terminou. Entre de novo.')).toBeInTheDocument()
+    expect(screen.getByLabelText('E-mail')).toBeInTheDocument()
+    expect(screen.getByLabelText('Senha')).toBeInTheDocument()
   })
 })

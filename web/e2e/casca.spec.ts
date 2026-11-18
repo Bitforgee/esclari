@@ -162,8 +162,8 @@ test('ring sem cor e com marca', async ({ page }) => {
 const Anexos: [string, string, string[], (p: Page) => Promise<void>][] = [
   [
     'Instituições',
-    '/univag/instituicoes',
-    ['ADMINISTRADOR', 'OPERADOR'],
+    '/plataforma/instituicoes',
+    ['ADMINISTRADOR'],
     async (p) => {
       await p.getByText('Faculdade Antiga').waitFor()
       await p.getByRole('button', { name: 'Ações de Centro Universitário de Várzea Grande' }).click()

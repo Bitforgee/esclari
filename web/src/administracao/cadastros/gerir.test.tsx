@@ -16,7 +16,6 @@ const Administracao: [string, string[]] = ['Administração', ['Usuários', 'Mat
 
 const Esperado: [string[], [string, string[]][]][] = [
   [['ADMINISTRADOR'], [Conhecimento, Administracao]],
-  [['OPERADOR'], [['Plataforma', ['Instituições']]]],
   [['ALUNO', 'ATENDENTE', 'ADMINISTRADOR'], [['Atendimento', ['Chamados', 'Indicadores']], Conhecimento, Administracao]],
 ]
 

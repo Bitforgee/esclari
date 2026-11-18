@@ -1,28 +1,39 @@
 import { useMutation } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
+import { Building2, Plus } from 'lucide-react'
 import { useId, useState } from 'react'
 import { Link } from 'react-router'
-import { useGravacao, useLeituras } from '../../acao'
-import { api, ErroApi } from '../../api'
-import { Cabecalho } from '../../Cabecalho'
-import { Campo, ErroDoCampo, useFocoNoPrimeiroErro } from '../../Campo'
-import { CampoArquivo } from '../../CampoArquivo'
-import { Confirmar } from '../../Confirmar'
-import { Editor, useSujo } from '../../Editor'
-import { ErroDe, errosDeCampo } from '../../ErroDe'
-import { dataCurta, plural } from '../../formatos'
-import { Literal } from '../../Literal'
-import { CelulaLargo, Detalhe, MenuAcoes, Principal, Tabela } from '../../Tabela'
-import { Alert } from '../../ui/alert'
-import { Badge } from '../../ui/badge'
-import { DropdownMenuItem, DropdownMenuSeparator } from '../../ui/dropdown-menu'
-import { Input } from '../../ui/input'
-import { Label } from '../../ui/label'
-import { NativeSelect } from '../../ui/native-select'
-import { TableCell, TableRow } from '../../ui/table'
+import { useGravacao, useLeituras } from '../acao'
+import { api, ErroApi } from '../api'
+import { Cabecalho } from '../Cabecalho'
+import { Campo, ErroDoCampo, useFocoNoPrimeiroErro } from '../Campo'
+import { CampoArquivo } from '../CampoArquivo'
+import { Editor, useSujo } from '../Editor'
+import { ErroDe, errosDeCampo } from '../ErroDe'
+import { dataCurta, plural, porcentagem } from '../formatos'
+import { Literal } from '../Literal'
+import { CelulaLargo, Detalhe, MenuAcoes, Principal, Tabela } from '../Tabela'
+import { Alert } from '../ui/alert'
+import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog'
+import { DropdownMenuItem, DropdownMenuSeparator } from '../ui/dropdown-menu'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
+import { NativeSelect } from '../ui/native-select'
+import { TableCell, TableRow } from '../ui/table'
 
-type Item = { slug: string; nome: string; fuso: string; ativa: boolean; criadaEm: string; administradores: number }
+type Saude = { ultimaAtividadeEm: string | null; semBaseTaxa30Dias: number | null }
+type Item = { slug: string; nome: string; fuso: string; ativa: boolean; criadaEm: string; administradores: number; situacao: string; saude: Saude; atencao: string[] }
 type Contagens = { setores: number; cursos: number; categorias: number; regras: number; artigos: number }
+
+const Etiquetas: Record<string, string> = {
+  PARADA: 'Parada',
+  MUITOS_SEM_BASE: "Muitos 'não encontrei'",
+  EMAILS_FALHANDO: 'E-mails falhando',
+  CONTEUDO_VENCIDO: 'Conteúdo vencido',
+  FILA_ANTIGA: 'Fila antiga',
+}
+const Situacoes: Record<string, string> = { ATIVA: 'Ativa', DESATIVADA: 'Desativada', AGUARDANDO_PRIMEIRO_ACESSO: 'Aguardando primeiro acesso' }
 
 const Fusos = [
   'America/Sao_Paulo', 'America/Noronha', 'America/Belem', 'America/Fortaleza', 'America/Recife', 'America/Araguaina', 'America/Maceio', 'America/Bahia',
@@ -132,9 +143,29 @@ function ImportarCarga({ alvo, fechar }: { alvo: Item; fechar: () => void }) {
   )
 }
 
-const Colunas = [{ titulo: 'Nome' }, { titulo: 'Situação' }, { titulo: 'Administradores', largo: true }, { titulo: 'Criada em', largo: true }, { titulo: '' }]
+const Colunas = [{ titulo: 'Nome' }, { titulo: 'Situação' }, { titulo: 'Última atividade', largo: true }, { titulo: 'Não encontrei', largo: true }, { titulo: 'Administradores', largo: true }, { titulo: 'Criada em', largo: true }, { titulo: '' }]
 
-function Linha({ i, importar, desativar, agir, pendente }: { i: Item; importar: () => void; desativar: () => void; agir: (aviso: string | ((r: unknown) => string), url: string) => void; pendente: boolean }) {
+const ultima = (i: Item) => (i.saude.ultimaAtividadeEm ? dataCurta(i.saude.ultimaAtividadeEm, i.fuso) : 'Sem atividade')
+const taxa = (i: Item) => (i.saude.semBaseTaxa30Dias === null ? '-' : porcentagem(i.saude.semBaseTaxa30Dias))
+
+function Selo({ i }: { i: Item }) {
+  return (
+    <div className="flex flex-wrap gap-1">
+      <Badge variant={i.ativa ? undefined : 'secondary'} className={i.ativa ? 'bg-accent text-foreground' : undefined}>
+        {Situacoes[i.situacao] ?? i.situacao}
+      </Badge>
+      {i.atencao.map((a) => (
+        <Badge key={a} variant="outline">
+          {Etiquetas[a] ?? a}
+        </Badge>
+      ))}
+    </div>
+  )
+}
+
+type Agir = (aviso: string | ((r: unknown) => string), url: string, corpo?: object) => void
+
+function Linha({ i, importar, desativar, agir, pendente }: { i: Item; importar: () => void; desativar: () => void; agir: Agir; pendente: boolean }) {
   const criada = dataCurta(i.criadaEm, i.fuso)
   return (
     <TableRow>
@@ -142,10 +173,14 @@ function Linha({ i, importar, desativar, agir, pendente }: { i: Item; importar: 
         {i.nome}
         <div translate="no" className="text-xs font-normal text-muted-foreground">/{i.slug}</div>
         <Detalhe>
-          {plural(i.administradores, 'administrador', 'administradores')} · criada em {criada}
+          {plural(i.administradores, 'administrador', 'administradores')} · criada em {criada} · {ultima(i)} · {taxa(i)}
         </Detalhe>
       </TableCell>
-      <TableCell data-celula="selo">{i.ativa ? <Badge className="bg-accent text-foreground">Ativa</Badge> : <Badge variant="secondary">Desativada</Badge>}</TableCell>
+      <TableCell data-celula="selo">
+        <Selo i={i} />
+      </TableCell>
+      <CelulaLargo>{ultima(i)}</CelulaLargo>
+      <CelulaLargo>{taxa(i)}</CelulaLargo>
       <CelulaLargo>{i.administradores}</CelulaLargo>
       <CelulaLargo>{criada}</CelulaLargo>
       <TableCell data-celula="acoes" className="text-end">
@@ -165,6 +200,29 @@ function Linha({ i, importar, desativar, agir, pendente }: { i: Item; importar: 
         </MenuAcoes>
       </TableCell>
     </TableRow>
+  )
+}
+
+function Desativar({ alvo, fechar, enviar }: { alvo?: Item; fechar: () => void; enviar: (motivo: string) => void }) {
+  const [motivo, setMotivo] = useState('')
+  return (
+    <Dialog open={!!alvo} onOpenChange={(a) => !a && fechar()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Desativar instituição</DialogTitle>
+          <DialogDescription>Desativar {alvo?.nome}? Ninguém dessa instituição consegue entrar até você reativar.</DialogDescription>
+        </DialogHeader>
+        <Campo id="motivo" rotulo="Motivo" autoComplete="off" maxLength={200} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
+        <DialogFooter>
+          <Button variant="outline" onClick={fechar}>
+            Voltar
+          </Button>
+          <Button variant="destructive" disabled={motivo.trim().length < 3} onClick={() => enviar(motivo.trim())}>
+            Desativar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -196,6 +254,8 @@ const AvisoDeCriacao = ({ criada }: { criada: Ficha }) => (
   </Alert>
 )
 
+const SemInstituicoes = { Icone: Building2, titulo: 'Nenhuma instituição', frase: 'Ainda não há instituição cadastrada. Crie a primeira.' }
+
 export function Instituicoes() {
   const { dados, erro, recarregar } = useLeituras<{ lista: Item[] }>({ lista: '/api/plataforma/instituicoes' })
   const criacao = useCriacao(recarregar)
@@ -205,11 +265,11 @@ export function Instituicoes() {
   const [desativar, setDesativar] = useState<Item>()
   const acao = useGravacao(recarregar)
 
-  const agir = (aviso: string | ((r: unknown) => string), url: string) => acao.mutate({ chamar: () => api(`/api/plataforma/instituicoes/${url}`, {}), aviso })
-  const confirmarDesativar = () => {
+  const agir: Agir = (aviso, url, corpo = {}) => acao.mutate({ chamar: () => api(`/api/plataforma/instituicoes/${url}`, corpo), aviso })
+  const confirmarDesativar = (motivo: string) => {
     const i = desativar!
     setDesativar(undefined)
-    agir(`Instituição ${i.nome} desativada.`, `${i.slug}/desativar`)
+    agir(`Instituição ${i.nome} desativada.`, `${i.slug}/desativar`, { motivo })
   }
 
   return (
@@ -218,7 +278,7 @@ export function Instituicoes() {
       <ErroDe erro={erro} oque="as instituições" tentar={recarregar} />
       <ErroDe erro={acao.error} />
       {criacao.criada && <AvisoDeCriacao criada={criacao.criada} />}
-      <Tabela colunas={Colunas} itens={dados?.lista} erro={erro}>
+      <Tabela colunas={Colunas} itens={dados?.lista} erro={erro} vazio={SemInstituicoes}>
         {dados?.lista.map((i) => (
           <Linha key={i.slug} i={i} importar={() => setCarga(i)} desativar={() => setDesativar(i)} agir={agir} pendente={acao.isPending} />
         ))}
@@ -239,9 +299,7 @@ export function Instituicoes() {
 
       {carga && <ImportarCarga key={carga.slug} alvo={carga} fechar={() => setCarga(undefined)} />}
 
-      <Confirmar aberto={!!desativar} fechar={() => setDesativar(undefined)} titulo="Desativar instituição" botao="Desativar" destrutivo confirmar={confirmarDesativar}>
-        Desativar {desativar?.nome}? Ninguém dessa instituição consegue entrar até você reativar.
-      </Confirmar>
+      <Desativar key={desativar?.slug ?? ''} alvo={desativar} fechar={() => setDesativar(undefined)} enviar={confirmarDesativar} />
     </div>
   )
 }

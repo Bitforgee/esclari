@@ -32,8 +32,8 @@ export const comAparencia = {
 const Png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAwS2OUAAAAABJRU5ErkJggg==', 'base64')
 
 export const InstituicoesSimuladas = [
-  { slug: 'univag', nome: 'Centro Universitário de Várzea Grande', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 2 },
-  { slug: 'faculdade-antiga', nome: 'Faculdade Antiga', fuso: 'America/Sao_Paulo', ativa: false, criadaEm: '2026-09-15T12:00:00Z', administradores: 0 },
+  { slug: 'univag', nome: 'Centro Universitário de Várzea Grande', fuso: 'America/Cuiaba', ativa: true, criadaEm: '2026-11-02T12:00:00Z', administradores: 2, situacao: 'ATIVA', saude: { ultimaAtividadeEm: '2026-11-16T12:00:00Z', semBaseTaxa30Dias: 0.1 }, atencao: [] },
+  { slug: 'faculdade-antiga', nome: 'Faculdade Antiga', fuso: 'America/Sao_Paulo', ativa: false, criadaEm: '2026-09-15T12:00:00Z', administradores: 0, situacao: 'DESATIVADA', saude: { ultimaAtividadeEm: null, semBaseTaxa30Dias: null }, atencao: [] },
 ]
 
 export async function trocaObrigatoria(page: Page, papeis: string[]) {
@@ -63,6 +63,7 @@ export async function simularApi(page: Page, papeis = ['ALUNO', 'ATENDENTE', 'AD
     if (/^\/api\/instituicoes\/univag\/imagens\/\w+$/.test(caminho)) return rota.fulfill({ status: 200, contentType: 'image/png', body: Png })
     if (caminho === '/api/admin/aparencia') return json(200, aparencia)
     if (caminho.startsWith('/api/admin/aparencia/imagens/')) return json(200, { tipo: caminho.split('/').pop(), versao: 4 })
+    if (caminho === '/api/plataforma/eu') return json(200, { id: 1, nome: 'Marina Souza', email: 'marina@esclari.com.br' })
     if (caminho === '/api/auth/me')
       return json(200, {
         id: 1,
@@ -230,11 +231,11 @@ export async function varrer(page: Page, aoAbrir: (nome: string) => Promise<void
   const telas: [string, () => Promise<void>][] = [
     ...Telas.map(([nome]) => [nome, () => abrirTela(page, nome)] as [string, () => Promise<void>]),
     ['Conta', async () => { await page.goto('/univag/conta'); await page.getByText('***.456.789-**').waitFor() }],
-    ['Instituições', async () => { await page.goto('/univag/instituicoes'); await page.getByText('Faculdade Antiga').waitFor() }],
+    ['Instituições', async () => { await page.goto('/plataforma/instituicoes'); await page.getByText('Faculdade Antiga').waitFor() }],
   ]
   for (const [nome, abrirDaTela] of telas) {
     await page.unroute('**/api/**')
-    await simularApi(page, nome === 'Instituições' ? ['ADMINISTRADOR', 'OPERADOR'] : nome === 'Conta' ? ['ALUNO'] : undefined, false, aparencia)
+    await simularApi(page, nome === 'Instituições' ? ['ADMINISTRADOR'] : nome === 'Conta' ? ['ALUNO'] : undefined, false, aparencia)
     await abrirDaTela()
     await aoAbrir(nome)
   }

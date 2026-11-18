@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { abrir, api, me, type Rota } from '../../test/util'
 
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
-const operador = me({ papeis: ['ADMINISTRADOR', 'OPERADOR'], matriculas: [] })
 const ok = (corpo: unknown): Rota => () => [200, corpo]
 
 afterEach(() => {
@@ -49,8 +48,8 @@ describe('erro de campo da API abaixo do campo', () => {
       abrirForm: async () => void (await userEvent.click(await screen.findByRole('button', { name: 'Novo setor' }))),
     },
     {
-      nome: 'Nova instituição', caminho: '/univag/instituicoes', eu: operador, texto: 'Esse endereço não é válido.', rotulo: 'Endereço', proximo: 'Fuso horário', enviar: 'Criar',
-      rotas: { 'GET /api/plataforma/instituicoes': ok([]), 'POST /api/plataforma/instituicoes': campo400('slug', 'Esse endereço não é válido.') },
+      nome: 'Nova instituição', caminho: '/plataforma/instituicoes', eu: admin, texto: 'Esse endereço não é válido.', rotulo: 'Endereço', proximo: 'Fuso horário', enviar: 'Criar',
+      rotas: { 'GET /api/plataforma/eu': ok({ id: 1, nome: 'Marina', email: 'marina@esclari.com.br' }), 'GET /api/plataforma/instituicoes': ok([]), 'POST /api/plataforma/instituicoes': campo400('slug', 'Esse endereço não é válido.') },
       abrirForm: async () => void (await userEvent.click(await screen.findByRole('button', { name: 'Nova instituição' }))),
     },
   ]

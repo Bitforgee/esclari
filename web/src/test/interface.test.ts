@@ -317,7 +317,7 @@ describe('interface nova', () => {
 
   it('títulos de página', () => {
     const titulos = arquivos.filter((a) => !a.includes('.test.')).flatMap((a) => [...texto(a).matchAll(/<h1[^>]*>/g)].map((m) => [a, m[0]]))
-    expect(titulos.map(([arquivo]) => arquivo).sort()).toEqual(['Autenticado.tsx', 'acesso/Acesso.tsx'])
+    expect(titulos.map(([arquivo]) => arquivo).sort()).toEqual(['Autenticado.tsx', 'acesso/Acesso.tsx', 'plataforma/Entrada.tsx', 'plataforma/Plataforma.tsx'])
     for (const [arquivo, h1] of titulos)
       expect(h1, arquivo).toMatch(arquivo === 'Autenticado.tsx' ? /className="(?:[^"]* )?text-base font-medium[ "]/ : /className="(?:[^"]* )?font-heading text-\[28px\][ "]/)
   })

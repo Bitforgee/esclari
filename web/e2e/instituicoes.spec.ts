@@ -8,8 +8,8 @@ const caixa = async (l: Locator) => (await l.boundingBox())!
 test.describe('arranjo Instituições', () => {
   test('1440 px: um só título, e o botão no topo da área de conteúdo, à direita', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await simularApi(page, ['ADMINISTRADOR', 'OPERADOR'])
-    await page.goto('/univag/instituicoes')
+    await simularApi(page, ['ADMINISTRADOR'])
+    await page.goto('/plataforma/instituicoes')
     await page.getByText('Faculdade Antiga').waitFor()
 
     await expect(page.getByRole('heading', { name: 'Instituições' })).toHaveCount(1)
@@ -23,8 +23,8 @@ test.describe('arranjo Instituições', () => {
 
   test('390 px: as linhas viram cartões sem rolagem horizontal', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await simularApi(page, ['ADMINISTRADOR', 'OPERADOR'])
-    await page.goto('/univag/instituicoes')
+    await simularApi(page, ['ADMINISTRADOR'])
+    await page.goto('/plataforma/instituicoes')
     await page.getByText('Faculdade Antiga').waitFor()
 
     await expect(page.getByRole('listitem')).toHaveCount(2)
@@ -39,8 +39,8 @@ test.describe('arranjo Instituições', () => {
 
   test('cartão com nome e selo na 1ª linha e endereço abaixo', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
-    await simularApi(page, ['ADMINISTRADOR', 'OPERADOR'])
-    await page.goto('/univag/instituicoes')
+    await simularApi(page, ['ADMINISTRADOR'])
+    await page.goto('/plataforma/instituicoes')
     await page.getByText('Faculdade Antiga').waitFor()
 
     const cartao = page.getByRole('listitem').first()
@@ -60,8 +60,8 @@ test.describe('arranjo Instituições', () => {
 
   test('diálogo Nova instituição com campos em ordem, Cancelar e prefixo', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await simularApi(page, ['ADMINISTRADOR', 'OPERADOR'])
-    await page.goto('/univag/instituicoes')
+    await simularApi(page, ['ADMINISTRADOR'])
+    await page.goto('/plataforma/instituicoes')
     await page.getByRole('button', { name: 'Nova instituição' }).click()
 
     const d = page.getByRole('dialog', { name: 'Nova instituição' })

@@ -9,7 +9,6 @@ import { AplicaAparencia } from './aparencia'
 import { Aparencia } from './administracao/aparencia/Aparencia'
 import { Cadastros } from './administracao/cadastros/Cadastros'
 import { PaginaDoFluxo } from './administracao/fluxos/PaginaDoFluxo'
-import { Instituicoes } from './administracao/instituicoes/Instituicoes'
 import { Matriculas } from './administracao/cadastros/Matriculas'
 import { Integracoes } from './administracao/integracoes/Integracoes'
 import { Usuarios } from './administracao/cadastros/Usuarios'
@@ -20,6 +19,9 @@ import { Fila, Solicitacoes, TodosOsChamados } from './chamados/Chamados'
 import { Artigos } from './conhecimento/Artigos'
 import { Documentos } from './conhecimento/Documentos'
 import { Indicadores } from './indicadores/Indicadores'
+import { Auditoria } from './plataforma/Auditoria'
+import { Instituicoes } from './plataforma/Instituicoes'
+import { Plataforma } from './plataforma/Plataforma'
 import { Toaster } from './ui/sonner'
 import { ThemeProvider } from './ui/theme-provider'
 
@@ -52,6 +54,10 @@ function Rotas() {
       <AplicaAparencia />
       <Routes>
         <Route path="/" element={<Raiz />} />
+        <Route path="plataforma" element={<Plataforma />}>
+          <Route path="instituicoes" element={<Instituicoes />} />
+          <Route path="auditoria" element={<Auditoria />} />
+        </Route>
         <Route path="/:slug">
           <Route index element={<Login />} />
           <Route path="primeiro-acesso" element={<PrimeiroAcesso />} />
@@ -74,7 +80,6 @@ function Rotas() {
             <Route path="cadastros/fluxos/:id" element={<PaginaDoFluxo />} />
             <Route path="aparencia" element={<Aparencia />} />
             <Route path="integracoes" element={<Integracoes />} />
-            <Route path="instituicoes" element={<Instituicoes />} />
           </Route>
           <Route path="*" element={<NaoEncontrada />} />
         </Route>

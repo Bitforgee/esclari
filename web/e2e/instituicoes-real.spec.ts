@@ -1,12 +1,14 @@
-import { expect, test, type APIRequestContext, type APIResponse } from '@playwright/test'
+import { expect, test, type APIRequestContext } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
+import { createHmac } from 'node:crypto'
 
 const container = process.env.E2E_CONTAINER ?? 'esclari-api-1'
 const mailpit = process.env.E2E_MAILPIT ?? 'http://localhost:8025'
 const sufixo = Date.now().toString(36)
-const doOperador = `operadora-${sufixo}`
 const daDemo = `demo-${sufixo}`
+const email = `operadora-${sufixo}@e2e.esclari`
 const senha = 'operador-e2e-plataforma-1'
+const Alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
 
 function cpfValido(semente: number) {
   const d = String(semente).padStart(9, '0').slice(-9).split('').map(Number)
@@ -18,18 +20,29 @@ function cpfValido(semente: number) {
   return d.join('')
 }
 
-const cli = (...args: string[]) => execFileSync('docker', ['exec', container, 'dotnet', 'Esclari.Api.dll', 'instituicao', ...args], { encoding: 'utf8' })
-
-test.describe.configure({ timeout: 240_000 })
-async function limitado(chamar: () => Promise<APIResponse>) {
-  for (let tentativa = 0; tentativa < 3; tentativa++) {
-    const r = await chamar()
-    if (r.status() !== 429) return r
-    await new Promise((resolve) => setTimeout(resolve, 62_000))
+function codigoDe(segredo: string, passo: number) {
+  let bits = 0
+  let valor = 0
+  const bytes: number[] = []
+  for (const c of segredo.replace(/\s/g, '')) {
+    valor = (valor << 5) | Alfabeto.indexOf(c)
+    bits += 5
+    if (bits >= 8) {
+      bytes.push((valor >>> (bits - 8)) & 255)
+      bits -= 8
+    }
   }
-  throw new Error('o limitador de autenticação não liberou')
+  const contador = Buffer.alloc(8)
+  contador.writeBigUInt64BE(BigInt(passo))
+  const h = createHmac('sha1', Buffer.from(bytes)).update(contador).digest()
+  const o = h[h.length - 1] & 15
+  const binario = ((h[o] & 127) << 24) | (h[o + 1] << 16) | (h[o + 2] << 8) | h[o + 3]
+  return String(binario % 1_000_000).padStart(6, '0')
 }
 
+const cli = (...args: string[]) => execFileSync('docker', ['exec', container, 'dotnet', 'Esclari.Api.dll', ...args], { encoding: 'utf8' })
+
+test.describe.configure({ timeout: 240_000 })
 async function linkDoEmail(request: APIRequestContext, para: string) {
   for (let i = 0; i < 200; i++) {
     const lista = await (await request.get(`${mailpit}/api/v1/search`, { params: { query: `to:${para}` } })).json()
@@ -43,20 +56,23 @@ async function linkDoEmail(request: APIRequestContext, para: string) {
   throw new Error(`nenhum e-mail de primeiro acesso para ${para}`)
 }
 
-test('operador cria e desativa uma instituição', async ({ browser, playwright, baseURL }) => {
-  const cpf = cpfValido(Date.now() % 1_000_000_000)
-  const criada = cli('criar', '--slug', doOperador, '--nome', 'Operadora E2E', '--fuso', 'America/Cuiaba', '--admin-cpf', cpf, '--admin-nome', 'Ana Operadora', '--admin-email', `ana-${sufixo}@e2e.esclari`)
-  const token = criada.match(/definir-senha\?token=(\S+)/)![1]
-  expect(cli('operador', '--slug', doOperador, '--cpf', cpf)).toContain('Operador Ana Operadora adicionado.')
+test('operador da plataforma entra com 2FA, cria e desativa uma instituição', async ({ browser, playwright, baseURL }) => {
+  const convite = cli('plataforma', 'operador', '--email', email, '--nome', 'Operadora E2E')
+  const token = convite.match(/definir-senha\?token=(\S+)/)![1]
   const api = await playwright.request.newContext({ baseURL })
-  expect((await api.post('/api/auth/definir-senha', { data: { token, novaSenha: senha } })).ok()).toBeTruthy()
-  expect((await limitado(() => api.post('/api/auth/login', { data: { instituicao: doOperador, cpf, senha } }))).status()).toBe(200)
+  expect((await api.post('/api/plataforma/auth/definir-senha', { data: { token, senha } })).ok()).toBeTruthy()
 
-  const equipe = await browser.newContext({ baseURL, storageState: await api.storageState() })
+  const equipe = await browser.newContext({ baseURL })
   const painel = await equipe.newPage()
-  await painel.goto(`/${doOperador}/instituicoes`)
-  await expect(painel.getByRole('navigation').getByRole('link', { name: 'Instituições' })).toBeVisible()
-  await expect(painel.getByText('Operadora E2E').first()).toBeVisible()
+  await painel.goto('/plataforma')
+  await painel.getByLabel('E-mail').fill(email)
+  await painel.getByLabel('Senha').fill(senha)
+  await painel.getByRole('button', { name: 'Continuar' }).click()
+  const chave = (await painel.getByLabel('Chave do aplicativo').textContent())!
+  await painel.getByLabel('Código de 6 dígitos').fill(codigoDe(chave, Math.floor(Date.now() / 30_000)))
+  await painel.getByRole('button', { name: 'Entrar' }).click()
+
+  await expect(painel.getByRole('navigation', { name: 'Navegação' }).getByRole('link', { name: 'Instituições' })).toBeVisible()
   await painel.getByRole('button', { name: 'Nova instituição' }).click()
   const dialogo = painel.getByRole('dialog')
   const emailDaDemo = `admin-${sufixo}@demo.e2e.esclari`
@@ -80,10 +96,15 @@ test('operador cria e desativa uma instituição', async ({ browser, playwright,
   const linha = painel.getByRole('row').filter({ hasText: `/${daDemo}` })
   await linha.getByRole('button', { name: 'Ações de Faculdade Demo' }).click()
   await painel.getByRole('menuitem', { name: 'Desativar' }).click()
-  await painel.getByRole('dialog').getByRole('button', { name: 'Desativar' }).click()
+  const confirmacao = painel.getByRole('dialog')
+  await confirmacao.getByLabel('Motivo').fill('Fim do teste e2e')
+  await confirmacao.getByRole('button', { name: 'Desativar' }).click()
   await expect(linha.getByText('Desativada')).toBeVisible()
   await pagina.goto(`/${daDemo}`)
   await expect(pagina.getByText('Instituição não encontrada.')).toBeVisible()
+
+  await painel.getByRole('link', { name: 'Auditoria' }).click()
+  await expect(painel.getByText('Instituição desativada').first()).toBeVisible()
 
   await equipe.close()
   await visitante.close()

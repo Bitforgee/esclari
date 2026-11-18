@@ -24,7 +24,6 @@ const PorPapel: [string[], [string, string][]][] = [
   [['ATENDENTE'], [['Fila', 'fila'], ['Indicadores', 'indicadores'], ['Conta', 'conta']]],
   [['ADMINISTRADOR'], [['Chamados', 'chamados'], ['Indicadores', 'indicadores'], ['Gerir', 'gerir'], ['Conta', 'conta']]],
   [['ATENDENTE', 'ADMINISTRADOR'], [['Fila', 'fila'], ['Chamados', 'chamados'], ['Indicadores', 'indicadores'], ['Gerir', 'gerir'], ['Conta', 'conta']]],
-  [['OPERADOR'], [['Gerir', 'gerir'], ['Conta', 'conta']]],
   [['ALUNO', 'ATENDENTE'], [['Assistente', 'assistente'], ['Solicitações', 'solicitacoes'], ['Fila', 'fila'], ['Indicadores', 'indicadores'], ['Conta', 'conta']]],
   [['ALUNO', 'ATENDENTE', 'ADMINISTRADOR'], [['Assistente', 'assistente'], ['Solicitações', 'solicitacoes'], ['Fila', 'fila'], ['Gerir', 'gerir'], ['Conta', 'conta']]],
 ]
@@ -96,7 +95,6 @@ describe('Conta de todos os papéis', () => {
     [['ALUNO'], 'Aluno', true],
     [['ATENDENTE'], 'Atendente', false],
     [['ADMINISTRADOR'], 'Administrador', false],
-    [['OPERADOR'], '', false],
   ])('Conta por papel (%j)', async (papeis, rotulo, comAvisos) => {
     celular()
     api(base(papeis, comPush()))

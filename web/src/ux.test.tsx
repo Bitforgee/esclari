@@ -81,12 +81,12 @@ describe('ux', () => {
     ADMINISTRADOR: ['indicadores', 'artigos', 'documentos', 'usuarios', 'matriculas', 'cadastros', 'aparencia', 'conta'],
   }
   const Inicial: Record<string, string> = { ALUNO: 'assistente', ATENDENTE: 'fila', ADMINISTRADOR: 'artigos' }
-  const Todas = ['assistente', 'solicitacoes', 'conta', 'fila', 'indicadores', 'artigos', 'documentos', 'usuarios', 'matriculas', 'cadastros', 'aparencia', 'instituicoes']
+  const Todas = ['assistente', 'solicitacoes', 'conta', 'fila', 'indicadores', 'artigos', 'documentos', 'usuarios', 'matriculas', 'cadastros', 'aparencia']
   const fora = Object.entries(Rotas).flatMap(([papel, minhas]) => Todas.filter((r) => !minhas.includes(r)).map((rota) => [papel, rota] as const))
 
-  it('rota de outro papel volta à tela inicial (22 casos)', () => {
-    expect(['ALUNO', 'ATENDENTE', 'ADMINISTRADOR'].map((p) => fora.filter(([papel]) => papel === p).length)).toEqual([9, 9, 4])
-    expect(fora).toHaveLength(22)
+  it('rota de outro papel volta à tela inicial (19 casos)', () => {
+    expect(['ALUNO', 'ATENDENTE', 'ADMINISTRADOR'].map((p) => fora.filter(([papel]) => papel === p).length)).toEqual([8, 8, 3])
+    expect(fora).toHaveLength(19)
   })
 
   it.each(fora)('rota de outro papel volta à tela inicial (%s em /%s)', async (papel, rota) => {
@@ -153,7 +153,7 @@ describe('ux', () => {
     { nome: 'Cadastros', papeis: ['ADMINISTRADOR'], caminho: '/univag/cadastros', url: '/api/admin/setores', oque: 'os cadastros', vazios: ['/api/admin/categorias', '/api/admin/cursos', '/api/admin/fluxos', '/api/admin/respostas-prontas'], depois: 'Nada cadastrado' },
     { nome: 'Indicadores', papeis: ['ADMINISTRADOR'], caminho: '/univag/indicadores', url: '/api/indicadores?de=2026-11-01&ate=2026-11-10', oque: 'os indicadores', depois: 'Sem atendimentos neste período.', ok: { semDados: true } },
     { nome: 'Aparência', papeis: ['ADMINISTRADOR'], caminho: '/univag/aparencia', url: '/api/admin/aparencia', oque: 'a aparência', depois: /Cor principal/, ok: { ...instituicao(), nome: undefined } },
-    { nome: 'Instituições', papeis: ['OPERADOR'], caminho: '/univag/instituicoes', url: '/api/plataforma/instituicoes', oque: 'as instituições', depois: 'Nada cadastrado' },
+    { nome: 'Console', papeis: ['ADMINISTRADOR'], caminho: '/plataforma/instituicoes', url: '/api/plataforma/instituicoes', oque: 'as instituições', depois: 'Nenhuma institui' + 'ção' },
   ]
 
   it('erro de carregamento com Tentar de novo em 11 telas (as 11 superfícies)', () => {
@@ -167,6 +167,7 @@ describe('ux', () => {
     const chamadas = api({
       'GET /api/auth/me': () => [200, me({ papeis, matriculas: [] })],
       'GET /api/instituicoes/univag': () => [200, instituicao()],
+      'GET /api/plataforma/eu': () => [200, { id: 1, nome: 'Marina', email: 'marina@esclari.com.br' }],
       ...Vazios(...vazios),
       [`GET ${url}`]: () => (falhas-- > 0 ? [500, { status: 500, detail: 'Falha interna do servidor.' }] : [200, ok]),
     })

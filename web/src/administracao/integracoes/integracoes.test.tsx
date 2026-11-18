@@ -370,7 +370,7 @@ describe('tela Integrações', () => {
   })
 
   it('item no menu', async () => {
-    for (const papel of ['ADMINISTRADOR', 'ATENDENTE', 'ALUNO', 'OPERADOR']) {
+    for (const papel of ['ADMINISTRADOR', 'ATENDENTE', 'ALUNO']) {
       api({ 'GET /api/auth/me': () => [200, me({ papeis: [papel] })], 'GET /api/instituicoes/univag': () => [200, instituicao()] })
       const { unmount } = abrir('/univag/trocar-senha')
       await screen.findByRole('button', { name: 'Alternar barra lateral' })

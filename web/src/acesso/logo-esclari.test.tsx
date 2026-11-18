@@ -55,7 +55,7 @@ describe('marca do Esclari', () => {
 
     const web = arquivos(resolve(process.cwd(), 'src'), /\.tsx?$/).filter((a) => !/\.test\.tsx?$/.test(a) && !a.includes(join('src', 'test')))
     const citam = web.filter((a) => readFileSync(a, 'utf8').includes('/marca/')).map((a) => a.split(/[\\/]/).pop())
-    expect(citam.sort()).toEqual(['Acesso.tsx', 'aparencia.tsx'])
+    expect(citam.sort()).toEqual(['Acesso.tsx', 'Entrada.tsx', 'Plataforma.tsx', 'aparencia.tsx'])
     const api_ = arquivos(resolve(process.cwd(), '../Esclari.Api'), /\.cs$/)
     expect(api_.filter((a) => readFileSync(a, 'utf8').includes('/marca/'))).toEqual([])
   })

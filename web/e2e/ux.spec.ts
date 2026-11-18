@@ -57,11 +57,11 @@ async function percorrer(page: Page, aoAbrir: (nome: string, ehCasca: boolean) =
   const telas: [string, () => Promise<void>][] = [
     ...Telas.map(([nome]) => [nome, () => abrirTela(page, nome)] as [string, () => Promise<void>]),
     ['Conta', async () => { await page.goto('/univag/conta'); await page.getByText('***.456.789-**').waitFor() }],
-    ['Instituições', async () => { await page.goto('/univag/instituicoes'); await page.getByText('Faculdade Antiga').waitFor() }],
+    ['Instituições', async () => { await page.goto('/plataforma/instituicoes'); await page.getByText('Faculdade Antiga').waitFor() }],
   ]
   for (const [nome, abrir] of telas) {
     await page.unroute('**/api/**')
-    await simularApi(page, nome === 'Instituições' ? ['ADMINISTRADOR', 'OPERADOR'] : undefined)
+    await simularApi(page, nome === 'Instituições' ? ['ADMINISTRADOR'] : undefined)
     await abrir()
     if (nome === 'Assistente') {
       await page.locator('input[type=file]').setInputFiles({ name: 'foto.png', mimeType: 'image/png', buffer: Buffer.from('x') })
@@ -949,9 +949,9 @@ const Dialogos: Dialogo[] = [
   { nome: 'Documentos Novo documento', caminho: '/univag/documentos', esperar: 'Regulamento do estágio supervisionado obrigatório dos cursos de graduação', abrir: (p) => p.getByRole('button', { name: 'Novo documento' }).click(), titulo: 'Novo documento', acao: 'Enviar documento' },
   { nome: 'Usuários Novo', caminho: '/univag/usuarios', esperar: 'Carla Regina de Souza Albuquerque', abrir: (p) => p.getByRole('button', { name: 'Novo usuário', exact: true }).click(), titulo: 'Novo usuário', acao: 'Salvar usuário' },
   { nome: 'Cadastros Novo (Setores)', caminho: '/univag/cadastros', esperar: 'Coordenação de Análise e Desenvolvimento de Sistemas', abrir: (p) => p.getByRole('button', { name: 'Novo setor', exact: true }).click(), titulo: 'Novo: Setores', acao: 'Salvar setor' },
-  { nome: 'Instituições Nova instituição', caminho: '/univag/instituicoes', papeis: ['ADMINISTRADOR', 'OPERADOR'], esperar: 'Faculdade Antiga', abrir: (p) => p.getByRole('button', { name: 'Nova instituição' }).click(), titulo: 'Nova instituição', acao: 'Criar' },
+  { nome: 'Instituições Nova instituição', caminho: '/plataforma/instituicoes', papeis: ['ADMINISTRADOR'], esperar: 'Faculdade Antiga', abrir: (p) => p.getByRole('button', { name: 'Nova instituição' }).click(), titulo: 'Nova instituição', acao: 'Criar' },
   {
-    nome: 'Instituições Importar carga', caminho: '/univag/instituicoes', papeis: ['ADMINISTRADOR', 'OPERADOR'], esperar: 'Faculdade Antiga',
+    nome: 'Instituições Importar carga', caminho: '/plataforma/instituicoes', papeis: ['ADMINISTRADOR'], esperar: 'Faculdade Antiga',
     abrir: async (p) => {
       await p.getByRole('button', { name: 'Ações de Centro Universitário de Várzea Grande' }).click()
       await p.getByRole('menuitem', { name: 'Importar carga' }).click()

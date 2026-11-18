@@ -130,7 +130,8 @@ export function useTema() {
 }
 
 export function AplicaAparencia() {
-  const slug = useMatch('/:slug/*')?.params.slug
+  const doCaminho = useMatch('/:slug/*')?.params.slug
+  const slug = doCaminho === 'plataforma' ? undefined : doCaminho
   const { data } = useInstituicao(slug)
   const tema = useTema()
   useEffect(() => aplicar(slug, data, tema), [slug, data, tema])

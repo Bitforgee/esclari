@@ -4,7 +4,7 @@ const fontes = import.meta.glob('/src/**/*.{ts,tsx}', { query: '?raw', import: '
 const arquivos = Object.keys(fontes).map((c) => c.replace('/src/', ''))
 const texto = (arquivo: string) => fontes[`/src/${arquivo}`]
 
-const Fatias = ['acesso', 'administracao', 'assistente', 'chamados', 'conhecimento', 'indicadores']
+const Fatias = ['acesso', 'administracao', 'assistente', 'chamados', 'conhecimento', 'indicadores', 'plataforma']
 const SemTela = ['ui', 'ilustracoes']
 const Raiz = ['App.tsx', 'Autenticado.tsx', 'acao.tsx', 'api.ts', 'AvisosPush.tsx', 'datas.ts', 'main.tsx', 'push.ts', 'sessao.ts', 'sw.test.ts', 'sw.ts', 'tempo-real.ts', 'tempo-real.test.ts', 'tabela.test.tsx', 'aparencia.test.tsx', 'ux.test.tsx', 'links.test.tsx', 'identidade.test.tsx', 'guidelinesGlobal.test.ts', 'guidelinesCampos.test.tsx', 'guidelinesRascunho.test.tsx', 'guidelinesListas.test.tsx', 'guidelinesConfirmar.test.tsx', 'guidelinesToque.test.tsx', 'guidelinesAnuncio.test.tsx', 'guidelinesFormatos.test.tsx', 'guidelinesUrl.test.tsx', 'guidelinesRotulos.test.tsx']
 const SoDaUi = /from ['"](?:radix-ui|@radix-ui\/[^'"]+|class-variance-authority|use-stick-to-bottom|clsx|tailwind-merge)['"]/
@@ -53,9 +53,9 @@ it('estrutura em fatias', () => {
 })
 
 it('administracao em subpastas', () => {
-  const Subpastas = ['aparencia', 'fluxos', 'cadastros', 'integracoes', 'instituicoes']
+  const Subpastas = ['aparencia', 'fluxos', 'cadastros', 'integracoes']
   const dela = arquivos.filter((a) => a.startsWith('administracao/')).map((a) => a.slice('administracao/'.length))
-  expect(dela.length).toBe(53)
+  expect(dela.length).toBe(51)
   for (const arquivo of dela) {
     const partes = arquivo.split('/')
     expect(partes.length, arquivo).toBeLessThanOrEqual(2)
@@ -68,12 +68,11 @@ it('administracao em subpastas', () => {
     fluxos: ['Canvas.tsx', 'NosDoCanvas.tsx', 'PainelDoNo.tsx', 'AdicionarEtapa.tsx', 'LigacaoComMais.tsx', 'ListaDeEtapas.tsx', 'EdicaoDoFluxo.tsx', 'PaginaDoFluxo.tsx', 'Simulador.tsx', 'grafo.ts', 'canvas.test.tsx', 'paginaDoFluxo.test.tsx', 'guidelinesFluxo.test.tsx', 'guidelinesSimulador.test.tsx'],
     cadastros: ['Cadastros.tsx', 'Gerir.tsx', 'Usuarios.tsx', 'Matriculas.tsx', 'admin.test.tsx', 'cadastros.test.tsx', 'fluxos.test.tsx', 'gerir.test.tsx', 'guidelinesBusca.test.tsx', 'icones.test.tsx', 'revisao.test.tsx', 'setorEmFluxo.test.tsx', 'textos.test.tsx', 'usuarios.test.tsx'],
     integracoes: ['Integracoes.tsx', 'Moodle.tsx', 'Mcp.tsx', 'AbaIntegracao.tsx', 'integracoes.test.tsx', 'mcp.test.tsx', 'guidelinesCopiar.test.tsx', 'guidelinesMoodle.test.tsx'],
-    instituicoes: ['Instituicoes.tsx', 'instituicoes.test.tsx'],
   }
   for (const subpasta of Subpastas)
     expect(dela.filter((a) => a.startsWith(`${subpasta}/`)).map((a) => a.slice(subpasta.length + 1)).sort(), subpasta).toEqual([...Mapa[subpasta]].sort())
   for (const arquivo of dela.filter((a) => a.includes('/') && !a.endsWith('.test.tsx')))
-    expect(texto(`administracao/${arquivo}`), arquivo).not.toMatch(/from '\.\.\/(?:aparencia|fluxos|cadastros|integracoes|instituicoes)\//)
+    expect(texto(`administracao/${arquivo}`), arquivo).not.toMatch(/from '\.\.\/(?:aparencia|fluxos|cadastros|integracoes)\//)
 
   const app = texto('App.tsx')
   const subpastaDaTela: Record<string, string> = {}
