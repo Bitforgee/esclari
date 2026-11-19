@@ -3,13 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { abrir, acoesDe, api, escolher, me, type Rota } from '../../test/util'
 
-const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
+const admin = me({ id: 99, papeis: ['ADMINISTRADOR'], matriculas: [] })
 const setores = [
   { id: 1, nome: 'Triagem', triagem: true, ativo: true },
   { id: 2, nome: 'Financeiro', triagem: false, ativo: true },
   { id: 3, nome: 'Antigo', triagem: false, ativo: false },
 ]
 const carla = { id: 1, cpf: '123.456.789-09', nome: 'Carla', email: 'carla@univag.edu.br', ativo: true, deveTrocarSenha: false, papeis: ['ATENDENTE'], setores: [2] }
+const ana = { id: 99, cpf: '111.444.777-35', nome: 'Ana', email: 'ana@univag.edu.br', ativo: true, deveTrocarSenha: false, papeis: ['ADMINISTRADOR'], setores: [] }
 const bia = { id: 2, cpf: '987.654.321-00', nome: 'Bia', email: 'bia@univag.edu.br', ativo: false, deveTrocarSenha: false, papeis: ['ALUNO'], setores: [] }
 
 function usuarios(rotas: Record<string, Rota> = {}) {
@@ -44,6 +45,37 @@ describe('usuários', () => {
     expect(screen.queryByRole('button', { name: 'Ações de Bia' })).not.toBeInTheDocument()
   })
 
+  it('o próprio administrador não desativa a conta nem muda o próprio papel', async () => {
+    const chamadas = usuarios({ 'GET /api/admin/usuarios': () => [200, [ana, carla]], 'PUT /api/admin/usuarios/99': () => [200, {}] })
+    await screen.findByRole('button', { name: 'Ações de Ana' })
+    expect(await acoesDe('Ana')).toEqual(['Editar'])
+    expect(await acoesDe('Carla')).toEqual(['Editar', 'Desativar!'])
+    await escolher('Ana', 'Editar')
+    const d = within(await screen.findByRole('dialog'))
+    expect(d.getByText('Você não pode mudar o próprio papel. Peça a outro administrador.')).toBeInTheDocument()
+    expect(d.queryByLabelText('Administrador')).not.toBeInTheDocument()
+    expect(d.queryByLabelText('Aluno')).not.toBeInTheDocument()
+    expect(d.queryByLabelText('Atendente')).not.toBeInTheDocument()
+    await userEvent.click(d.getByRole('button', { name: 'Salvar usuário' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(posts(chamadas)).toEqual([['PUT', '/api/admin/usuarios/99', { cpf: '111.444.777-35', nome: 'Ana', email: 'ana@univag.edu.br', papeis: ['ADMINISTRADOR'], setores: [] }]])
+  })
+
+  it('mostra o erro da API ao salvar ou desativar sem sobrar administrador', async () => {
+    const detail = 'A instituição precisa de ao menos um administrador ativo.'
+    usuarios({
+      'PUT /api/admin/usuarios/1': () => [409, { status: 409, detail }],
+      'POST /api/admin/usuarios/1/desativar': () => [409, { status: 409, detail }],
+    })
+    await escolher('Carla', 'Editar')
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Salvar usuário' }))
+    expect(await within(screen.getByRole('dialog')).findByRole('alert')).toHaveTextContent(detail)
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await escolher('Carla', 'Desativar')
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Desativar' }))
+    expect(await screen.findByText(detail)).toBeInTheDocument()
+  })
   it('carregando mostra 3 esqueletos', async () => {
     api({ 'GET /api/auth/me': () => [200, admin], 'GET /api/admin/usuarios': () => new Promise(() => {}), 'GET /api/admin/setores': () => [200, setores] })
     abrir('/univag/usuarios')

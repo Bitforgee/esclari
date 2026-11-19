@@ -11,6 +11,13 @@ public static class ValidacaoDeUsuario
     public static async Task<IResult?> Validar(EsclariDb db, string? cpf, string? nome, string? email, string? senhaTemporaria, string[]? papeis, long[]? setores, long id) =>
         Pessoa(cpf, nome, email) ?? await PapeisESetores(db, senhaTemporaria, papeis, setores) ?? await Repetidos(db, cpf, email, id);
 
+    public static async Task<IResult?> UltimoAdministrador(EsclariDb db, Usuario alvo, bool continuaAdministrador)
+    {
+        if (continuaAdministrador || !alvo.Ativo || !alvo.Tem(Papeis.Administrador)) return null;
+        var existeOutro = await db.Usuarios.AnyAsync(u => u.Id != alvo.Id && u.Ativo && u.Papeis.Any(p => p.Papel == Papeis.Administrador));
+        return existeOutro ? null : ErrosDeAdmin.SemAdministrador();
+    }
+
     public static bool Nome(string? nome, int max) => !string.IsNullOrWhiteSpace(nome) && nome.Length <= max;
 
     static IResult? Pessoa(string? cpf, string? nome, string? email)

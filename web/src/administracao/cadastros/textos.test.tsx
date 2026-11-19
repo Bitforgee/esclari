@@ -29,7 +29,7 @@ const Cadastros = [
   'Cancelar', 'Salvar setor', 'Salvar categoria', 'Salvar fluxo', 'Salvar curso', 'Salvar resposta pronta', 'Cadastro salvo.', 'Voltar',
 ]
 
-const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
+const admin = me({ id: 99, papeis: ['ADMINISTRADOR'], matriculas: [] })
 const tela = () => screen.getByRole('main')
 const avisos = () => screen.getByRole('region', { name: /^Notificações/ })
 

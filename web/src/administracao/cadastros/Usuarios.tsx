@@ -15,6 +15,7 @@ import { DropdownMenuItem, DropdownMenuSeparator } from '../../ui/dropdown-menu'
 import { Input } from '../../ui/input'
 import { Label } from '../../ui/label'
 import { TableCell, TableRow } from '../../ui/table'
+import { useSessao } from '../../sessao'
 import { useBuscaNaUrl, useEditarNaUrl } from '../../urlDaTela'
 import { cpfFormatado, type Setor, type Usuario } from '../comum'
 
@@ -25,7 +26,7 @@ const Papeis: [string, string][] = [
 ]
 
 type Ficha = Pick<Usuario, 'cpf' | 'nome' | 'email' | 'papeis' | 'setores'> & { id?: number; senhaTemporaria: string }
-type Edicao = { editando: Ficha; setEditando: Dispatch<SetStateAction<Ficha | undefined>>; setores: Setor[] }
+type Edicao = { editando: Ficha; setEditando: Dispatch<SetStateAction<Ficha | undefined>>; setores: Setor[]; propria?: boolean }
 const Novo: Ficha = { cpf: '', nome: '', email: '', papeis: ['ATENDENTE'], setores: [], senhaTemporaria: '' }
 const daTela = (papeis: string[]) => papeis.filter((p) => Papeis.some(([valor]) => valor === p))
 const ficha = (u: Usuario): Ficha => ({ id: u.id, cpf: u.cpf, nome: u.nome, email: u.email, papeis: daTela(u.papeis), setores: u.setores, senhaTemporaria: '' })
@@ -37,7 +38,7 @@ function alternar<T>(lista: T[], valor: T) {
 
 const Colunas = [{ titulo: 'Nome' }, { titulo: 'CPF', largo: true }, { titulo: 'E-mail', largo: true }, { titulo: 'Papéis', largo: true }, { titulo: 'Situação' }, { titulo: '' }]
 
-function LinhaUsuario({ u, setores, editar, desativar, pendente }: { u: Usuario; setores: Map<number, string>; editar: () => void; desativar: () => void; pendente: boolean }) {
+function LinhaUsuario({ u, setores, editar, desativar, pendente, propria }: { u: Usuario; setores: Map<number, string>; editar: () => void; desativar: () => void; pendente: boolean; propria: boolean }) {
   const papeis = new Map(Papeis)
   const perfil = daTela(u.papeis).map((p) => papeis.get(p)).join(', ') + (u.setores.length > 0 ? ` · ${u.setores.map((s) => setores.get(s)).join(', ')}` : '')
   return (
@@ -60,10 +61,14 @@ function LinhaUsuario({ u, setores, editar, desativar, pendente }: { u: Usuario;
         {u.ativo && (
           <MenuAcoes nome={u.nome} pendente={pendente}>
             <DropdownMenuItem onSelect={editar}>Editar</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onSelect={desativar}>
-              Desativar
-            </DropdownMenuItem>
+            {!propria && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onSelect={desativar}>
+                  Desativar
+                </DropdownMenuItem>
+              </>
+            )}
           </MenuAcoes>
         )}
       </TableCell>
@@ -71,16 +76,20 @@ function LinhaUsuario({ u, setores, editar, desativar, pendente }: { u: Usuario;
   )
 }
 
-function PapeisESetores({ editando, setEditando, setores }: Edicao) {
+function PapeisESetores({ editando, setEditando, setores, propria }: Edicao) {
   const marcar = (chave: 'papeis' | 'setores', valor: string | number) => setEditando((f) => f && { ...f, [chave]: alternar(f[chave] as (string | number)[], valor) })
   return (
     <>
-      <div className="flex flex-col">
-        <Label>Papéis</Label>
-        {Papeis.map(([valor, rotulo]) => (
-          <Marca key={valor} id={`papel-${valor}`} rotulo={rotulo} marcado={editando.papeis.includes(valor)} mudar={() => marcar('papeis', valor)} />
-        ))}
-      </div>
+      {propria ? (
+        <p className="text-sm text-muted-foreground">Você não pode mudar o próprio papel. Peça a outro administrador.</p>
+      ) : (
+        <div className="flex flex-col">
+          <Label>Papéis</Label>
+          {Papeis.map(([valor, rotulo]) => (
+            <Marca key={valor} id={`papel-${valor}`} rotulo={rotulo} marcado={editando.papeis.includes(valor)} mudar={() => marcar('papeis', valor)} />
+          ))}
+        </div>
+      )}
       {editando.papeis.includes('ATENDENTE') && (
         <div className="flex flex-col">
           <Label>Setores do atendente</Label>
@@ -95,14 +104,14 @@ function PapeisESetores({ editando, setEditando, setores }: Edicao) {
   )
 }
 
-function CamposDoUsuario({ editando, setEditando, setores, erros }: Edicao & { erros: Record<string, string> }) {
+function CamposDoUsuario({ editando, setEditando, setores, erros, propria }: Edicao & { erros: Record<string, string> }) {
   const muda = (chave: 'cpf' | 'nome' | 'email' | 'senhaTemporaria') => (e: { target: { value: string } }) => setEditando((f) => f && { ...f, [chave]: e.target.value })
   return (
     <>
       <Campo id="cpf" rotulo="CPF" inputMode="numeric" autoComplete="off" spellCheck={false} placeholder="Ex.: 000.000.000-00…" value={editando.cpf} erro={erros.cpf} onChange={muda('cpf')} />
       <Campo id="nome" rotulo="Nome" value={editando.nome} erro={erros.nome} onChange={muda('nome')} />
       <Campo id="email" rotulo="E-mail" type="email" autoComplete="off" spellCheck={false} value={editando.email} erro={erros.email} onChange={muda('email')} />
-      <PapeisESetores editando={editando} setEditando={setEditando} setores={setores} />
+      <PapeisESetores editando={editando} setEditando={setEditando} setores={setores} propria={propria} />
       <div className="flex flex-col gap-2">
         <Campo id="senha" rotulo="Senha temporária (opcional)" type="password" autoComplete="new-password" value={editando.senhaTemporaria} erro={erros.senhaTemporaria} onChange={muda('senhaTemporaria')} />
         <p className="text-sm text-muted-foreground">Com senha temporária, a pessoa troca a senha no primeiro login. Sem ela, entra pelo primeiro acesso por e-mail.</p>
@@ -133,6 +142,7 @@ function ConfirmarDesativacao({ usuario, fechar, confirmar }: { usuario?: Usuari
 }
 
 export function Usuarios() {
+  const { me } = useSessao()
   const { dados, erro, recarregar } = useLeituras<{ usuarios: Usuario[]; setores: Setor[] }>({ usuarios: '/api/admin/usuarios', setores: '/api/admin/setores' })
   const [desativar, setDesativar] = useState<Usuario>()
   const [busca, setBusca] = useBuscaNaUrl()
@@ -167,13 +177,13 @@ export function Usuarios() {
         vazio={vazioDaBusca(busca)}
       >
         {visiveis?.map((u) => (
-          <LinhaUsuario key={u.id} u={u} setores={nomes} editar={() => abrir(ficha(u))} desativar={() => setDesativar(u)} pendente={acao.isPending} />
+          <LinhaUsuario key={u.id} u={u} setores={nomes} editar={() => abrir(ficha(u))} desativar={() => setDesativar(u)} pendente={acao.isPending} propria={u.id === me.id} />
         ))}
       </Tabela>
       {mais}
 
       <Editor sujo={sujo} titulo={tituloDaJanela(editando)} aberto={!!editando} fechar={fechar} salvar={salvar} pendente={acao.isPending} alerta={<ErroDe erro={acao.error} campos={CamposComErro} />} botao="Salvar usuário">
-        {editando && <CamposDoUsuario editando={editando} setEditando={setEditando} setores={setores} erros={errosDeCampo(acao.error)} />}
+        {editando && <CamposDoUsuario editando={editando} setEditando={setEditando} setores={setores} erros={errosDeCampo(acao.error)} propria={editando.id === me.id} />}
       </Editor>
 
       <ConfirmarDesativacao usuario={desativar} fechar={() => setDesativar(undefined)} confirmar={confirmarDesativar} />

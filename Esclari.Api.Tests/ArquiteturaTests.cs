@@ -1343,6 +1343,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         "Acesso.Eu",
         "Acesso.TrocarSenha",
         "Administracao.Integracoes.CriarTokenMcp",
+        "Administracao.Usuarios.AlterarUsuario",
         "Administracao.Usuarios.DesativarUsuario",
         "Assistente.Conversas.AtendimentoDireto",
         "Assistente.Conversas.AvaliarConversa",

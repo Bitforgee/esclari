@@ -18,6 +18,8 @@ public sealed class DesativarUsuarioHandler(EsclariDb db, TimeProvider relogio) 
         var id = m.Id;
         var u = await db.Usuarios.Include(x => x.Papeis).FirstOrDefaultAsync(x => x.Id == id);
         if (u is null) return ErrosDeAdmin.NaoEncontrado();
+        if (id == m.Admin.Id) return ErrosDeAdmin.PropriaConta();
+        if (await ValidacaoDeUsuario.UltimoAdministrador(db, u, false) is { } recusa) return recusa;
         var agora = relogio.GetUtcNow().UtcDateTime;
         var adminId = m.Admin.Id;
         u.Desativar();

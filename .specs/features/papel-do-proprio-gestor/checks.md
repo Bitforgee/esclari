@@ -78,6 +78,7 @@ Cost: 6 testes de API e 3 de tela novos, todos em arquivos existentes.
 
 - `web/src/administracao/cadastros/usuarios.test.tsx`: a constante `admin` (`me({ papeis: ['ADMINISTRADOR'], matriculas: [] })`) passa a ter `id: 99`. O `me()` padrão tem `id: 1`, o mesmo da usuária Carla da fixture, e a tela agora trata a linha com o `id` do usuário logado como a própria. Nenhuma asserção muda: só o dado de entrada deixa de colidir.
 - `Esclari.Api.Tests/ArquiteturaTests.cs`: a lista `Excecoes_Mensagem_sem_entidade` ganha `Administracao.Usuarios.AlterarUsuario`, porque a mensagem passa a levar o `Usuario` chamador, como já faz `DesativarUsuario`. Nenhuma outra regra de arquitetura muda.
+- `web/src/administracao/cadastros/textos.test.tsx`: a mesma constante `admin` passa a ter `id: 99`, pelo mesmo motivo (a fixture `Carla` tem `id: 1`). Sem ela o teste `textos Usuários` falhava porque a linha da Carla virava a própria e perdia `Desativar`; nenhuma lista de textos muda.
 - Outros que a suíte completa apontar entram aqui antes do commit de código.
 
 ## Swept

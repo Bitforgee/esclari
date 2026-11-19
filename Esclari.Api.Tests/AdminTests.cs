@@ -2,9 +2,12 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Esclari.Api.Administracao.Usuarios;
 using Esclari.Api.Dados;
 using Esclari.Api.Tests.Infra;
 using static Esclari.Api.Dados.Chamados.EstadosChamado;
@@ -356,6 +359,106 @@ public class UsuarioAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         }
         Assert.Contains(await b.Eventos(em), e => e.Tipo == "TRANSICAO" && e.AtorId == adminUsuario.Id && e.Para == Aberto);
         Assert.Equal(b.A.Usuario.Id, (await b.Ler(fechado)).ResponsavelId);
+    }
+
+    static object CorpoDe(Usuario u, string[] papeis, string? nome = null, long[]? setores = null) =>
+        new { cpf = u.Cpf.Valor, nome = nome ?? u.Nome, email = u.Email, papeis, setores = setores ?? [] };
+
+    static async Task<string> Detalhe(HttpResponseMessage r) => (await r.Json()).GetProperty("detail").GetString()!;
+
+    [Fact]
+    public async Task Admin_nao_muda_o_proprio_papel()
+    {
+        var i = await f.Instituicao(nome: "Univag");
+        var eu = await f.Usuario(i, [Papeis.Administrador]);
+        var admin = await f.Entrar(i, eu);
+
+        var r = await admin.PutAsJsonAsync($"/api/admin/usuarios/{eu.Id}", CorpoDe(eu, [Papeis.Aluno]));
+
+        Assert.Equal(HttpStatusCode.Conflict, r.StatusCode);
+        Assert.Equal("Você não pode mudar o próprio papel. Peça a outro administrador.", await Detalhe(r));
+        Assert.Equal([Papeis.Administrador], await f.Db(i.Id, db => db.Usuarios.Where(u => u.Id == eu.Id).SelectMany(u => u.Papeis).Select(p => p.Papel).ToListAsync()));
+    }
+
+    [Fact]
+    public async Task Admin_edita_o_proprio_nome_com_os_mesmos_papeis()
+    {
+        var i = await f.Instituicao(nome: "Univag");
+        var triagem = await f.Db(i.Id, db => db.Setores.SingleAsync());
+        var eu = await f.Usuario(i, [Papeis.Administrador, Papeis.Atendente]);
+        var admin = await f.Entrar(i, eu);
+
+        var r = await admin.PutAsJsonAsync($"/api/admin/usuarios/{eu.Id}", CorpoDe(eu, [Papeis.Atendente, Papeis.Administrador], "Nome Novo", [triagem.Id]));
+
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        Assert.Equal("Nome Novo", (await f.Db(i.Id, db => db.Usuarios.SingleAsync(u => u.Id == eu.Id))).Nome);
+    }
+
+    [Fact]
+    public async Task Admin_muda_o_papel_de_outro_administrador()
+    {
+        var i = await f.Instituicao(nome: "Univag");
+        var admin = await f.Entrar(i, await f.Usuario(i, [Papeis.Administrador]));
+        var outro = await f.Usuario(i, [Papeis.Administrador]);
+
+        var r = await admin.PutAsJsonAsync($"/api/admin/usuarios/{outro.Id}", CorpoDe(outro, [Papeis.Aluno]));
+
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        Assert.Equal([Papeis.Aluno], await f.Db(i.Id, db => db.Usuarios.Where(u => u.Id == outro.Id).SelectMany(u => u.Papeis).Select(p => p.Papel).ToListAsync()));
+    }
+
+    [Fact]
+    public async Task Admin_nao_desativa_a_si_mesmo()
+    {
+        var i = await f.Instituicao(nome: "Univag");
+        var eu = await f.Usuario(i, [Papeis.Administrador]);
+        var admin = await f.Entrar(i, eu);
+
+        var r = await admin.PostAsJsonAsync($"/api/admin/usuarios/{eu.Id}/desativar", new { });
+
+        Assert.Equal(HttpStatusCode.Conflict, r.StatusCode);
+        Assert.Equal("Você não pode desativar a própria conta.", await Detalhe(r));
+        Assert.True((await f.Db(i.Id, db => db.Usuarios.SingleAsync(u => u.Id == eu.Id))).Ativo);
+    }
+
+    [Fact]
+    public async Task Admin_desativa_outro_administrador()
+    {
+        var i = await f.Instituicao(nome: "Univag");
+        var admin = await f.Entrar(i, await f.Usuario(i, [Papeis.Administrador]));
+        var outro = await f.Usuario(i, [Papeis.Administrador]);
+
+        var r = await admin.PostAsJsonAsync($"/api/admin/usuarios/{outro.Id}/desativar", new { });
+
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        Assert.False((await f.Db(i.Id, db => db.Usuarios.SingleAsync(u => u.Id == outro.Id))).Ativo);
+    }
+
+    [Fact]
+    public async Task Ultimo_administrador_ativo_nao_se_perde()
+    {
+        var i = await f.Instituicao(nome: "Univag");
+        var unico = await f.Usuario(i, [Papeis.Administrador]);
+        var aluno = await f.Usuario(i, [Papeis.Aluno]);
+        Task<IResult?> consultar(long id, bool continua) =>
+            f.Db(i.Id, async db => await ValidacaoDeUsuario.UltimoAdministrador(db, await db.Usuarios.Include(u => u.Papeis).SingleAsync(u => u.Id == id), continua));
+
+        var recusa = Assert.IsType<ProblemHttpResult>(await consultar(unico.Id, false));
+        Assert.Equal(409, recusa.StatusCode);
+        Assert.Equal("A instituição precisa de ao menos um administrador ativo.", recusa.ProblemDetails.Detail);
+        Assert.Null(await consultar(unico.Id, true));
+        Assert.Null(await consultar(aluno.Id, false));
+
+        var segundo = await f.Usuario(i, [Papeis.Administrador]);
+        Assert.Null(await consultar(unico.Id, false));
+
+        await f.Db(i.Id, async db =>
+        {
+            (await db.Usuarios.SingleAsync(u => u.Id == segundo.Id)).Desativar();
+            await db.SaveChangesAsync();
+        });
+        Assert.IsType<ProblemHttpResult>(await consultar(unico.Id, false));
+        Assert.Null(await consultar(segundo.Id, false));
     }
 
     [Fact]
