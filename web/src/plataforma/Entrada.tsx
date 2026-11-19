@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import QRCode from 'qrcode'
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { BotaoAcao } from '../acao'
 import { api } from '../api'
 import { useTema } from '../aparencia'
@@ -55,9 +55,14 @@ function Credenciais({ avancar }: { avancar: (e: Etapa) => void }) {
 const Toque = '(pointer: coarse)'
 
 function QrCode({ uri }: { uri: string }) {
-  const { data: svg } = useQuery({ queryKey: ['qr', uri], queryFn: () => QRCode.toString(uri, { type: 'svg' }), staleTime: Infinity })
+  const { data: svg } = useQuery({ queryKey: ['qr', uri], queryFn: () => QRCode.toString(uri, { type: 'svg', errorCorrectionLevel: 'H' }), staleTime: Infinity })
   if (!svg) return null
-  return <img src={'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)} alt="QR code para o aplicativo autenticador" width={200} height={200} className="size-50 rounded-md bg-white p-2" />
+  return (
+    <div className="relative size-50">
+      <img src={'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)} alt="QR code para o aplicativo autenticador" width={200} height={200} className="size-50 rounded-md bg-white p-2" />
+      <img src="/marca/simbolo-pequeno.svg" alt="" width={40} height={40} className="absolute top-1/2 left-1/2 size-10 -translate-x-1/2 -translate-y-1/2 rounded-sm bg-white p-1 text-black" />
+    </div>
+  )
 }
 
 function Cadastro({ etapa }: { etapa: Etapa }) {
@@ -79,30 +84,55 @@ function Cadastro({ etapa }: { etapa: Etapa }) {
   )
 }
 
+const ClasseDoCodigo = 'h-14 max-md:h-14 pointer-coarse:h-14 pl-[calc(0.75rem+0.5em)] text-center font-mono text-2xl md:text-2xl pointer-coarse:text-2xl tracking-[0.5em]'
+
 function Codigo({ etapa, entrou }: { etapa: Etapa; entrou: () => void }) {
   const [codigo, setCodigo] = useState('')
-  const confirmar = useMutation({ mutationFn: () => api('/api/plataforma/auth/codigo', { codigo }), onSuccess: entrou })
+  const campo = useRef<HTMLInputElement>(null)
+  const confirmar = useMutation({
+    mutationFn: (digitos: string) => api('/api/plataforma/auth/codigo', { codigo: digitos }),
+    onSuccess: entrou,
+    onError: () => {
+      setCodigo('')
+      campo.current?.focus()
+    },
+  })
+  const enviar = (digitos: string) => {
+    if (!confirmar.isPending) confirmar.mutate(digitos)
+  }
+  const preencher = (texto: string) => {
+    const digitos = texto.replace(/\D/g, '').slice(0, 6)
+    setCodigo(digitos)
+    if (digitos.length === 6) enviar(digitos)
+  }
   const erro = errosDeCampo(confirmar.error).codigo
   return (
     <form
       className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault()
-        confirmar.mutate()
+        enviar(codigo)
       }}
     >
       <Cadastro etapa={etapa} />
       <Campo
+        ref={campo}
         id="codigo"
         rotulo="Código de 6 dígitos"
         inputMode="numeric"
         autoComplete="one-time-code"
+        autoFocus
         maxLength={6}
         spellCheck={false}
+        className={ClasseDoCodigo}
         value={codigo}
         erro={erro}
         aria-describedby={descricaoDoCampo('codigo', undefined, erro)}
-        onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ''))}
+        onChange={(e) => preencher(e.target.value)}
+        onPaste={(e) => {
+          e.preventDefault()
+          preencher(e.clipboardData.getData('text'))
+        }}
       />
       <ErroDe erro={confirmar.error} campos={['codigo']} />
       <BotaoAcao type="submit" pendente={confirmar.isPending} className="h-11">
@@ -111,7 +141,6 @@ function Codigo({ etapa, entrou }: { etapa: Etapa; entrou: () => void }) {
     </form>
   )
 }
-
 export function Entrada({ aviso, entrou }: { aviso?: string; entrou: () => void }) {
   const [etapa, setEtapa] = useState<Etapa>()
   return <Moldura aviso={aviso}>{etapa ? <Codigo etapa={etapa} entrou={entrou} /> : <Credenciais avancar={setEtapa} />}</Moldura>
