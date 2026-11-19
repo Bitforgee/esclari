@@ -27,7 +27,7 @@ public class AparenciaPublicaTests(EsclariFactory f) : IClassFixture<EsclariFact
         Assert.Equal(HttpStatusCode.OK, r.StatusCode);
         var corpo = await r.Json();
         Assert.Equal("Univag", corpo.GetProperty("nome").GetString());
-        Assert.Equal(["nome", "nomeCurto", "cor", "login", "assistente", "contato", "imagens"], corpo.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(["nome", "nomeCurto", "cor", "login", "assistente", "contato", "imagens", "iconeTipo"], corpo.EnumerateObject().Select(p => p.Name));
         Assert.Equal("#8a1538", corpo.GetProperty("cor").GetString());
         Assert.Equal(["Chamados"], corpo.GetProperty("login").GetProperty("itens").EnumerateArray().Select(e => e.GetString()));
         Assert.Equal("(65) 3688-6000", corpo.GetProperty("contato").GetProperty("telefone").GetString());

@@ -147,3 +147,6 @@ Cost: 1 arquivo de teste unitário, 5 de tela, 3 testes de API novos.
 ## Handoff
 
 - S1 ~30k + S2 ~23k + S3 ~28k = ~81k (wc -c dos arquivos tocados / 4), abaixo do orçamento de 150k - um construtor
+- **Boundary:** C1-C21 closed at the commit after `2d813c7`; base `17852da`. API 1392 de 1392, Vitest 140 arquivos verdes, `npm run build`, `dotnet build`, `crapper` e `dryer` saem 0
+- **Settled mid-build:** `GET /api/instituicoes/{slug}` ganhou `iconeTipo` (linha acrescentada ao `Surface` antes do código, porque AC 17 precisa do tipo no web); a rota do envio é `/api/admin/aparencia/imagens/icone`. Asserções existentes trocadas para o comportamento aprovado: 6 corpos com CPF pontuado passam aos 11 dígitos (AC 5), `Tipo_de_imagem_recusado_415` recusa GIF no ícone em vez de JPEG (AC 13), `Icone_nao_quadrado_ou_pequeno_400` e `guidelinesFormatos` usam as frases novas (AC 14, AC 18), a lista de campos de `AparenciaPublicaTests` e as listas de `estrutura.test.ts` ganham os itens novos. `enderecoDe` (endereço gerado do nome) não corta em 30, porque AC 11 trata só da digitação no campo
+- **Abandoned:** nada

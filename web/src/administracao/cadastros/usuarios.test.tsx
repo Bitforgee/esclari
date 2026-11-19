@@ -71,7 +71,7 @@ describe('usuários', () => {
     expect(d.queryByRole('combobox')).not.toBeInTheDocument()
     await userEvent.click(d.getByRole('button', { name: 'Salvar usuário' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(posts(chamadas)).toEqual([['PUT', '/api/admin/usuarios/99', { cpf: '111.444.777-35', nome: 'Ana', email: 'ana@univag.edu.br', tipoId: 1, setores: [] }]])
+    expect(posts(chamadas)).toEqual([['PUT', '/api/admin/usuarios/99', { cpf: '11144477735', nome: 'Ana', email: 'ana@univag.edu.br', tipoId: 1, setores: [] }]])
   })
 
   it('mostra o erro da API ao salvar ou desativar sem sobrar gestor', async () => {
@@ -115,7 +115,7 @@ describe('usuários', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(posts(chamadas)).toEqual([
-      ['PUT', '/api/admin/usuarios/1', { cpf: '123.456.789-09', nome: 'Carla', email: 'carla@univag.edu.br', tipoId: 2, setores: [1], senhaTemporaria: 'temporaria-123' }],
+      ['PUT', '/api/admin/usuarios/1', { cpf: '12345678909', nome: 'Carla', email: 'carla@univag.edu.br', tipoId: 2, setores: [1], senhaTemporaria: 'temporaria-123' }],
     ])
   })
 
@@ -155,7 +155,7 @@ describe('usuários', () => {
     await userEvent.selectOptions(d.getByLabelText('Tipo'), 'Gestor')
     await userEvent.click(d.getByRole('button', { name: 'Salvar usuário' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(posts(chamadas)).toEqual([['POST', '/api/admin/usuarios', { cpf: '123.456.789-09', nome: 'Davi', email: 'davi@univag.edu.br', tipoId: 1, setores: [] }]])
+    expect(posts(chamadas)).toEqual([['POST', '/api/admin/usuarios', { cpf: '12345678909', nome: 'Davi', email: 'davi@univag.edu.br', tipoId: 1, setores: [] }]])
     expect(posts(chamadas)[0][2]).not.toHaveProperty('papeis')
   })
 

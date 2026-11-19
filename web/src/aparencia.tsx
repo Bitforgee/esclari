@@ -16,7 +16,7 @@ export type Aparencia = {
   contato: { horario: string | null; telefone: string | null; email: string | null }
   imagens: Imagens
 }
-export type InstituicaoPublica = Aparencia & { nome: string }
+export type InstituicaoPublica = Aparencia & { nome: string; iconeTipo?: string | null }
 
 const Padrao: Aparencia = {
   nomeCurto: null,
@@ -96,11 +96,14 @@ function faviconDaMarca(visivel: boolean) {
   else if (!atual) document.head.prepend(Object.assign(document.createElement('link'), { rel: 'icon', type: 'image/svg+xml', href: '/marca/favicon.svg' }))
 }
 
+const Favicon = 'link[rel="icon"]:not([type="image/svg+xml"])'
+
 function aplicar(slug: string | undefined, d: InstituicaoPublica | undefined, tema: keyof typeof CorDaBarra) {
   marcar(d?.cor)
   titular(d)
   const icone = iconeDe(slug, d)
-  ponto('link[rel="icon"][type="image/png"]', 'link', { rel: 'icon', type: 'image/png' }, 'href', icone)
+  ponto(Favicon, 'link', { rel: 'icon', type: 'image/png' }, 'href', icone)
+  document.head.querySelector(Favicon)?.setAttribute('type', (icone && d?.iconeTipo) || 'image/png')
   faviconDaMarca(icone === null)
   ponto('link[rel="apple-touch-icon"]', 'link', { rel: 'apple-touch-icon' }, 'href', icone)
   barra(d?.cor ?? CorDaBarra[tema])

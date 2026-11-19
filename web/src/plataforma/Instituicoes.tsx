@@ -9,6 +9,7 @@ import { Campo, ErroDoCampo, useFocoNoPrimeiroErro } from '../Campo'
 import { Editor, useSujo } from '../Editor'
 import { ErroDe, errosDeCampo } from '../ErroDe'
 import { dataCurta, plural, porcentagem } from '../formatos'
+import { cpfMascara, enderecoMascara, PropsDoCpf, soDigitos } from '../mascaras'
 import { CelulaLargo, Detalhe, MenuAcoes, Principal, Tabela } from '../Tabela'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
@@ -47,7 +48,7 @@ export const enderecoDe = (nome: string) =>
 
 type Ficha = { nome: string; slug: string; slugEditado: boolean; fuso: string; adminNome: string; cpf: string; email: string }
 const Nova: Ficha = { nome: '', slug: '', slugEditado: false, fuso: Fusos[0], adminNome: '', cpf: '', email: '' }
-const corpo = (f: Ficha) => ({ slug: f.slug, nome: f.nome, fuso: f.fuso, admin: { cpf: f.cpf, nome: f.adminNome, email: f.email } })
+const corpo = (f: Ficha) => ({ slug: f.slug, nome: f.nome, fuso: f.fuso, admin: { cpf: soDigitos(f.cpf), nome: f.adminNome, email: f.email } })
 
 function errosDaCriacao(erro: unknown): Record<string, string> {
   return erro instanceof ErroApi && erro.status === 409 ? { slug: erro.message } : errosDeCampo(erro)
@@ -63,7 +64,7 @@ function Formulario({ ficha, mudar, erros }: { ficha: Ficha; mudar: (parcial: Pa
         <Label htmlFor="endereco">Endereço</Label>
         <div className="flex items-center gap-1">
           <span aria-hidden="true">/</span>
-          <Input id="endereco" name="endereco" autoComplete="off" spellCheck={false} value={ficha.slug} aria-invalid={!!erros.slug} aria-describedby={erros.slug ? 'endereco-erro' : undefined} onChange={(e) => mudar({ slug: e.target.value, slugEditado: true })} />
+          <Input id="endereco" name="endereco" autoComplete="off" spellCheck={false} value={ficha.slug} aria-invalid={!!erros.slug} aria-describedby={erros.slug ? 'endereco-erro' : undefined} onChange={(e) => mudar({ slug: enderecoMascara(e.target.value), slugEditado: true })} />
         </div>
         <ErroDoCampo id="endereco" erro={erros.slug} />
       </div>
@@ -83,7 +84,7 @@ function Formulario({ ficha, mudar, erros }: { ficha: Ficha; mudar: (parcial: Pa
           Primeiro administrador
         </legend>
         <Campo id="admin-nome" rotulo="Nome" autoComplete="off" value={ficha.adminNome} erro={erros['admin.nome']} onChange={texto('adminNome')} />
-        <Campo id="admin-cpf" rotulo="CPF" inputMode="numeric" autoComplete="off" spellCheck={false} placeholder="Ex.: 000.000.000-00…" value={ficha.cpf} erro={erros['admin.cpf']} onChange={texto('cpf')} />
+        <Campo id="admin-cpf" rotulo="CPF" {...PropsDoCpf} autoComplete="off" value={ficha.cpf} erro={erros['admin.cpf']} onChange={(e) => mudar({ cpf: cpfMascara(e.target.value) })} />
         <Campo id="admin-email" rotulo="E-mail" type="email" autoComplete="off" spellCheck={false} value={ficha.email} erro={erros['admin.email']} onChange={texto('email')} />
       </fieldset>
     </>

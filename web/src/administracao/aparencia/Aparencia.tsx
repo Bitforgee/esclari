@@ -9,6 +9,7 @@ import { contraste, CorValida, MinimoDeContraste, normalizar, urlDaImagem } from
 import { ErroDoCampo } from '../../Campo'
 import { Confirmar, ConfirmarSaida } from '../../Confirmar'
 import { ErroDe } from '../../ErroDe'
+import { telefoneMascara } from '../../mascaras'
 import { useSessao } from '../../sessao'
 import { Alert } from '../../ui/alert'
 import { Button } from '../../ui/button'
@@ -110,7 +111,7 @@ export function descricaoDe(campo: Campo, id: string, erro?: string) {
 type PropsDaEntrada = { area?: boolean; tipo?: 'tel' | 'email'; props: { id: string; name: string; autoComplete: 'off'; value: string; 'aria-invalid': boolean; 'aria-describedby': string | undefined }; mudar: (v: string) => void }
 
 function Entrada({ area, tipo, props, mudar }: PropsDaEntrada) {
-  return area ? <Textarea rows={3} {...props} onChange={(e) => mudar(e.target.value)} /> : <Input type={tipo} spellCheck={tipo === 'email' ? false : undefined} {...props} onChange={(e) => mudar(e.target.value)} />
+  return area ? <Textarea rows={3} {...props} onChange={(e) => mudar(e.target.value)} /> : <Input type={tipo} spellCheck={tipo === 'email' ? false : undefined} {...props} onChange={(e) => mudar(tipo === 'tel' ? telefoneMascara(e.target.value) : e.target.value)} />
 }
 
 function RodapeDoCampo({ campo, id, tamanho }: { campo: Campo; id: string; tamanho: number }) {

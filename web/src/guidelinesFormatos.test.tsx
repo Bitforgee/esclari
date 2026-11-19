@@ -42,7 +42,7 @@ describe('tamanho, unidade e plural', () => {
   it('C36 as ajudas de tamanho e de pixels usam espaço inseparável', () => {
     expect(AjudaDosAnexos).toBe(`PDF ou foto, até 10${NB}MB`)
     expect(Rotulos.logo[1]).toBe(`PNG ou JPEG, até 1${NB}MB.`)
-    expect(Rotulos.icone[1]).toBe(`PNG quadrado de pelo menos 512${NB}px, até 1${NB}MB.`)
+    expect(Rotulos.icone[1]).toBe(`PNG ou JPEG quadrado de pelo menos 512${NB}px, até 1${NB}MB.`)
     expect(Rotulos.login[1]).toBe(`PNG ou JPEG, até 3${NB}MB.`)
   })
 

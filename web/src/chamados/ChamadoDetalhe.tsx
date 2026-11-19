@@ -11,6 +11,7 @@ import { CampoArquivo } from '../CampoArquivo'
 import { useChamado, type Chamado } from '../chamado'
 import { useConsulta } from '../ui/use-mobile'
 import { Marca } from '../Marca'
+import { protocoloMascara } from '../mascaras'
 import { Opcoes } from '../Opcoes'
 import { useSessao } from '../sessao'
 import { Alert } from '../ui/alert'
@@ -354,7 +355,7 @@ function PainelDeAcoes({ c, acoes, abrir, semAssumir, motivo, setMotivo, campos 
       </FormLinha>
       <FormLinha visivel={pode('duplicado')} enviar={() => executar('duplicado', { numeroOriginal: original.trim().toUpperCase() }, () => setOriginal(''))}
         id="original" rotulo="Duplicado de outro pedido do mesmo aluno" botao="Marcar" pendente={pendente} pronto={original.trim() !== ''}>
-        <Input id="original" name="original" autoComplete="off" spellCheck={false} placeholder="Ex.: ESC-000123…" value={original} onChange={(e) => setOriginal(e.target.value)} className="h-11" />
+        <Input id="original" name="original" autoComplete="off" spellCheck={false} placeholder="Ex.: ESC-000123…" value={original} onChange={(e) => setOriginal(protocoloMascara(e.target.value))} className="h-11" />
       </FormLinha>
       <FormTexto visivel={pode('rejeitar')} enviar={() => executar('rejeitar', { motivo }, () => setMotivo(''))}
         id="motivo" rotulo="Não resolveu? Explique o motivo" botao="Rejeitar resolução" variant="outline" pendente={pendente} valor={motivo} setValor={setMotivo} />

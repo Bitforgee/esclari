@@ -9,6 +9,7 @@ import { Editor, useSujo } from '../../Editor'
 import { ErroDe, errosDeCampo } from '../../ErroDe'
 import { Literal } from '../../Literal'
 import { Marca } from '../../Marca'
+import { cpfMascara, PropsDoCpf, soDigitos } from '../../mascaras'
 import { CelulaLargo, Detalhe, MenuAcoes, Principal, Tabela, useMostrarMais } from '../../Tabela'
 import { Badge } from '../../ui/badge'
 import { DropdownMenuItem, DropdownMenuSeparator } from '../../ui/dropdown-menu'
@@ -23,12 +24,12 @@ import { cpfFormatado, type Setor, type TipoDeUsuario, type Tipos, type Usuario 
 type Ficha = Pick<Usuario, 'cpf' | 'nome' | 'email' | 'setores'> & { id?: number; tipoId: number | null; senhaTemporaria: string }
 type Edicao = { editando: Ficha; setEditando: Dispatch<SetStateAction<Ficha | undefined>>; setores: Setor[]; tipos: TipoDeUsuario[]; propria?: boolean; erros: Record<string, string> }
 const Novo: Ficha = { cpf: '', nome: '', email: '', tipoId: null, setores: [], senhaTemporaria: '' }
-const ficha = (u: Usuario): Ficha => ({ id: u.id, cpf: u.cpf, nome: u.nome, email: u.email, tipoId: u.tipo.id, setores: u.setores, senhaTemporaria: '' })
+const ficha = (u: Usuario): Ficha => ({ id: u.id, cpf: cpfMascara(u.cpf), nome: u.nome, email: u.email, tipoId: u.tipo.id, setores: u.setores, senhaTemporaria: '' })
 const exigeSetor = (tipos: TipoDeUsuario[], tipoId: number | null) => {
   const tipo = tipos.find((t) => t.id === tipoId)
   return !!tipo && tipo.sistema !== 'GESTOR' && tipo.funcoes.includes('fila.atender')
 }
-const corpo = (u: Ficha, tipos: TipoDeUsuario[]) => ({ cpf: u.cpf, nome: u.nome, email: u.email, tipoId: u.tipoId, setores: exigeSetor(tipos, u.tipoId) ? u.setores : [], senhaTemporaria: u.senhaTemporaria || undefined })
+const corpo = (u: Ficha, tipos: TipoDeUsuario[]) => ({ cpf: soDigitos(u.cpf), nome: u.nome, email: u.email, tipoId: u.tipoId, setores: exigeSetor(tipos, u.tipoId) ? u.setores : [], senhaTemporaria: u.senhaTemporaria || undefined })
 
 function alternar<T>(lista: T[], valor: T) {
   return lista.includes(valor) ? lista.filter((x) => x !== valor) : [...lista, valor]
@@ -118,7 +119,7 @@ function CamposDoUsuario(props: Edicao) {
   const muda = (chave: 'cpf' | 'nome' | 'email' | 'senhaTemporaria') => (e: { target: { value: string } }) => setEditando((f) => f && { ...f, [chave]: e.target.value })
   return (
     <>
-      <Campo id="cpf" rotulo="CPF" inputMode="numeric" autoComplete="off" spellCheck={false} placeholder="Ex.: 000.000.000-00…" value={editando.cpf} erro={erros.cpf} onChange={muda('cpf')} />
+      <Campo id="cpf" rotulo="CPF" {...PropsDoCpf} autoComplete="off" value={editando.cpf} erro={erros.cpf} onChange={(e) => muda('cpf')({ target: { value: cpfMascara(e.target.value) } })} />
       <Campo id="nome" rotulo="Nome" value={editando.nome} erro={erros.nome} onChange={muda('nome')} />
       <Campo id="email" rotulo="E-mail" type="email" autoComplete="off" spellCheck={false} value={editando.email} erro={erros.email} onChange={muda('email')} />
       <TipoESetores {...props} />

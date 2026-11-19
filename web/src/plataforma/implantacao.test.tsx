@@ -134,7 +134,7 @@ describe('implantação da instituição', () => {
     await userEvent.click(d.getByLabelText('Financeiro'))
     await userEvent.click(d.getByRole('button', { name: 'Convidar' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(gravacoes(chamadas).at(-1)).toEqual([`${Base}/equipe`, { nome: 'Carla', cpf: '123.456.789-09', email: 'carla@demo.edu.br', tipo: 'ATENDENTE', setores: [2] }])
+    expect(gravacoes(chamadas).at(-1)).toEqual([`${Base}/equipe`, { nome: 'Carla', cpf: '12345678909', email: 'carla@demo.edu.br', tipo: 'ATENDENTE', setores: [2] }])
     expect(d.queryByLabelText(/senha/i)).toBeNull()
   })
 
@@ -164,7 +164,7 @@ describe('implantação da instituição', () => {
     await userEvent.click(d.getByRole('button', { name: 'Convidar' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     const corpo = gravacoes(chamadas).at(-1)![1]
-    expect(corpo).toEqual({ nome: 'Gil', cpf: '123.456.789-09', email: 'gil@demo.edu.br', tipo: 'GESTOR', setores: [] })
+    expect(corpo).toEqual({ nome: 'Gil', cpf: '12345678909', email: 'gil@demo.edu.br', tipo: 'GESTOR', setores: [] })
     expect(corpo).not.toHaveProperty('papeis')
   })
 

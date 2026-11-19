@@ -33,8 +33,9 @@ Máscaras (só `web/`):
 | --- | --- |
 | domain | novo termo: máscara - formatação do texto do campo enquanto se digita; o valor enviado à API não muda de formato |
 | domain | termo existente: "ícone do app" aceitava só PNG, passa a aceitar PNG ou JPEG; quem ramifica nele: `EnviarImagemInstituicao`, `ManifestoInstituicao.Icones`, `aparencia.tsx` (`link[rel=icon][type=image/png]`), os textos de `abasDaAparencia.ts` |
-| existing tests | os testes que digitam o CPF só em dígitos continuam válidos, porque a máscara aceita dígitos; os que afirmam `"O ícone deve ser PNG."` e o `type: "image/png"` do manifesto do ícone próprio passam às frases de AC 13, AC 14 e AC 16; os 4 que afirmam o corpo com CPF pontuado (`usuarios.test.tsx` 2, `implantacao.test.tsx` 2) passam a afirmar os 11 dígitos de AC 5; `AparenciaAdminTests.Tipo_de_imagem_recusado_415` afirmava JPEG recusado no ícone e passa a recusar GIF (AC 13) |
-| retrato da API | `instituicao-publica.txt` e `sucessos.txt` ganham só `iconeTipo` (acrescentado no build) |
+| existing tests | os testes que digitam o CPF só em dígitos continuam válidos, porque a máscara aceita dígitos; os que afirmam `"O ícone deve ser PNG."` e o `type: "image/png"` do manifesto do ícone próprio passam às frases de AC 13, AC 14 e AC 16; os 6 que afirmam o corpo com CPF pontuado (`usuarios.test.tsx` 3, `implantacao.test.tsx` 2, `instituicoes.test.tsx` 1) passam a afirmar os 11 dígitos de AC 5; `AparenciaAdminTests.Tipo_de_imagem_recusado_415` afirmava JPEG recusado no ícone e passa a recusar GIF (AC 13) |
+| retrato da API | `instituicao-publica.txt` e `sucessos.txt` ganham só `iconeTipo` (acrescentado no build); `AparenciaPublicaTests.Instituicao_publica_traz_a_aparencia` lista os campos e ganha `iconeTipo` |
+| teste de estrutura do web | `estrutura.test.ts` lista os arquivos: ganha `mascaras.test.tsx` em `aparencia` e `cadastros` (53 -> 55) e `mascaras.test.ts` e `iconeJpeg.test.tsx` na raiz |
 | stored data | nothing to migrate - nenhuma coluna muda, e ícones PNG já gravados continuam como estão |
 | produção | `esclari.com.br` só ganha a mudança no próximo deploy, que exige "ok" explícito (AGENTS.md) |
 

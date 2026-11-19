@@ -10,6 +10,7 @@ import { api, ErroApi } from '../api'
 import { Carregando } from '../Carregando'
 import { ErroDe } from '../ErroDe'
 import { descricaoDoCampo } from '../Campo'
+import { cpfMascara, PropsDoCpf, soDigitos } from '../mascaras'
 import { urlDaImagem, useInstituicao, usePlaca, useTema, type InstituicaoPublica } from '../aparencia'
 import { telaInicial, useSessao } from '../sessao'
 import { Alert } from '../ui/alert'
@@ -127,7 +128,7 @@ function Entrada({ tela, children }: { tela?: string; children: ReactNode }) {
   )
 }
 
-type Props<T extends FieldValues> = { f: UseFormReturn<T>; nome: Path<T>; rotulo: string; dica?: string } & ComponentProps<'input'>
+type Props<T extends FieldValues> = { f: UseFormReturn<T>; nome: Path<T>; rotulo: string; dica?: string; mascara?: (texto: string) => string } & ComponentProps<'input'>
 
 function BotaoVerSenha({ visivel, alternar }: { visivel: boolean; alternar: () => void }) {
   return (
@@ -151,15 +152,20 @@ function DicaDoCampo({ nome, dica }: { nome: string; dica?: string }) {
   ) : null
 }
 
-function Campo<T extends FieldValues>({ f, nome, rotulo, dica, type, ...props }: Props<T>) {
+function Campo<T extends FieldValues>({ f, nome, rotulo, dica, type, mascara, ...props }: Props<T>) {
   const [visivel, setVisivel] = useState(false)
+  const registro = f.register(nome)
+  const onChange: typeof registro.onChange = (e) => {
+    if (mascara) e.target.value = mascara(e.target.value)
+    return registro.onChange(e)
+  }
   const senha = type === 'password'
   const erro = f.formState.errors[nome]?.message as string | undefined
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor={nome}>{rotulo}</Label>
       <div className="relative">
-        <Input id={nome} type={senha && visivel ? 'text' : type} aria-invalid={!!f.formState.errors[nome]} aria-describedby={descricaoDoCampo(nome, dica, erro)} className={senha ? 'pr-12' : undefined} {...props} {...f.register(nome)} />
+        <Input id={nome} type={senha && visivel ? 'text' : type} aria-invalid={!!f.formState.errors[nome]} aria-describedby={descricaoDoCampo(nome, dica, erro)} className={senha ? 'pr-12' : undefined} {...props} {...registro} onChange={onChange} />
         {senha && <BotaoVerSenha visivel={visivel} alternar={() => setVisivel((v) => !v)} />}
       </div>
       {erro && (
@@ -230,14 +236,14 @@ export function Login() {
         botao="Entrar"
         className="w-full"
         enviar={async (v) => {
-          const u = await api<{ permissoes: string[]; deveTrocarSenha: boolean }>('/api/auth/login', { instituicao: slug, ...v })
+          const u = await api<{ permissoes: string[]; deveTrocarSenha: boolean }>('/api/auth/login', { instituicao: slug, ...v, cpf: soDigitos(v.cpf) })
           navigate(`/${slug}/${telaInicial(u)}`)
         }}
       >
         {(form) => (
           <>
             <p className="m-0 -mb-2 text-sm text-muted-foreground">Entre com seu CPF e sua senha.</p>
-            <Campo f={form} nome="cpf" rotulo="CPF" inputMode="numeric" autoComplete="username" spellCheck={false} placeholder="Ex.: 000.000.000-00…" />
+            <Campo f={form} nome="cpf" rotulo="CPF" {...PropsDoCpf} mascara={cpfMascara} autoComplete="username" />
             <Campo f={form} nome="senha" rotulo="Senha" type="password" autoComplete="current-password" />
           </>
         )}
@@ -261,9 +267,9 @@ export function PrimeiroAcesso() {
           schema={z.object({ cpf: obrigatorio })}
           botao="Enviar link"
           className="w-full"
-          enviar={async (v) => setMensagem((await api<{ mensagem: string }>('/api/auth/primeiro-acesso', { instituicao: slug, ...v })).mensagem)}
+          enviar={async (v) => setMensagem((await api<{ mensagem: string }>('/api/auth/primeiro-acesso', { instituicao: slug, cpf: soDigitos(v.cpf) })).mensagem)}
         >
-          {(form) => <Campo f={form} nome="cpf" rotulo="CPF" inputMode="numeric" autoComplete="off" spellCheck={false} placeholder="Ex.: 000.000.000-00…" dica="Enviaremos um link para criar a senha no e-mail registrado na instituição." />}
+          {(form) => <Campo f={form} nome="cpf" rotulo="CPF" {...PropsDoCpf} mascara={cpfMascara} autoComplete="off" dica="Enviaremos um link para criar a senha no e-mail registrado na instituição." />}
         </Formulario>
       )}
       <Link to={`/${slug}`} className="inline-flex min-h-11 items-center self-start text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">

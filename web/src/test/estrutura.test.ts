@@ -6,7 +6,7 @@ const texto = (arquivo: string) => fontes[`/src/${arquivo}`]
 
 const Fatias = ['acesso', 'administracao', 'assistente', 'chamados', 'conhecimento', 'indicadores', 'plataforma']
 const SemTela = ['ui', 'ilustracoes']
-const Raiz = ['App.tsx', 'Autenticado.tsx', 'acao.tsx', 'api.ts', 'AvisosPush.tsx', 'datas.ts', 'main.tsx', 'push.ts', 'sessao.ts', 'sw.test.ts', 'sw.ts', 'tempo-real.ts', 'tempo-real.test.ts', 'tabela.test.tsx', 'aparencia.test.tsx', 'ux.test.tsx', 'links.test.tsx', 'identidade.test.tsx', 'guidelinesGlobal.test.ts', 'guidelinesCampos.test.tsx', 'guidelinesRascunho.test.tsx', 'guidelinesListas.test.tsx', 'guidelinesConfirmar.test.tsx', 'guidelinesToque.test.tsx', 'guidelinesAnuncio.test.tsx', 'guidelinesFormatos.test.tsx', 'guidelinesUrl.test.tsx', 'guidelinesRotulos.test.tsx']
+const Raiz = ['App.tsx', 'Autenticado.tsx', 'acao.tsx', 'api.ts', 'AvisosPush.tsx', 'datas.ts', 'main.tsx', 'push.ts', 'sessao.ts', 'sw.test.ts', 'sw.ts', 'tempo-real.ts', 'tempo-real.test.ts', 'tabela.test.tsx', 'aparencia.test.tsx', 'ux.test.tsx', 'links.test.tsx', 'identidade.test.tsx', 'guidelinesGlobal.test.ts', 'guidelinesCampos.test.tsx', 'guidelinesRascunho.test.tsx', 'guidelinesListas.test.tsx', 'guidelinesConfirmar.test.tsx', 'guidelinesToque.test.tsx', 'guidelinesAnuncio.test.tsx', 'guidelinesFormatos.test.tsx', 'guidelinesUrl.test.tsx', 'guidelinesRotulos.test.tsx', 'iconeJpeg.test.tsx', 'mascaras.test.ts']
 const SoDaUi = /from ['"](?:radix-ui|@radix-ui\/[^'"]+|class-variance-authority|use-stick-to-bottom|clsx|tailwind-merge)['"]/
 const ForaDaUi = /(?:from|import)\s*['"](?:\.\.\/|@\/(?!ui\/))/
 const pasta = (arquivo: string) => (arquivo.includes('/') ? arquivo.split('/')[0] : '')
@@ -55,7 +55,7 @@ it('estrutura em fatias', () => {
 it('administracao em subpastas', () => {
   const Subpastas = ['aparencia', 'fluxos', 'cadastros', 'integracoes']
   const dela = arquivos.filter((a) => a.startsWith('administracao/')).map((a) => a.slice('administracao/'.length))
-  expect(dela.length).toBe(53)
+  expect(dela.length).toBe(55)
   for (const arquivo of dela) {
     const partes = arquivo.split('/')
     expect(partes.length, arquivo).toBeLessThanOrEqual(2)
@@ -64,9 +64,9 @@ it('administracao em subpastas', () => {
   expect(dela.filter((a) => !a.includes('/')).sort()).toEqual(['avisoAoFechar.ts', 'comum.tsx', 'IconesDoDestino.ts', 'LinhasDosCadastros.tsx', 'marca.test.tsx'].sort())
   for (const subpasta of Subpastas) expect(dela.some((a) => a.startsWith(`${subpasta}/`)), subpasta).toBe(true)
   const Mapa: Record<string, string[]> = {
-    aparencia: ['Aparencia.tsx', 'abasDaAparencia.ts', 'CampoImagem.tsx', 'CoresProntas.tsx', 'PreviaAparencia.tsx', 'aparencia.test.tsx', 'aparenciaAbas.test.tsx', 'guidelinesCores.test.tsx', 'guidelinesPrevia.test.tsx', 'identidade.test.tsx'],
+    aparencia: ['Aparencia.tsx', 'abasDaAparencia.ts', 'CampoImagem.tsx', 'CoresProntas.tsx', 'PreviaAparencia.tsx', 'aparencia.test.tsx', 'aparenciaAbas.test.tsx', 'guidelinesCores.test.tsx', 'guidelinesPrevia.test.tsx', 'identidade.test.tsx', 'mascaras.test.tsx'],
     fluxos: ['Canvas.tsx', 'NosDoCanvas.tsx', 'PainelDoNo.tsx', 'AdicionarEtapa.tsx', 'LigacaoComMais.tsx', 'ListaDeEtapas.tsx', 'EdicaoDoFluxo.tsx', 'PaginaDoFluxo.tsx', 'Simulador.tsx', 'grafo.ts', 'canvas.test.tsx', 'paginaDoFluxo.test.tsx', 'guidelinesFluxo.test.tsx', 'guidelinesSimulador.test.tsx'],
-    cadastros: ['Cadastros.tsx', 'Gerir.tsx', 'Usuarios.tsx', 'Tipos.tsx', 'Matriculas.tsx', 'admin.test.tsx', 'cadastros.test.tsx', 'fluxos.test.tsx', 'gerir.test.tsx', 'guidelinesBusca.test.tsx', 'icones.test.tsx', 'revisao.test.tsx', 'setorEmFluxo.test.tsx', 'textos.test.tsx', 'tipos.test.tsx', 'usuarios.test.tsx'],
+    cadastros: ['Cadastros.tsx', 'Gerir.tsx', 'Usuarios.tsx', 'Tipos.tsx', 'Matriculas.tsx', 'admin.test.tsx', 'cadastros.test.tsx', 'fluxos.test.tsx', 'gerir.test.tsx', 'guidelinesBusca.test.tsx', 'icones.test.tsx', 'revisao.test.tsx', 'setorEmFluxo.test.tsx', 'textos.test.tsx', 'tipos.test.tsx', 'usuarios.test.tsx', 'mascaras.test.tsx'],
     integracoes: ['Integracoes.tsx', 'Moodle.tsx', 'Mcp.tsx', 'AbaIntegracao.tsx', 'integracoes.test.tsx', 'mcp.test.tsx', 'guidelinesCopiar.test.tsx', 'guidelinesMoodle.test.tsx'],
   }
   for (const subpasta of Subpastas)

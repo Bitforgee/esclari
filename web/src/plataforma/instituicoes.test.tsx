@@ -119,7 +119,7 @@ describe('instituições da plataforma', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(gravacoes(chamadas)).toEqual([
-      ['POST', Lista, { slug: 'faculdade-demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', admin: { cpf: '123.456.789-09', nome: 'Dona Admin', email: 'admin@demo.edu.br' } }],
+      ['POST', Lista, { slug: 'faculdade-demo', nome: 'Faculdade Demo', fuso: 'America/Cuiaba', admin: { cpf: '12345678909', nome: 'Dona Admin', email: 'admin@demo.edu.br' } }],
     ])
     expect(await screen.findByText(comTexto('Instituição Faculdade Demo criada. Enviamos o link de primeiro acesso para admin@demo.edu.br. /faculdade-demo'))).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '/faculdade-demo' })).toHaveAttribute('href', '/faculdade-demo')

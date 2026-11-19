@@ -8,6 +8,7 @@ import { Confirmar } from '../Confirmar'
 import { Editor, useSujo } from '../Editor'
 import { ErroDe, errosDeCampo } from '../ErroDe'
 import { Marca } from '../Marca'
+import { cpfMascara, PropsDoCpf, soDigitos } from '../mascaras'
 import { CelulaLargo, Detalhe, MenuAcoes, Principal, Tabela } from '../Tabela'
 import { Button } from '../ui/button'
 import { DropdownMenuItem } from '../ui/dropdown-menu'
@@ -34,7 +35,7 @@ function Formulario({ ficha, mudar, setores, erros }: { ficha: Ficha; mudar: (f:
   return (
     <>
       <Campo id="membro-nome" rotulo="Nome" autoComplete="off" value={ficha.nome} erro={erros.nome} onChange={(e) => mudar({ nome: e.target.value })} />
-      <Campo id="membro-cpf" rotulo="CPF" inputMode="numeric" autoComplete="off" spellCheck={false} placeholder="Ex.: 000.000.000-00…" value={ficha.cpf} erro={erros.cpf} onChange={(e) => mudar({ cpf: e.target.value })} />
+      <Campo id="membro-cpf" rotulo="CPF" {...PropsDoCpf} autoComplete="off" value={ficha.cpf} erro={erros.cpf} onChange={(e) => mudar({ cpf: cpfMascara(e.target.value) })} />
       <Campo id="membro-email" rotulo="E-mail" type="email" autoComplete="off" spellCheck={false} value={ficha.email} erro={erros.email} onChange={(e) => mudar({ email: e.target.value })} />
       <div className="flex min-w-0 flex-col gap-2">
         <Label htmlFor="membro-tipo">Tipo</Label>
@@ -103,7 +104,7 @@ const alemDoPrimeiro = (equipe?: Membro[]) => equipe && (equipe.length > 1 ? equ
 function useNovo(base: string, recarregar: () => Promise<unknown>) {
   const [ficha, setFicha] = useState<Ficha>()
   const mutacao = useMutation({
-    mutationFn: (f: Ficha) => api(base, { ...f, setores: f.tipo === 'ATENDENTE' ? f.setores : [] }),
+    mutationFn: (f: Ficha) => api(base, { ...f, cpf: soDigitos(f.cpf), setores: f.tipo === 'ATENDENTE' ? f.setores : [] }),
     onSuccess: async () => {
       setFicha(undefined)
       await recarregar()
