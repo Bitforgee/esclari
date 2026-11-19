@@ -14,8 +14,10 @@ public sealed record Login(Login.Entrada Corpo) : IRequest<ResultadoLogin>
 {
     public sealed record Entrada(string? Instituicao, string? Cpf, string? Senha);
 
-    public sealed record Resposta(long Id, string Nome, IReadOnlyList<string> Papeis, bool DeveTrocarSenha, Resposta.DaInstituicao Instituicao)
+    public sealed record Resposta(long Id, string Nome, Resposta.DoTipo Tipo, IReadOnlyList<string> Permissoes, bool DeveTrocarSenha, Resposta.DaInstituicao Instituicao)
     {
+        public sealed record DoTipo(long Id, string Nome);
+
         public sealed record DaInstituicao(string Slug, string Nome);
     }
 
@@ -46,13 +48,13 @@ public sealed class LoginHandler(EsclariDb db, IPasswordHasher<Usuario> hasher) 
         if (instituicao is not null)
         {
             db.InstituicaoAtual = instituicao.Id;
-            u = await db.Usuarios.Include(x => x.Papeis).FirstOrDefaultAsync(x => x.Cpf == cpf);
+            u = await db.Usuarios.ComTipo().FirstOrDefaultAsync(x => x.Cpf == cpf);
         }
         var podeEntrar = u is { Ativo: true, SenhaHash: not null };
         var confere = hasher.VerifyHashedPassword(u ?? Usuario.Criar(Cpf.Ler(""), "", ""), podeEntrar ? u!.SenhaHash! : HashFicticio, i.Senha) != PasswordVerificationResult.Failed;
         if (!podeEntrar || !confere) return new(null, Problemas.Erro(401, CredenciaisInvalidas));
 
-        return new(CookieDeSessao.Principal(u!), Results.Ok(new Login.Resposta(u!.Id, u.Nome, [.. u.Papeis.Select(p => p.Papel)], u.DeveTrocarSenha,
+        return new(CookieDeSessao.Principal(u!), Results.Ok(new Login.Resposta(u!.Id, u.Nome, new Login.Resposta.DoTipo(u.TipoUsuarioId, u.Tipo!.Nome), u.FuncoesEfetivas(), u.DeveTrocarSenha,
             new Login.Resposta.DaInstituicao(instituicao!.Slug, instituicao.Nome))));
     }
 }

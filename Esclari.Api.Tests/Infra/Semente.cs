@@ -45,7 +45,7 @@ public static class Semente
         string? email = null, string? matricula = null, string situacao = "ATIVA", bool deveTrocarSenha = false, string? tipo = null) =>
         f.Db(i.Id, async db =>
         {
-            var u = Esclari.Api.Dados.Usuarios.Usuario.Criar(Cpf.Ler(cpf ?? NovoCpf()), "Pessoa " + Guid.NewGuid().ToString("N")[..6], email ?? $"{Guid.NewGuid():N}@teste.esclari", papeis);
+            var u = Esclari.Api.Dados.Usuarios.Usuario.Criar(Cpf.Ler(cpf ?? NovoCpf()), "Pessoa " + Guid.NewGuid().ToString("N")[..6], email ?? $"{Guid.NewGuid():N}@teste.esclari");
             u.DefinirTipo(tipo is null ? await db.TipoPelosPapeis(papeis) : await db.TiposDeUsuario.Include(t => t.Funcoes).SingleAsync(t => t.Nome == tipo));
             if (senha is not null)
             {
@@ -66,8 +66,13 @@ public static class Semente
             }
             db.Usuarios.Add(u);
             await db.SaveChangesAsync();
+            foreach (var papel in papeis.Distinct())
+                await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO usuario_papel (instituicao_id, usuario_id, papel) VALUES ({i.Id}, {u.Id}, {papel})");
             return u;
         });
+
+    public static Task<long> TipoId(this EsclariFactory f, Instituicao i, string sistema) =>
+        f.Db(i.Id, db => db.TiposDeUsuario.Where(t => t.Sistema == sistema).Select(t => t.Id).SingleAsync());
 
     public static Task<TipoDeUsuario> Tipo(this EsclariFactory f, Instituicao i, string nome, params string[] funcoes) =>
         f.Db(i.Id, async db =>

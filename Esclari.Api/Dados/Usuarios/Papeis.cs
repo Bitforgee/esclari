@@ -1,8 +1,0 @@
-namespace Esclari.Api.Dados.Usuarios;
-
-public static class Papeis
-{
-    public const string Aluno = "ALUNO";
-    public const string Atendente = "ATENDENTE";
-    public const string Administrador = "ADMINISTRADOR";
-}

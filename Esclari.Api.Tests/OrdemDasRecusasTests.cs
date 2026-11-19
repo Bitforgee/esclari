@@ -318,24 +318,25 @@ public class OrdemDasRecusasTests(EsclariFactory f) : IClassFixture<EsclariFacto
         var (i, admin) = await Admin.Criar(f);
         var alvo = await f.Usuario(i, [Papeis.Aluno]);
         var outro = await f.Usuario(i, [Papeis.Aluno]);
+        var (aluno, atendente) = (await f.TipoId(i, TipoDeUsuario.Aluno), await f.TipoId(i, TipoDeUsuario.Atendente));
         var (cpf, email) = (Semente.NovoCpf(), $"{Guid.NewGuid():N}@teste.esclari");
 
         foreach (var (rota, metodo) in new[] { ("/api/admin/usuarios", "POST"), ($"/api/admin/usuarios/{alvo.Id}", "PUT") })
         {
             foreach (var (corpo, campo, mensagem) in new (object, string, string?)[]
             {
-                (new { cpf = "123", nome = "", email, papeis = new[] { Papeis.Aluno } }, "cpf", null),
-                (new { cpf, nome = "", email = "invalido", papeis = new[] { Papeis.Aluno } }, "nome", null),
-                (new { cpf, nome = "Zé", email = "invalido", papeis = Array.Empty<string>() }, "email", null),
-                (new { cpf, nome = "Zé", email, papeis = new[] { Papeis.Atendente, "XYZ" }, setores = Array.Empty<long>() }, "papeis", null),
-                (new { cpf, nome = "Zé", email, papeis = new[] { Papeis.Atendente }, setores = Array.Empty<long>(), senhaTemporaria = "abc" }, "setores",
-                    "Escolha ao menos um setor para o atendente."),
-                (new { cpf, nome = "Zé", email, papeis = new[] { Papeis.Atendente }, setores = new long[] { 999999 }, senhaTemporaria = "abc" }, "setores", "Setor inexistente."),
-                (new { cpf = outro.Cpf.Valor, nome = "Zé", email, papeis = new[] { Papeis.Aluno }, senhaTemporaria = "abc" }, "senhaTemporaria", null),
+                (new { cpf = "123", nome = "", email, tipoId = aluno }, "cpf", null),
+                (new { cpf, nome = "", email = "invalido", tipoId = aluno }, "nome", null),
+                (new { cpf, nome = "Zé", email = "invalido", tipoId = 999999L }, "email", null),
+                (new { cpf, nome = "Zé", email, tipoId = 999999L, setores = Array.Empty<long>() }, "tipoId", null),
+                (new { cpf, nome = "Zé", email, tipoId = atendente, setores = Array.Empty<long>(), senhaTemporaria = "abc" }, "setores",
+                    "Escolha ao menos um setor para quem atende a fila."),
+                (new { cpf, nome = "Zé", email, tipoId = atendente, setores = new long[] { 999999 }, senhaTemporaria = "abc" }, "setores", "Setor inexistente."),
+                (new { cpf = outro.Cpf.Valor, nome = "Zé", email, tipoId = aluno, senhaTemporaria = "abc" }, "senhaTemporaria", null),
             })
                 await Recusa400(await Enviar(admin, metodo, rota, corpo), campo, $"{metodo} {rota} {campo}", mensagem);
 
-            await Recusa(await Enviar(admin, metodo, rota, new { cpf = outro.Cpf.Valor, nome = "Zé", email = outro.Email, papeis = new[] { Papeis.Aluno } }),
+            await Recusa(await Enviar(admin, metodo, rota, new { cpf = outro.Cpf.Valor, nome = "Zé", email = outro.Email, tipoId = aluno }),
                 HttpStatusCode.Conflict, $"{metodo} {rota} CPF e e-mail repetidos", "Já existe um usuário com este CPF na instituição.");
         }
     }

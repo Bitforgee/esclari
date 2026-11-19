@@ -32,7 +32,7 @@ public sealed class DetalheDaInstituicaoHandler(EsclariDb db, TimeProvider relog
         var administradores = await db.Database.SqlQuery<LinhaDeAdministrador>($"""
             SELECT u.nome AS "Nome", u.email AS "Email", (u.senha_hash IS NULL) AS "SemSenha"
             FROM usuario u JOIN instituicao i ON i.id = u.instituicao_id
-            WHERE i.slug = {m.Slug} AND u.ativo AND EXISTS (SELECT 1 FROM usuario_papel p WHERE p.usuario_id = u.id AND p.papel = 'ADMINISTRADOR')
+            WHERE i.slug = {m.Slug} AND u.ativo AND EXISTS (SELECT 1 FROM tipo_usuario t WHERE t.id = u.tipo_usuario_id AND t.sistema = 'GESTOR')
             ORDER BY u.nome
             """).ToListAsync(ct);
         return Results.Ok(new DetalheDaInstituicao.Resposta(item.Slug, item.Nome, item.Fuso, item.Ativa, item.CriadaEm, item.Administradores, item.Situacao, item.Saude, item.Atencao,

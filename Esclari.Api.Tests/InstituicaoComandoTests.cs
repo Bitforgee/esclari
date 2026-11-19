@@ -29,7 +29,7 @@ public class InstituicaoComandoTests(EsclariFactory f) : IClassFixture<EsclariFa
     {
         await db.Instituicoes.CountAsync(),
         await db.Usuarios.IgnoreQueryFilters().CountAsync(),
-        await db.UsuarioPapeis.IgnoreQueryFilters().CountAsync(),
+        await db.TiposDeUsuario.IgnoreQueryFilters().CountAsync(),
         await db.Setores.IgnoreQueryFilters().CountAsync(),
         await db.Cursos.IgnoreQueryFilters().CountAsync(),
         await db.Categorias.IgnoreQueryFilters().CountAsync(),
@@ -59,11 +59,11 @@ public class InstituicaoComandoTests(EsclariFactory f) : IClassFixture<EsclariFa
             Assert.Equal("Triagem", setor.Nome);
             Assert.True(setor.Triagem);
             Assert.Equal("Não classificado", (await db.Categorias.SingleAsync()).Nome);
-            var admin = await db.Usuarios.Include(u => u.Papeis).SingleAsync();
+            var admin = await db.Usuarios.Include(u => u.Tipo).SingleAsync();
             Assert.Equal(cpf, admin.Cpf.Valor);
             Assert.Null(admin.SenhaHash);
             Assert.True(admin.Ativo);
-            Assert.Equal([Papeis.Administrador], admin.Papeis.Select(p => p.Papel));
+            Assert.Equal(TipoDeUsuario.Gestor, admin.Tipo!.Sistema);
             var registro = await db.Tokens.SingleAsync();
             Assert.Equal(Tokens.Hash(token), registro.Hash);
             Assert.Equal(admin.Id, registro.UsuarioId);

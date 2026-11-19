@@ -256,6 +256,20 @@ public class MoodleLancamentoTests(EsclariFactory f) : IClassFixture<EsclariFact
     }
 
     [Fact]
+    public async Task Lider_com_vinculo_nao_entra_pelo_moodle()
+    {
+        var i = await Univag();
+        var lider = await f.Usuario(i, [Papeis.Aluno, Papeis.Atendente]);
+        await Vincular(i, lider, "43");
+        var c = f.Cliente();
+
+        var r = await Entrar(i, "43", null, c);
+
+        Assert.Equal($"/{i.Slug}?moodle=use-senha", r.Destino());
+        SemSessao(r);
+    }
+
+    [Fact]
     public async Task Reenvio_do_mesmo_par_400()
     {
         var i = await Univag();

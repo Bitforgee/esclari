@@ -41,7 +41,7 @@ public static partial class Criacao
         db.Categorias.Add(Categoria.CriarPadrao());
         var tipos = new[] { TipoDeUsuario.Aluno, TipoDeUsuario.Gestor, TipoDeUsuario.Atendente }.Select(TipoDeUsuario.DeSistema).ToList();
         db.TiposDeUsuario.AddRange(tipos);
-        var admin = Usuario.Criar(n.Cpf!, n.AdminNome, n.Email, PonteDePapeis.DoGestor);
+        var admin = Usuario.Criar(n.Cpf!, n.AdminNome, n.Email);
         admin.DefinirTipo(tipos.Single(t => t.Sistema == TipoDeUsuario.Gestor));
         db.Usuarios.Add(admin);
         await db.SaveChangesAsync();

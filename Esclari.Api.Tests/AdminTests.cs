@@ -41,7 +41,7 @@ public class AdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             .Where(e => e.RoutePattern.RawText!.StartsWith("/api/admin/"))
             .SelectMany(e => e.Metadata.GetMetadata<HttpMethodMetadata>()!.HttpMethods.Select(m => (m, e.RoutePattern.RawText!)))
             .ToList();
-        Assert.Equal(43, rotas.Count);
+        Assert.Equal(47, rotas.Count);
 
         foreach (var c in clientes)
             foreach (var (metodo, padrao) in rotas)
@@ -61,26 +61,26 @@ public class AdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var financeiro = await f.Setor(i, "Financeiro");
         var secretaria = await f.Setor(i, "Secretaria");
         var cpf = Semente.NovoCpf();
-        object Corpo(string[] papeis, long[] setores) => new { cpf, nome = "Atendente Novo", email = $"{Guid.NewGuid():N}@univag.edu.br", papeis, setores };
-        Task<(string[], long[])> Gravado(long id) => f.Db(i.Id, async db => (
-            (await db.Usuarios.Include(u => u.Papeis).SingleAsync(u => u.Id == id)).Papeis.Select(p => p.Papel).Order().ToArray(),
+        object Corpo(long tipoId, long[] setores) => new { cpf, nome = "Atendente Novo", email = $"{Guid.NewGuid():N}@univag.edu.br", tipoId, setores };
+        Task<(string?, long[])> Gravado(long id) => f.Db(i.Id, async db => (
+            (await db.Usuarios.Include(u => u.Tipo).SingleAsync(u => u.Id == id)).Tipo!.Sistema,
             (await db.AtendenteSetores.Where(a => a.UsuarioId == id).Select(a => a.SetorId).ToListAsync()).Order().ToArray()));
 
         f.Gravacoes.Zerar();
-        var criado = await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo([Papeis.Atendente], [triagem.Id, financeiro.Id]));
+        var criado = await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(await f.TipoId(i, TipoDeUsuario.Atendente), [triagem.Id, financeiro.Id]));
         Assert.Equal(HttpStatusCode.Created, criado.StatusCode);
         Assert.Equal(1, f.Gravacoes.Total);
         var id = (await criado.Json()).GetProperty("id").GetInt64();
-        var (papeis, setores) = await Gravado(id);
-        Assert.Equal([Papeis.Atendente], papeis);
+        var (sistema, setores) = await Gravado(id);
+        Assert.Equal(TipoDeUsuario.Atendente, sistema);
         Assert.Equal(new[] { triagem.Id, financeiro.Id }.Order(), setores);
 
         f.Gravacoes.Zerar();
-        var editado = await admin.PutAsJsonAsync($"/api/admin/usuarios/{id}", Corpo([Papeis.Administrador, Papeis.Atendente], [financeiro.Id, secretaria.Id]));
+        var editado = await admin.PutAsJsonAsync($"/api/admin/usuarios/{id}", Corpo(await f.TipoId(i, TipoDeUsuario.Gestor), [financeiro.Id, secretaria.Id]));
         Assert.Equal(HttpStatusCode.OK, editado.StatusCode);
         Assert.Equal(1, f.Gravacoes.Total);
-        (papeis, setores) = await Gravado(id);
-        Assert.Equal(new[] { Papeis.Administrador, Papeis.Atendente }.Order(), papeis);
+        (sistema, setores) = await Gravado(id);
+        Assert.Equal(TipoDeUsuario.Gestor, sistema);
         Assert.Equal(new[] { financeiro.Id, secretaria.Id }.Order(), setores);
     }
 }
@@ -110,7 +110,7 @@ public class ImportacaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(HttpStatusCode.OK, r.StatusCode);
         var j = await r.Json();
         Assert.Equal((3, 1), (j.GetProperty("criados").GetInt32(), j.GetProperty("atualizados").GetInt32()));
-        var alunos = await f.Db(i.Id, db => db.Usuarios.Include(u => u.Papeis).Include(u => u.Matriculas).ThenInclude(m => m.Curso).Where(u => u.Papeis.Any(p => p.Papel == Papeis.Aluno)).ToListAsync());
+        var alunos = await f.Db(i.Id, db => db.Usuarios.Include(u => u.Matriculas).ThenInclude(m => m.Curso).Where(u => u.Tipo!.Sistema == TipoDeUsuario.Aluno).ToListAsync());
         Assert.Equal(3, alunos.Count);
         var atualizado = alunos.Single(u => u.Cpf.Valor == existente.Cpf.Valor);
         Assert.Equal(("Nome Novo", "novo@aluno.com"), (atualizado.Nome, atualizado.Email));
@@ -217,13 +217,13 @@ public class ImportacaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 
 public class UsuarioAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 {
-    static object Corpo(string cpf, string? email = null, string[]? papeis = null, long[]? setores = null, string? senhaTemporaria = null) => new
+    static object Corpo(string cpf, long tipoId, string? email = null, long[]? setores = null, string? senhaTemporaria = null) => new
     {
         cpf,
         nome = "Atendente Novo",
         email = email ?? $"{Guid.NewGuid():N}@univag.edu.br",
         senhaTemporaria,
-        papeis = papeis ?? [Papeis.Atendente],
+        tipoId,
         setores = setores ?? [],
     };
 
@@ -233,8 +233,8 @@ public class UsuarioAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var (i, admin) = await Admin.Criar(f);
         var triagem = await f.Db(i.Id, db => db.Setores.SingleAsync());
 
-        var com = await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(Semente.NovoCpf(), setores: [triagem.Id], senhaTemporaria: "12345678"));
-        var sem = await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(Semente.NovoCpf(), papeis: [Papeis.Administrador]));
+        var com = await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(Semente.NovoCpf(), await f.TipoId(i, TipoDeUsuario.Atendente), setores: [triagem.Id], senhaTemporaria: "12345678"));
+        var sem = await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(Semente.NovoCpf(), await f.TipoId(i, TipoDeUsuario.Gestor)));
 
         Assert.Equal(HttpStatusCode.Created, com.StatusCode);
         Assert.Equal(HttpStatusCode.Created, sem.StatusCode);
@@ -253,13 +253,13 @@ public class UsuarioAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     }
 
     [Fact]
-    public async Task Sem_papel_ou_setor_400()
+    public async Task Sem_tipo_ou_setor_400()
     {
         var (i, admin) = await Admin.Criar(f);
         var antes = await f.Db(i.Id, db => db.Usuarios.CountAsync());
 
-        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(Semente.NovoCpf(), papeis: []))).StatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(Semente.NovoCpf(), setores: []))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/admin/usuarios", new { cpf = Semente.NovoCpf(), nome = "X", email = "x@x.com" })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(Semente.NovoCpf(), await f.TipoId(i, TipoDeUsuario.Atendente), setores: []))).StatusCode);
         Assert.Equal(antes, await f.Db(i.Id, db => db.Usuarios.CountAsync()));
     }
 
@@ -268,28 +268,34 @@ public class UsuarioAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     {
         var (i, admin) = await Admin.Criar(f);
         var triagem = await f.Db(i.Id, db => db.Setores.SingleAsync());
+        var (gestor, atendente) = (await f.TipoId(i, TipoDeUsuario.Gestor), await f.TipoId(i, TipoDeUsuario.Atendente));
+        var alvo = await f.Usuario(i, [Papeis.Aluno]);
         var antes = await f.Db(i.Id, db => db.Usuarios.CountAsync());
         var cpf = Semente.NovoCpf();
         var recusas = new (string campo, object corpo)[]
         {
-            ("cpf", new { cpf = "12345678900", nome = "X", email = "x@x.com", papeis = new[] { Papeis.Administrador } }),
-            ("nome", new { cpf, nome = " ", email = "x@x.com", papeis = new[] { Papeis.Administrador } }),
-            ("nome", new { cpf, nome = new string('n', 201), email = "x@x.com", papeis = new[] { Papeis.Administrador } }),
-            ("email", new { cpf, nome = "X", email = "sem-arroba", papeis = new[] { Papeis.Administrador } }),
-            ("papeis", new { cpf, nome = "X", email = "x@x.com", papeis = new[] { "DIRETOR" } }),
-            ("setores", new { cpf, nome = "X", email = "x@x.com", papeis = new[] { Papeis.Atendente }, setores = new[] { 999999L } }),
-            ("senhaTemporaria", new { cpf, nome = "X", email = "x@x.com", papeis = new[] { Papeis.Administrador }, senhaTemporaria = "1234567" }),
-            ("senhaTemporaria", new { cpf, nome = "X", email = "x@x.com", papeis = new[] { Papeis.Administrador }, senhaTemporaria = new string('s', 129) }),
+            ("cpf", new { cpf = "12345678900", nome = "X", email = "x@x.com", tipoId = gestor }),
+            ("nome", new { cpf, nome = " ", email = "x@x.com", tipoId = gestor }),
+            ("nome", new { cpf, nome = new string('n', 201), email = "x@x.com", tipoId = gestor }),
+            ("email", new { cpf, nome = "X", email = "sem-arroba", tipoId = gestor }),
+            ("email", new { cpf, nome = "X", email = "", tipoId = gestor }),
+            ("tipoId", new { cpf, nome = "X", email = "x@x.com", tipoId = 999999L }),
+            ("setores", new { cpf, nome = "X", email = "x@x.com", tipoId = atendente, setores = new[] { 999999L } }),
+            ("senhaTemporaria", new { cpf, nome = "X", email = "x@x.com", tipoId = gestor, senhaTemporaria = "1234567" }),
+            ("senhaTemporaria", new { cpf, nome = "X", email = "x@x.com", tipoId = gestor, senhaTemporaria = new string('s', 129) }),
         };
         foreach (var (campo, corpo) in recusas)
         {
-            var r = await admin.PostAsJsonAsync("/api/admin/usuarios", corpo);
-            Assert.True(r.StatusCode == HttpStatusCode.BadRequest, $"{campo}: {(int)r.StatusCode}");
-            Assert.True((await r.Json()).GetProperty("errors").TryGetProperty(campo, out _), campo);
+            var post = await admin.PostAsJsonAsync("/api/admin/usuarios", corpo);
+            Assert.True(post.StatusCode == HttpStatusCode.BadRequest, $"POST {campo}: {(int)post.StatusCode}");
+            Assert.True((await post.Json()).GetProperty("errors").TryGetProperty(campo, out _), $"POST {campo}");
+            var put = await admin.PutAsJsonAsync($"/api/admin/usuarios/{alvo.Id}", corpo);
+            Assert.True(put.StatusCode == HttpStatusCode.BadRequest, $"PUT {campo}: {(int)put.StatusCode}");
+            Assert.True((await put.Json()).GetProperty("errors").TryGetProperty(campo, out _), $"PUT {campo}");
         }
         Assert.Equal(antes, await f.Db(i.Id, db => db.Usuarios.CountAsync()));
         Assert.Equal(HttpStatusCode.Created, (await admin.PostAsJsonAsync("/api/admin/usuarios",
-            new { cpf, nome = "X", email = "x@x.com", papeis = new[] { Papeis.Atendente }, setores = new[] { triagem.Id }, senhaTemporaria = new string('s', 128) })).StatusCode);
+            new { cpf, nome = "X", email = "x@x.com", tipoId = atendente, setores = new[] { triagem.Id }, senhaTemporaria = new string('s', 128) })).StatusCode);
     }
 
     [Fact]
@@ -298,13 +304,17 @@ public class UsuarioAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var (i, admin) = await Admin.Criar(f);
         var demo = await f.Instituicao();
         var existente = await f.Usuario(i, [Papeis.Aluno]);
+        var outroAluno = await f.Usuario(i, [Papeis.Aluno]);
         var deOutra = await f.Usuario(demo, [Papeis.Aluno]);
+        var gestor = await f.TipoId(i, TipoDeUsuario.Gestor);
         var antes = await f.Db(i.Id, db => db.Usuarios.CountAsync());
 
-        Assert.Equal(HttpStatusCode.Conflict, (await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(existente.Cpf.Valor, papeis: [Papeis.Administrador]))).StatusCode);
-        Assert.Equal(HttpStatusCode.Conflict, (await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(Semente.NovoCpf(), existente.Email, [Papeis.Administrador]))).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(existente.Cpf.Valor, gestor))).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(Semente.NovoCpf(), gestor, existente.Email))).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await admin.PutAsJsonAsync($"/api/admin/usuarios/{outroAluno.Id}", Corpo(existente.Cpf.Valor, gestor, outroAluno.Email))).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await admin.PutAsJsonAsync($"/api/admin/usuarios/{outroAluno.Id}", Corpo(outroAluno.Cpf.Valor, gestor, existente.Email))).StatusCode);
         Assert.Equal(antes, await f.Db(i.Id, db => db.Usuarios.CountAsync()));
-        Assert.Equal(HttpStatusCode.Created, (await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(deOutra.Cpf.Valor, deOutra.Email, [Papeis.Administrador]))).StatusCode);
+        Assert.Equal(HttpStatusCode.Created, (await admin.PostAsJsonAsync("/api/admin/usuarios", Corpo(deOutra.Cpf.Valor, gestor, deOutra.Email))).StatusCode);
     }
 
     [Fact]
@@ -313,7 +323,7 @@ public class UsuarioAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var (i, admin) = await Admin.Criar(f);
         var aluno = await f.Usuario(i, [Papeis.Aluno]);
 
-        var r = await admin.PutAsJsonAsync($"/api/admin/usuarios/{aluno.Id}", new { cpf = aluno.Cpf.Valor, nome = aluno.Nome, email = aluno.Email, papeis = new[] { Papeis.Aluno }, senhaTemporaria = "temporaria-1" });
+        var r = await admin.PutAsJsonAsync($"/api/admin/usuarios/{aluno.Id}", new { cpf = aluno.Cpf.Valor, nome = aluno.Nome, email = aluno.Email, tipoId = await f.TipoId(i, TipoDeUsuario.Aluno), senhaTemporaria = "temporaria-1" });
 
         Assert.Equal(HttpStatusCode.OK, r.StatusCode);
         Assert.True((await f.Db(i.Id, db => db.Usuarios.SingleAsync(u => u.Id == aluno.Id))).DeveTrocarSenha);
@@ -361,51 +371,7 @@ public class UsuarioAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(b.A.Usuario.Id, (await b.Ler(fechado)).ResponsavelId);
     }
 
-    static object CorpoDe(Usuario u, string[] papeis, string? nome = null, long[]? setores = null) =>
-        new { cpf = u.Cpf.Valor, nome = nome ?? u.Nome, email = u.Email, papeis, setores = setores ?? [] };
-
     static async Task<string> Detalhe(HttpResponseMessage r) => (await r.Json()).GetProperty("detail").GetString()!;
-
-    [Fact]
-    public async Task Admin_nao_muda_o_proprio_papel()
-    {
-        var i = await f.Instituicao(nome: "Univag");
-        var eu = await f.Usuario(i, [Papeis.Administrador]);
-        var admin = await f.Entrar(i, eu);
-
-        var r = await admin.PutAsJsonAsync($"/api/admin/usuarios/{eu.Id}", CorpoDe(eu, [Papeis.Aluno]));
-
-        Assert.Equal(HttpStatusCode.Conflict, r.StatusCode);
-        Assert.Equal("Você não pode mudar o próprio papel. Peça a outro administrador.", await Detalhe(r));
-        Assert.Equal([Papeis.Administrador], await f.Db(i.Id, db => db.Usuarios.Where(u => u.Id == eu.Id).SelectMany(u => u.Papeis).Select(p => p.Papel).ToListAsync()));
-    }
-
-    [Fact]
-    public async Task Admin_edita_o_proprio_nome_com_os_mesmos_papeis()
-    {
-        var i = await f.Instituicao(nome: "Univag");
-        var triagem = await f.Db(i.Id, db => db.Setores.SingleAsync());
-        var eu = await f.Usuario(i, [Papeis.Administrador, Papeis.Atendente]);
-        var admin = await f.Entrar(i, eu);
-
-        var r = await admin.PutAsJsonAsync($"/api/admin/usuarios/{eu.Id}", CorpoDe(eu, [Papeis.Atendente, Papeis.Administrador], "Nome Novo", [triagem.Id]));
-
-        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
-        Assert.Equal("Nome Novo", (await f.Db(i.Id, db => db.Usuarios.SingleAsync(u => u.Id == eu.Id))).Nome);
-    }
-
-    [Fact]
-    public async Task Admin_muda_o_papel_de_outro_administrador()
-    {
-        var i = await f.Instituicao(nome: "Univag");
-        var admin = await f.Entrar(i, await f.Usuario(i, [Papeis.Administrador]));
-        var outro = await f.Usuario(i, [Papeis.Administrador]);
-
-        var r = await admin.PutAsJsonAsync($"/api/admin/usuarios/{outro.Id}", CorpoDe(outro, [Papeis.Aluno]));
-
-        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
-        Assert.Equal([Papeis.Aluno], await f.Db(i.Id, db => db.Usuarios.Where(u => u.Id == outro.Id).SelectMany(u => u.Papeis).Select(p => p.Papel).ToListAsync()));
-    }
 
     [Fact]
     public async Task Admin_nao_desativa_a_si_mesmo()
@@ -435,17 +401,17 @@ public class UsuarioAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     }
 
     [Fact]
-    public async Task Ultimo_administrador_ativo_nao_se_perde()
+    public async Task Ultimo_gestor_ativo_nao_se_perde()
     {
         var i = await f.Instituicao(nome: "Univag");
         var unico = await f.Usuario(i, [Papeis.Administrador]);
         var aluno = await f.Usuario(i, [Papeis.Aluno]);
         Task<IResult?> consultar(long id, bool continua) =>
-            f.Db(i.Id, async db => await ValidacaoDeUsuario.UltimoAdministrador(db, await db.Usuarios.Include(u => u.Papeis).SingleAsync(u => u.Id == id), continua));
+            f.Db(i.Id, async db => await ValidacaoDeUsuario.UltimoGestor(db, await db.Usuarios.Include(u => u.Tipo).SingleAsync(u => u.Id == id), continua));
 
         var recusa = Assert.IsType<ProblemHttpResult>(await consultar(unico.Id, false));
         Assert.Equal(409, recusa.StatusCode);
-        Assert.Equal("A instituição precisa de ao menos um administrador ativo.", recusa.ProblemDetails.Detail);
+        Assert.Equal("A instituição precisa de ao menos um gestor ativo.", recusa.ProblemDetails.Detail);
         Assert.Null(await consultar(unico.Id, true));
         Assert.Null(await consultar(aluno.Id, false));
 
@@ -464,13 +430,46 @@ public class UsuarioAdminTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     [Fact]
     public async Task Usuario_inexistente_404()
     {
-        var (_, admin) = await Admin.Criar(f);
+        var (i, admin) = await Admin.Criar(f);
 
-        Assert.Equal(HttpStatusCode.NotFound, (await admin.PutAsJsonAsync("/api/admin/usuarios/999999", Corpo(Semente.NovoCpf(), papeis: [Papeis.Administrador]))).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await admin.PutAsJsonAsync("/api/admin/usuarios/999999", Corpo(Semente.NovoCpf(), await f.TipoId(i, TipoDeUsuario.Gestor)))).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await admin.PostAsJsonAsync("/api/admin/usuarios/999999/desativar", new { })).StatusCode);
     }
-}
 
+    [Fact]
+    public async Task Csv_cpf_novo_nasce_no_tipo_aluno()
+    {
+        var (i, admin) = await Admin.Criar(f);
+        await f.Db(i.Id, async db => { db.Cursos.Add(Curso.Criar("ADS")); await db.SaveChangesAsync(); });
+        var cpf = Semente.NovoCpf();
+
+        var r = await admin.Importar($"cpf;nome;email;matricula;curso;semestre;situacao\n{cpf};Bia;bia@aluno.com;2000000002;ADS;1;ATIVA\n");
+
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        var u = await f.Db(i.Id, db => db.Usuarios.Include(x => x.Tipo).Include(x => x.Matriculas).SingleAsync(x => x.Cpf == Cpf.Ler(cpf)));
+        Assert.Equal(TipoDeUsuario.Aluno, u.Tipo!.Sistema);
+        Assert.Equal(["2000000002"], u.Matriculas.Select(m => m.Numero));
+    }
+
+    [Fact]
+    public async Task Csv_cpf_existente_mantem_o_tipo()
+    {
+        var (i, admin) = await Admin.Criar(f);
+        await f.Db(i.Id, async db => { db.Cursos.Add(Curso.Criar("ADS")); await db.SaveChangesAsync(); });
+        var lider = await f.Usuario(i, [Papeis.Aluno, Papeis.Atendente], matricula: "2000000010");
+        var gestor = await f.Usuario(i, [Papeis.Administrador]);
+        var antes = await f.Db(i.Id, db => db.Usuarios.Include(u => u.Tipo).Where(u => u.Id == lider.Id || u.Id == gestor.Id).ToDictionaryAsync(u => u.Id, u => u.Tipo!.Nome));
+
+        var r = await admin.Importar($"cpf;nome;email;matricula;curso;semestre;situacao\n{lider.Cpf.Valor};{lider.Nome};{lider.Email};2000000011;ADS;2;ATIVA\n{gestor.Cpf.Valor};{gestor.Nome};{gestor.Email};2000000012;ADS;3;ATIVA\n");
+
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        var depois = await f.Db(i.Id, db => db.Usuarios.Include(u => u.Tipo).Include(u => u.Matriculas).Where(u => u.Id == lider.Id || u.Id == gestor.Id).ToListAsync());
+        Assert.Equal(antes, depois.ToDictionary(u => u.Id, u => u.Tipo!.Nome));
+        Assert.Equal(TipoDeUsuario.NomeDoLider, antes[lider.Id]);
+        Assert.Equal(["2000000010", "2000000011"], depois.Single(u => u.Id == lider.Id).Matriculas.Select(m => m.Numero).Order());
+        Assert.Equal(["2000000012"], depois.Single(u => u.Id == gestor.Id).Matriculas.Select(m => m.Numero));
+    }
+}
 public class CadastroTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 {
     [Fact]

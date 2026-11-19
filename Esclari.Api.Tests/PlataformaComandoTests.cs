@@ -95,17 +95,17 @@ public class PlataformaComandoTests(EsclariFactory f) : IClassFixture<EsclariFac
     }
 
     [Fact]
-    public async Task Papel_operador_nao_existe_mais()
+    public async Task Tipo_operador_nao_existe()
     {
         var i = await f.Instituicao();
         var admin = await f.Entrar(i, await f.Usuario(i, [Papeis.Administrador]));
 
-        var r = await admin.PostAsJsonAsync("/api/admin/usuarios", new { cpf = Semente.NovoCpf(), nome = "Novo", email = $"{Guid.NewGuid():N}@teste.esclari", senhaTemporaria = "temporaria-123", papeis = new[] { "OPERADOR" }, setores = Array.Empty<long>() });
+        var r = await admin.PostAsJsonAsync("/api/admin/usuarios", new { cpf = Semente.NovoCpf(), nome = "Novo", email = $"{Guid.NewGuid():N}@teste.esclari", senhaTemporaria = "temporaria-123", tipoId = 999999L, setores = Array.Empty<long>() });
 
         Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode);
-        Assert.Equal("Escolha ao menos um papel.", (await r.Json()).GetProperty("errors").GetProperty("papeis")[0].GetString());
-        Assert.DoesNotContain(typeof(Papeis).GetFields().Select(x => x.Name), n => n == "Operador");
-        Assert.Equal(["Administrador", "Aluno", "Atendente"], typeof(Papeis).GetFields().Select(x => x.Name).Order());
+        Assert.Equal("Escolha o tipo do usuário.", (await r.Json()).GetProperty("errors").GetProperty("tipoId")[0].GetString());
+        Assert.DoesNotContain(typeof(TipoDeUsuario).GetFields().Select(x => x.Name), n => n == "Operador");
+        Assert.Equal(["Aluno", "Atendente", "Gestor", "NomeDoLider"], typeof(TipoDeUsuario).GetFields().Select(x => x.Name).Order());
     }
 
     [Fact]

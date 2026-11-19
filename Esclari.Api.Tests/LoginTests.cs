@@ -8,11 +8,12 @@ namespace Esclari.Api.Tests;
 public class LoginTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 {
     [Fact]
-    public async Task Login_valido_200_com_cookie()
+    public async Task Login_valido_200_com_tipo_e_permissoes()
     {
         var i = await f.Instituicao(nome: "Univag");
         var cpf = Semente.NovoCpf();
         var u = await f.Usuario(i, [Papeis.Aluno], cpf: cpf);
+        var gestor = await f.Usuario(i, [Papeis.Administrador]);
         var comMascara = $"{cpf[..3]}.{cpf[3..6]}.{cpf[6..9]}-{cpf[9..]}";
 
         var r = await f.Cliente().Login(i.Slug, comMascara);
@@ -21,18 +22,21 @@ public class LoginTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var j = await r.Json();
         Assert.Equal(u.Id, j.GetProperty("id").GetInt64());
         Assert.Equal(u.Nome, j.GetProperty("nome").GetString());
-        Assert.Equal([Papeis.Aluno], j.GetProperty("papeis").EnumerateArray().Select(p => p.GetString()));
+        Assert.Equal((await f.TipoId(i, TipoDeUsuario.Aluno), "Aluno"), (j.GetProperty("tipo").GetProperty("id").GetInt64(), j.GetProperty("tipo").GetProperty("nome").GetString()));
+        Assert.Equal(["assistente.usar"], j.GetProperty("permissoes").EnumerateArray().Select(p => p.GetString()));
+        Assert.False(j.TryGetProperty("papeis", out _));
         Assert.False(j.GetProperty("deveTrocarSenha").GetBoolean());
         Assert.Equal(i.Slug, j.GetProperty("instituicao").GetProperty("slug").GetString());
         Assert.Equal("Univag", j.GetProperty("instituicao").GetProperty("nome").GetString());
 
-        var cookie = Assert.Single(r.Headers.GetValues("Set-Cookie"), c => c.StartsWith("esclari.auth="));
-        Assert.Contains("httponly", cookie.ToLowerInvariant());
-        Assert.Contains("secure", cookie.ToLowerInvariant());
-        Assert.Contains("samesite=strict", cookie.ToLowerInvariant());
+        var cliente = f.Cliente();
+        var login = await (await cliente.Login(i.Slug, gestor.Cpf.Valor)).Json();
+        var me = await (await cliente.GetAsync("/api/auth/me")).Json();
+        Assert.Equal(me.GetProperty("tipo").ToString(), login.GetProperty("tipo").ToString());
+        Assert.Equal(me.GetProperty("permissoes").ToString(), login.GetProperty("permissoes").ToString());
+        Assert.False(login.TryGetProperty("papeis", out _));
     }
-
-    [Fact]
+[Fact]
     public async Task Login_com_cpf_123_456_789_09()
     {
         var i = await f.Instituicao();

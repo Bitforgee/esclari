@@ -39,8 +39,8 @@ public class ImplantacaoProntidaoTests(EsclariFactory f) : IClassFixture<Esclari
         Assert.False(Itens(await Prontidao(i))["ATENDENTE_NO_SETOR"]);
         await f.Db(i.Id, async db =>
         {
-            var u = await db.Usuarios.Include(x => x.Setores).Include(x => x.Papeis).SingleAsync(x => x.Id == atendente.Id);
-            u.DefinirAcesso([Papeis.Atendente], [setor.Id]);
+            var u = await db.Usuarios.Include(x => x.Setores).SingleAsync(x => x.Id == atendente.Id);
+            u.VincularSetores([setor.Id]);
             await db.SaveChangesAsync();
         });
         Assert.True(Itens(await Prontidao(i))["ATENDENTE_NO_SETOR"]);
@@ -86,8 +86,8 @@ public class ImplantacaoProntidaoTests(EsclariFactory f) : IClassFixture<Esclari
         var atendente = await f.Usuario(i, [Papeis.Atendente]);
         await f.Db(i.Id, async db =>
         {
-            var u = await db.Usuarios.Include(x => x.Setores).Include(x => x.Papeis).SingleAsync(x => x.Id == atendente.Id);
-            u.DefinirAcesso([Papeis.Atendente], [setor.Id]);
+            var u = await db.Usuarios.Include(x => x.Setores).SingleAsync(x => x.Id == atendente.Id);
+            u.VincularSetores([setor.Id]);
             await db.SaveChangesAsync();
         });
         await c.PostAsync($"/api/plataforma/instituicoes/{i.Slug}/carga/modelo/padrao-esclari", null);

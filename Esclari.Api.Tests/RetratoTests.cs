@@ -34,13 +34,13 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var viva = endpoints.Select(Linha).ToList();
         File.WriteAllLines(Path.Combine(AppContext.BaseDirectory, "rotas.viva.txt"), viva);
 
-        Assert.Equal(119, viva.Count);
+        Assert.Equal(123, viva.Count);
         var fallbacks = endpoints.Where(e => e.Order == int.MaxValue).Select(e => e.RoutePattern.RawText).ToList();
         Assert.Equal(["/api/{**resto}", "{*path:nonfile}"], fallbacks);
-        Assert.Equal(115, endpoints.Count(e => e.Order != int.MaxValue && e.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods.Count == 1));
+        Assert.Equal(119, endpoints.Count(e => e.Order != int.MaxValue && e.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods.Count == 1));
         Assert.Equal(["/api/auth/login", "/api/auth/primeiro-acesso", "/api/auth/definir-senha", "/api/auth/logout", "/api/moodle/{slug}/login", "/api/moodle/{slug}/lancamento", "/api/moodle/{slug}/jwks", "/api/instituicoes/{slug}", "/api/instituicoes/{slug}/imagens/{tipo}", "/api/instituicoes/{slug}/manifest.webmanifest", "/api/plataforma/auth/entrar", "/api/plataforma/auth/codigo", "/api/plataforma/auth/definir-senha", "/api/plataforma/auth/sair"],
             endpoints.Where(e => e.Metadata.GetMetadata<IAllowAnonymous>() is not null).Select(e => e.RoutePattern.RawText));
-        Assert.Equal(113, endpoints.Count(e => e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any()));
+        Assert.Equal(117, endpoints.Count(e => e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any()));
         string[] Com(string politica) => [.. endpoints.Where(e => e.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName == politica).Select(e => e.RoutePattern.RawText!)];
         Assert.Equal(["/api/auth/login", "/api/auth/primeiro-acesso", "/api/moodle/{slug}/login", "/api/moodle/{slug}/lancamento", "/api/plataforma/auth/entrar", "/api/plataforma/auth/codigo", "/api/plataforma/auth/definir-senha"], Com("auth"));
         Assert.Equal(["/api/conversas", "/api/conversas/{id:long}/mensagens", "/api/atendimento-direto"], Com("mensagens"));
@@ -59,7 +59,7 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var rotas = Endpoints(f).Where(e => e.RoutePattern.RawText!.StartsWith("/api/admin/"))
             .SelectMany(e => e.Metadata.GetMetadata<HttpMethodMetadata>()!.HttpMethods.Select(m => (m, e.RoutePattern.RawText!)))
             .ToList();
-        Assert.Equal(43, rotas.Count);
+        Assert.Equal(47, rotas.Count);
 
         foreach (var c in clientes)
             foreach (var (metodo, padrao) in rotas)
@@ -215,9 +215,9 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 
         await R("GET", "/api/admin/usuarios", "admin", 200, admin.GetAsync("/api/admin/usuarios"));
         var eva = Id(await R("POST", "/api/admin/usuarios", "admin", 201, admin.PostAsJsonAsync("/api/admin/usuarios",
-            new { cpf = "55566677720", nome = "Eva Atendente", email = "eva@retrato.esclari", senhaTemporaria = "senha-temporaria", papeis = new[] { Papeis.Atendente }, setores = new[] { triagem.Id } })));
+            new { cpf = "55566677720", nome = "Eva Atendente", email = "eva@retrato.esclari", senhaTemporaria = "senha-temporaria", tipoId = await n.TipoId(i, TipoDeUsuario.Atendente), setores = new[] { triagem.Id } })));
         await R("PUT", "/api/admin/usuarios/{id}", "admin", 200, admin.PutAsJsonAsync($"/api/admin/usuarios/{eva}",
-            new { cpf = "55566677720", nome = "Eva Atendente Silva", email = "eva.silva@retrato.esclari", papeis = new[] { Papeis.Atendente }, setores = new[] { financeiro } }));
+            new { cpf = "55566677720", nome = "Eva Atendente Silva", email = "eva.silva@retrato.esclari", tipoId = await n.TipoId(i, TipoDeUsuario.Atendente), setores = new[] { financeiro } }));
         await R("POST", "/api/admin/usuarios/{id}/desativar", "admin", 200, admin.PostAsync($"/api/admin/usuarios/{eva}/desativar", null));
         await R("POST", "/api/admin/matriculas/importacao", "admin", 200, admin.Importar(
             "cpf;nome;email;matricula;curso;semestre;situacao\n66677788830;Fabio Importado;fabio@retrato.esclari;2026000006;Análise e Desenvolvimento de Sistemas;2;ATIVA\n"));

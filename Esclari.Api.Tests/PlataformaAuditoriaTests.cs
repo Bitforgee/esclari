@@ -37,7 +37,7 @@ public class PlataformaAuditoriaTests(EsclariFactory f) : IClassFixture<EsclariF
         await c.PostAsJsonAsync($"{Lista}/{slug}/desativar", new { motivo = "Contrato encerrado" });
         await c.PostAsync($"{Lista}/{slug}/reativar", null);
         await c.PutAsJsonAsync($"{Lista}/{slug}/parametros", new { confirmacaoDias = 5 });
-        var membro = await c.PostAsJsonAsync($"{Lista}/{slug}/equipe", new { cpf = Semente.NovoCpf(), nome = "Ana Equipe", email = $"{Guid.NewGuid():N}@teste.edu.br", papeis = new[] { "ADMINISTRADOR" } });
+        var membro = await c.PostAsJsonAsync($"{Lista}/{slug}/equipe", new { cpf = Semente.NovoCpf(), nome = "Ana Equipe", email = $"{Guid.NewGuid():N}@teste.edu.br", tipo = TipoDeUsuario.Gestor });
         var membroId = (await membro.Json()).GetProperty("id").GetInt64();
         await c.PostAsync($"{Lista}/{slug}/equipe/{membroId}/desativar", null);
         var (saida, erro) = (new StringWriter(), new StringWriter());
@@ -52,6 +52,35 @@ public class PlataformaAuditoriaTests(EsclariFactory f) : IClassFixture<EsclariF
         Assert.All(linhas.Where(l => l.Acao.StartsWith("OPERADOR_")), l => Assert.Null(l.InstituicaoAlvoId));
     }
 
+    [Fact]
+    public async Task Resumo_da_equipe_traz_o_nome_do_tipo()
+    {
+        var op = await f.Operador();
+        var c = op.Cliente;
+        var slug = Semente.NovoSlug();
+        await c.PostAsJsonAsync(Lista, new { slug, nome = "Faculdade Auditada", fuso = "America/Cuiaba", admin = new { cpf = Semente.NovoCpf(), nome = "Dona Admin", email = $"{Guid.NewGuid():N}@teste.edu.br" } });
+        var instituicao = await f.Db(null, db => db.Instituicoes.SingleAsync(i => i.Slug == slug));
+        var setor = await f.Db(instituicao.Id, db => db.Setores.Select(s => s.Id).FirstAsync());
+        var cpfGestor = Semente.NovoCpf();
+        var emailGestor = $"{Guid.NewGuid():N}@teste.edu.br";
+        var gestor = (await (await c.PostAsJsonAsync($"{Lista}/{slug}/equipe", new { cpf = cpfGestor, nome = "Ana Gestora", email = emailGestor, tipo = TipoDeUsuario.Gestor })).Json()).GetProperty("id").GetInt64();
+        var atendente = (await (await c.PostAsJsonAsync($"{Lista}/{slug}/equipe", new { cpf = Semente.NovoCpf(), nome = "Beto Atendente", email = $"{Guid.NewGuid():N}@teste.edu.br", tipo = TipoDeUsuario.Atendente, setores = new[] { setor } })).Json()).GetProperty("id").GetInt64();
+        await c.PostAsync($"{Lista}/{slug}/equipe/{gestor}/convite", null);
+        await c.PostAsync($"{Lista}/{slug}/equipe/{atendente}/desativar", null);
+        await c.PostAsync($"{Lista}/{slug}/equipe/{atendente}/reativar", null);
+
+        var linhas = await f.Db(null, db => db.AuditoriaDaPlataforma.Where(a => a.InstituicaoAlvoId == instituicao.Id && (a.Acao == AcoesDaPlataforma.UsuarioCriado || a.Acao == AcoesDaPlataforma.UsuarioAlterado)).OrderBy(a => a.Id).ToListAsync());
+
+        Assert.Equal(11, AcoesDaPlataforma.Todas.Count);
+        Assert.Equal([AcoesDaPlataforma.UsuarioCriado, AcoesDaPlataforma.UsuarioCriado, AcoesDaPlataforma.UsuarioAlterado, AcoesDaPlataforma.UsuarioAlterado, AcoesDaPlataforma.UsuarioAlterado], linhas.Select(l => l.Acao));
+        Assert.Equal(["(Gestor)", "(Atendente)", "(Gestor)", "(Atendente)", "(Atendente)"], linhas.Select(l => l.Resumo[l.Resumo.IndexOf('(')..]));
+        Assert.All(linhas, l =>
+        {
+            Assert.DoesNotContain(cpfGestor, l.Resumo);
+            Assert.DoesNotContain(emailGestor, l.Resumo);
+            Assert.DoesNotContain("ADMINISTRADOR", l.Resumo);
+        });
+    }
     [Fact]
     public async Task Acao_que_volta_nao_deixa_linha()
     {
@@ -101,7 +130,7 @@ public class PlataformaAuditoriaTests(EsclariFactory f) : IClassFixture<EsclariF
         await op.Cliente.PostAsync($"{Lista}/{slug}/reativar", null);
         await op.Cliente.PutAsJsonAsync($"{Lista}/{slug}/parametros", new { confirmacaoDias = 5 });
         await op.Cliente.PostAsJsonAsync($"{Lista}/{slug}/desativar", new { motivo = new string('m', 200) });
-        var membro = await op.Cliente.PostAsJsonAsync($"{Lista}/{slug}/equipe", new { cpf = Semente.NovoCpf(), nome = "Ana Equipe", email = $"{Guid.NewGuid():N}@teste.edu.br", papeis = new[] { "ADMINISTRADOR" } });
+        var membro = await op.Cliente.PostAsJsonAsync($"{Lista}/{slug}/equipe", new { cpf = Semente.NovoCpf(), nome = "Ana Equipe", email = $"{Guid.NewGuid():N}@teste.edu.br", tipo = TipoDeUsuario.Gestor });
         var membroId = (await membro.Json()).GetProperty("id").GetInt64();
         await op.Cliente.PostAsync($"{Lista}/{slug}/equipe/{membroId}/desativar", null);
         await PlataformaComando.Executar(f.Services, ["operador", "--email", op.Operador.Email, "--redefinir-2fa"], new StringWriter(), new StringWriter());

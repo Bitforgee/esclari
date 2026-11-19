@@ -5,7 +5,7 @@ namespace Esclari.Api.Plataforma;
 
 public static class EquipeDaInstituicao
 {
-    public static readonly string[] PapeisPermitidos = PonteDePapeis.DaEquipe;
+    public static readonly string[] TiposConvidaveis = [TipoDeUsuario.Gestor, TipoDeUsuario.Atendente];
 
     public static async Task<Instituicao?> Alvo(EsclariDb db, string slug, CancellationToken ct)
     {
@@ -15,10 +15,17 @@ public static class EquipeDaInstituicao
     }
 
     public static Task<Usuario?> Membro(EsclariDb db, long id, CancellationToken ct) =>
-        db.Usuarios.Include(u => u.Papeis).Include(u => u.Setores).Include(u => u.Tipo)
+        db.Usuarios.Include(u => u.Setores).Include(u => u.Tipo)
             .FirstOrDefaultAsync(u => u.Id == id && u.Tipo!.Sistema != TipoDeUsuario.Aluno, ct);
 
-    public static string Resumo(string verbo, Usuario u) => $"{verbo} o usuário {u.Id} ({string.Join(", ", u.Papeis.Select(p => p.Papel).Order())})";
+    public static string Resumo(string verbo, Usuario u) => $"{verbo} o usuário {u.Id} ({u.Tipo!.Nome})";
+
+    public static string Funcao(Usuario u) => u.Tipo!.Sistema switch
+    {
+        TipoDeUsuario.Gestor => "gestor",
+        TipoDeUsuario.Atendente => "atendente",
+        _ => u.Tipo.Nome.ToLowerInvariant(),
+    };
 
     public static string MascararEmail(string email)
     {
@@ -32,7 +39,7 @@ public static class EquipeDaInstituicao
         return digitos.Length == 11 ? $"***.{digitos[3..6]}.{digitos[6..9]}-**" : "***";
     }
 
-    public static async Task<IResult?> Validar(EsclariDb db, CriarMembro.Entrada e) => Pessoa(e) ?? await PapeisESetores(db, e);
+    public static async Task<IResult?> Validar(EsclariDb db, CriarMembro.Entrada e) => Pessoa(e) ?? await TipoESetores(db, e);
 
     static IResult? Pessoa(CriarMembro.Entrada e)
     {
@@ -42,11 +49,11 @@ public static class EquipeDaInstituicao
         return null;
     }
 
-    static async Task<IResult?> PapeisESetores(EsclariDb db, CriarMembro.Entrada e)
+    static async Task<IResult?> TipoESetores(EsclariDb db, CriarMembro.Entrada e)
     {
-        if (e.Papeis is not { Length: > 0 } || e.Papeis.Any(p => !PapeisPermitidos.Contains(p))) return Problemas.Invalido("Escolha administrador, atendente ou os dois.", "papeis");
+        if (e.Tipo is null || !TiposConvidaveis.Contains(e.Tipo)) return Problemas.Invalido("Escolha gestor ou atendente.", "tipo");
         var setores = e.Setores?.Distinct().ToArray() ?? [];
-        if (PonteDePapeis.ExigeSetor(e.Papeis) && setores.Length == 0) return Problemas.Invalido("Escolha ao menos um setor para o atendente.", "setores");
+        if (e.Tipo == TipoDeUsuario.Atendente && setores.Length == 0) return Problemas.Invalido("Escolha ao menos um setor para o atendente.", "setores");
         if (await db.Setores.CountAsync(s => setores.Contains(s.Id)) != setores.Length) return Problemas.Invalido("Setor inexistente.", "setores");
         return null;
     }

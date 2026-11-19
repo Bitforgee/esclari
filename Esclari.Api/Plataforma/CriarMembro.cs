@@ -5,8 +5,8 @@ namespace Esclari.Api.Plataforma;
 
 public sealed record CriarMembro(string Slug, CriarMembro.Entrada Corpo, OperadorPlataforma Operador) : IRequest<IResult>
 {
-    public sealed record Entrada(string? Cpf, string? Nome, string? Email, string[]? Papeis, long[]? Setores);
-    public sealed record Resposta(long Id);
+    public sealed record Entrada(string? Cpf, string? Nome, string? Email, string? Tipo, long[]? Setores);
+    public sealed record Resposta(long Id, ListarEquipe.Item.DoTipo Tipo);
 
     public static void Mapear(RouteGroupBuilder g) =>
         g.MapPost("/instituicoes/{slug}/equipe", (string slug, Entrada i, HttpContext ctx, IMediator m) => m.Send(new CriarMembro(slug, i, ctx.Operador())));
@@ -25,14 +25,14 @@ public sealed class CriarMembroHandler(EsclariDb db, TimeProvider relogio, IConf
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var agora = relogio.GetUtcNow().UtcDateTime;
         var usuario = db.Usuarios.Add(Usuario.Criar(Cpf.Tentar(e.Cpf)!, e.Nome!.Trim(), e.Email!)).Entity;
-        await db.AplicarPapeis(usuario, e.Papeis!, e.Setores ?? []);
+        usuario.DefinirAcesso(await db.TipoDeSistema(e.Tipo!), e.Setores ?? []);
         await db.SaveChangesAsync(ct);
         var (token, registro) = TokenAcesso.Criar(instituicao.Slug, usuario.Id, agora);
         db.Tokens.Add(registro);
-        db.EmailsSaida.Add(Criacao.EmailDeAcesso(cfg, instituicao, usuario.Email, token, agora, PonteDePapeis.Funcao(e.Papeis!)));
+        db.EmailsSaida.Add(Criacao.EmailDeAcesso(cfg, instituicao, usuario.Email, token, agora, EquipeDaInstituicao.Funcao(usuario)));
         db.AuditoriaDaPlataforma.Add(AuditoriaPlataforma.Registrar(AcoesDaPlataforma.UsuarioCriado, m.Operador.Id, instituicao.Id, EquipeDaInstituicao.Resumo("Criou", usuario), agora));
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        return Results.Created($"/api/plataforma/instituicoes/{instituicao.Slug}/equipe/{usuario.Id}", new CriarMembro.Resposta(usuario.Id));
+        return Results.Created($"/api/plataforma/instituicoes/{instituicao.Slug}/equipe/{usuario.Id}", new CriarMembro.Resposta(usuario.Id, new ListarEquipe.Item.DoTipo(usuario.TipoUsuarioId, usuario.Tipo!.Nome, usuario.Tipo.Sistema)));
     }
 }

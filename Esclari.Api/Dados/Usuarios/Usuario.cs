@@ -18,8 +18,7 @@ public class Usuario : IDaInstituicao
     public List<Matricula> Matriculas { get; private set; } = [];
     public List<AtendenteSetor> Setores { get; private set; } = [];
 
-    public static Usuario Criar(Cpf cpf, string nome, string email, IEnumerable<string>? papeis = null) =>
-        new() { Cpf = cpf, Nome = nome, Email = email, Papeis = [.. (papeis ?? []).Distinct().Select(UsuarioPapel.Criar)] };
+    public static Usuario Criar(Cpf cpf, string nome, string email) => new() { Cpf = cpf, Nome = nome, Email = email };
 
     public void DefinirTipo(TipoDeUsuario tipo)
     {
@@ -51,20 +50,6 @@ public class Usuario : IDaInstituicao
         Email = email;
     }
 
-    public void AdicionarPapel(string papel)
-    {
-        if (!Papeis.Any(p => p.Papel == papel)) Papeis.Add(UsuarioPapel.Criar(papel));
-    }
-
-    public void RemoverPapel(string papel) => Papeis.RemoveAll(p => p.Papel == papel);
-
-    public void DefinirPapeis(IEnumerable<string> papeis)
-    {
-        var novos = papeis.Distinct().ToList();
-        Papeis.RemoveAll(p => !novos.Contains(p.Papel));
-        foreach (var papel in novos) AdicionarPapel(papel);
-    }
-
     public void VincularSetores(IEnumerable<long> setores)
     {
         var novos = setores.Distinct().ToList();
@@ -72,11 +57,10 @@ public class Usuario : IDaInstituicao
         Setores.AddRange(novos.Except(Setores.Select(a => a.SetorId)).Select(AtendenteSetor.Criar));
     }
 
-    public void DefinirAcesso(IEnumerable<string> papeis, IEnumerable<long> setores)
+    public void DefinirAcesso(TipoDeUsuario tipo, IEnumerable<long> setores)
     {
-        var lista = papeis.ToList();
-        DefinirPapeis(lista);
-        VincularSetores(PonteDePapeis.ExigeSetor(lista) ? setores : []);
+        DefinirTipo(tipo);
+        VincularSetores(tipo.FuncoesDoTipo().Contains(Funcoes.FilaAtender) ? setores : []);
     }
 
     public Matricula AdicionarMatricula(string numero, long cursoId, int semestre, string situacao)

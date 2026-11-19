@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,7 @@ public class SessaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     public async Task Sem_cookie_401_em_toda_rota_privada()
     {
         var privadas = Rotas().Where(r => !Publicas.Contains(r.padrao)).ToList();
-        Assert.Equal(103, privadas.Count);
+        Assert.Equal(107, privadas.Count);
 
         foreach (var (metodo, padrao) in privadas)
         {
@@ -70,7 +71,9 @@ public class SessaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(HttpStatusCode.OK, r.StatusCode);
         var j = await r.Json();
         Assert.Equal("***.456.789-**", j.GetProperty("cpfMascarado").GetString());
-        Assert.Equal([Papeis.Aluno], j.GetProperty("papeis").EnumerateArray().Select(p => p.GetString()));
+        Assert.Equal("Aluno", j.GetProperty("tipo").GetProperty("nome").GetString());
+        Assert.Equal(["assistente.usar"], j.GetProperty("permissoes").EnumerateArray().Select(p => p.GetString()));
+        Assert.False(j.TryGetProperty("papeis", out _));
         Assert.False(j.GetProperty("deveTrocarSenha").GetBoolean());
         Assert.Equal("Univag", j.GetProperty("instituicao").GetProperty("nome").GetString());
         Assert.Equal(i.Slug, j.GetProperty("instituicao").GetProperty("slug").GetString());
@@ -78,6 +81,28 @@ public class SessaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(["2000567890", "2000567891"], matriculas.Select(m => m.GetProperty("numero").GetString()));
         Assert.Equal("Análise e Desenvolvimento de Sistemas", matriculas[0].GetProperty("curso").GetString());
         Assert.Equal(["ATIVA", "INATIVA"], matriculas.Select(m => m.GetProperty("situacao").GetString()));
+    }
+
+    [Fact]
+    public async Task Me_devolve_tipo_e_permissoes_sem_papeis()
+    {
+        var i = await f.Instituicao();
+        var triagem = await f.Db(i.Id, db => db.Setores.SingleAsync());
+        var gestor = await f.Usuario(i, [Papeis.Administrador]);
+        var aluno = await f.Usuario(i, [Papeis.Aluno]);
+        var lider = await f.Usuario(i, [Papeis.Aluno, Papeis.Atendente]);
+        await f.Db(i.Id, db => db.VincularSetores(lider.Id, [triagem.Id]));
+
+        async Task<JsonElement> Me(Usuario u) => await (await (await f.Entrar(i, u)).GetAsync("/api/auth/me")).Json();
+        static string[] Permissoes(JsonElement j) => [.. j.GetProperty("permissoes").EnumerateArray().Select(p => p.GetString()!)];
+
+        var (g, a, l) = (await Me(gestor), await Me(aluno), await Me(lider));
+
+        Assert.Equal(["aparencia.gerenciar", "cadastros.gerenciar", "chamados.ver_todos", "conhecimento.gerenciar", "indicadores.ver", "integracoes.gerenciar", "matriculas.importar", "mcp.usar", "tipos.gerenciar", "usuarios.gerenciar"], Permissoes(g));
+        Assert.Equal(["assistente.usar"], Permissoes(a));
+        Assert.Equal(["assistente.usar", "fila.atender", "indicadores.ver", "mcp.usar"], Permissoes(l));
+        Assert.Equal(["Gestor", "Aluno", TipoDeUsuario.NomeDoLider], [g.GetProperty("tipo").GetProperty("nome").GetString(), a.GetProperty("tipo").GetProperty("nome").GetString(), l.GetProperty("tipo").GetProperty("nome").GetString()]);
+        Assert.All(new[] { g, a, l }, j => Assert.False(j.TryGetProperty("papeis", out _)));
     }
 
     [Fact]

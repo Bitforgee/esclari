@@ -6,14 +6,25 @@ namespace Esclari.Api.Administracao.Usuarios;
 
 public static class ValidacaoDeUsuario
 {
-    public static async Task<IResult?> Validar(EsclariDb db, string? cpf, string? nome, string? email, string? senhaTemporaria, string[]? papeis, long[]? setores, long id) =>
-        Pessoa(cpf, nome, email) ?? await PapeisESetores(db, senhaTemporaria, papeis, setores) ?? await Repetidos(db, cpf, email, id);
-
-    public static async Task<IResult?> UltimoAdministrador(EsclariDb db, Usuario alvo, bool continuaAdministrador)
+    public static async Task<(IResult? Erro, TipoDeUsuario? Tipo)> Validar(EsclariDb db, string? cpf, string? nome, string? email, string? senhaTemporaria, long? tipoId, long[]? setores, long id)
     {
-        if (continuaAdministrador || !alvo.Ativo || !await db.Usuarios.AnyAsync(u => u.Id == alvo.Id && u.Tipo!.Sistema == TipoDeUsuario.Gestor)) return null;
+        if (Pessoa(cpf, nome, email) is { } pessoa) return (pessoa, null);
+        var tipo = tipoId is null ? null : await db.TiposDeUsuario.Include(t => t.Funcoes).FirstOrDefaultAsync(t => t.Id == tipoId);
+        if (tipo is null) return (Problemas.Invalido("Escolha o tipo do usuário.", "tipoId"), null);
+        return (await SetoresESenha(db, tipo, senhaTemporaria, setores) ?? await Repetidos(db, cpf, email, id), tipo);
+    }
+
+    public static IResult? PodeAtribuir(IReadOnlyList<string> tem, TipoDeUsuario novo, TipoDeUsuario? atual)
+    {
+        var exigidas = novo.FuncoesDoTipo().Concat(atual?.FuncoesDoTipo() ?? []).Where(f => f != Funcoes.AssistenteUsar);
+        return exigidas.All(tem.Contains) ? null : ErrosDeAdmin.SemPoderParaOTipo();
+    }
+
+    public static async Task<IResult?> UltimoGestor(EsclariDb db, Usuario alvo, bool continuaGestor)
+    {
+        if (continuaGestor || !alvo.Ativo || !await db.Usuarios.AnyAsync(u => u.Id == alvo.Id && u.Tipo!.Sistema == TipoDeUsuario.Gestor)) return null;
         var existeOutro = await db.Usuarios.AnyAsync(u => u.Id != alvo.Id && u.Ativo && u.Tipo!.Sistema == TipoDeUsuario.Gestor);
-        return existeOutro ? null : ErrosDeAdmin.SemAdministrador();
+        return existeOutro ? null : ErrosDeAdmin.SemGestor();
     }
 
     public static bool Nome(string? nome, int max) => !string.IsNullOrWhiteSpace(nome) && nome.Length <= max;
@@ -26,11 +37,10 @@ public static class ValidacaoDeUsuario
         return null;
     }
 
-    static async Task<IResult?> PapeisESetores(EsclariDb db, string? senhaTemporaria, string[]? papeis, long[]? setoresInformados)
+    static async Task<IResult?> SetoresESenha(EsclariDb db, TipoDeUsuario tipo, string? senhaTemporaria, long[]? setoresInformados)
     {
-        if (papeis is not { Length: > 0 } || papeis.Any(p => !PonteDePapeis.Validos.Contains(p))) return Problemas.Invalido("Escolha ao menos um papel.", "papeis");
         var setores = setoresInformados ?? [];
-        if (PonteDePapeis.ExigeSetor(papeis) && setores.Length == 0) return Problemas.Invalido("Escolha ao menos um setor para o atendente.", "setores");
+        if (tipo.ExigeSetor && setores.Length == 0) return Problemas.Invalido("Escolha ao menos um setor para quem atende a fila.", "setores");
         if (await db.Setores.CountAsync(s => setores.Contains(s.Id)) != setores.Distinct().Count()) return Problemas.Invalido("Setor inexistente.", "setores");
         if (senhaTemporaria is not null && !Senha.Valida(senhaTemporaria))
             return Problemas.Invalido($"A senha temporária deve ter de {Senha.Minimo} a {Senha.Maximo} caracteres.", "senhaTemporaria");

@@ -28,7 +28,7 @@ public class IsolamentoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var alunoDemo = await f.AlunoLogado(demo);
         var equipeDemo = await f.Entrar(demo, await f.Usuario(demo, [Papeis.Atendente, Papeis.Administrador]));
         var setorDemo = await f.Db(demo.Id, db => db.Setores.SingleAsync());
-        var usuario = new { cpf = Semente.NovoCpf(), nome = "X", email = "x@x.com", papeis = new[] { Papeis.Administrador } };
+        var usuario = new { cpf = Semente.NovoCpf(), nome = "X", email = "x@x.com", tipoId = 1L };
 
         var rotas = new (HttpClient cliente, HttpMethod metodo, string url, object? corpo)[]
         {

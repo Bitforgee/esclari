@@ -25,7 +25,7 @@ public sealed class ConvidarMembroHandler(EsclariDb db, TimeProvider relogio, IC
         foreach (var antigo in await db.Tokens.Where(t => t.UsuarioId == usuario.Id && t.UsadoEm == null).ToListAsync(ct)) antigo.Usar(agora);
         var (token, registro) = TokenAcesso.Criar(instituicao.Slug, usuario.Id, agora);
         db.Tokens.Add(registro);
-        db.EmailsSaida.Add(Criacao.EmailDeAcesso(cfg, instituicao, usuario.Email, token, agora, usuario.EDoTipoDeSistema(TipoDeUsuario.Gestor) ? "administrador" : "atendente"));
+        db.EmailsSaida.Add(Criacao.EmailDeAcesso(cfg, instituicao, usuario.Email, token, agora, EquipeDaInstituicao.Funcao(usuario)));
         db.AuditoriaDaPlataforma.Add(AuditoriaPlataforma.Registrar(AcoesDaPlataforma.UsuarioAlterado, m.Operador.Id, instituicao.Id, EquipeDaInstituicao.Resumo("Convidou de novo", usuario), agora));
         await db.SaveChangesAsync(ct);
         return Results.NoContent();

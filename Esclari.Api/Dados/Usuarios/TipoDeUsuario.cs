@@ -26,6 +26,20 @@ public class TipoDeUsuario : IDaInstituicao
         _ => throw new ArgumentOutOfRangeException(nameof(sistema)),
     };
 
+    public bool DeSistemaFixo => Sistema is Aluno or Gestor;
+
+    public bool ExigeSetor => Sistema != Gestor && FuncoesDoTipo().Contains(Usuarios.Funcoes.FilaAtender);
+
+    public bool Editavel => Sistema is null or Atendente;
+
+    public void Redefinir(string nome, IEnumerable<string> funcoes)
+    {
+        var novas = funcoes.Distinct().ToList();
+        Nome = nome;
+        Funcoes.RemoveAll(f => !novas.Contains(f.Funcao));
+        Funcoes.AddRange(novas.Except(Funcoes.Select(f => f.Funcao)).Select(FuncaoDoTipo.Criar));
+    }
+
     public IReadOnlyList<string> FuncoesDoTipo() => Sistema switch
     {
         Aluno => [Usuarios.Funcoes.AssistenteUsar],

@@ -72,9 +72,10 @@ public class SenhaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal(HttpStatusCode.NoContent, (await Trocar(oito, cento28)).StatusCode);
 
         var admin = await f.Entrar(i, await f.Usuario(i, [Papeis.Administrador]));
+        var tipoAluno = await f.TipoId(i, TipoDeUsuario.Aluno);
         Task<HttpResponseMessage> Cadastrar(string senha) => admin.PostAsJsonAsync("/api/admin/usuarios", new
         {
-            cpf = Semente.NovoCpf(), nome = "Aluno Novo", email = $"{Guid.NewGuid():N}@univag.edu.br", senhaTemporaria = senha, papeis = new[] { Papeis.Aluno },
+            cpf = Semente.NovoCpf(), nome = "Aluno Novo", email = $"{Guid.NewGuid():N}@univag.edu.br", senhaTemporaria = senha, tipoId = tipoAluno,
         });
         foreach (var recusada in new[] { new string('7', 7), new string('9', 129) })
         {

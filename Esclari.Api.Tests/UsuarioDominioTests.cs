@@ -6,7 +6,7 @@ public class UsuarioDominioTests
 {
     static readonly DateTime Agora = new(2026, 11, 12, 12, 0, 0, DateTimeKind.Utc);
 
-    static Usuario Novo() => Usuario.Criar(Cpf.Tentar("11144477735")!, "Maria Teste", "maria@teste.esclari", [Papeis.Aluno]);
+    static Usuario Novo() => Usuario.Criar(Cpf.Tentar("11144477735")!, "Maria Teste", "maria@teste.esclari");
 
     [Fact]
     public void Definir_senha_grava_hash_zera_a_troca_e_marca_o_token_usado()
@@ -44,22 +44,11 @@ public class UsuarioDominioTests
     }
 
     [Fact]
-    public void Criar_traz_os_dados_os_papeis_e_nenhuma_senha()
+    public void Criar_traz_os_dados_e_nenhuma_senha()
     {
         var u = Novo();
 
         Assert.Equal(("11144477735", "Maria Teste", "maria@teste.esclari", true, (string?)null, false), (u.Cpf.Valor, u.Nome, u.Email, u.Ativo, u.SenhaHash, u.DeveTrocarSenha));
-        Assert.Equal([Papeis.Aluno], u.Papeis.Select(p => p.Papel));
-    }
-
-    [Fact]
-    public void Definir_papeis_remove_os_ausentes_e_nao_duplica()
-    {
-        var u = Usuario.Criar(Cpf.Tentar("11144477735")!, "Maria Teste", "maria@teste.esclari", [Papeis.Aluno, Papeis.Administrador]);
-
-        u.DefinirPapeis([Papeis.Atendente, Papeis.Atendente]);
-
-        Assert.Equal([Papeis.Atendente], u.Papeis.Select(p => p.Papel));
     }
 
     [Fact]

@@ -117,3 +117,7 @@ GET /api/plataforma/instituicoes/{slug}/parametros anonimo=False autorizacao=Tru
 PUT /api/plataforma/instituicoes/{slug}/parametros anonimo=False autorizacao=True limite=-
 * /api/{**resto} anonimo=False autorizacao=False limite=-
 GET,HEAD {*path:nonfile} anonimo=False autorizacao=False limite=-
+GET /api/admin/tipos anonimo=False autorizacao=True limite=-
+POST /api/admin/tipos anonimo=False autorizacao=True limite=-
+PUT /api/admin/tipos/{id:long} anonimo=False autorizacao=True limite=-
+DELETE /api/admin/tipos/{id:long} anonimo=False autorizacao=True limite=-

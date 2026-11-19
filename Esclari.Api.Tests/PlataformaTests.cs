@@ -99,23 +99,23 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var i = await f.Instituicao();
         var admin = await f.Entrar(i, await f.Usuario(i, [Papeis.Administrador]));
         var alvo = await f.Usuario(i, [Papeis.Atendente]);
-        var antes = await f.Db(i.Id, db => db.UsuarioPapeis.CountAsync());
+        var antes = await f.Db(i.Id, db => db.Usuarios.CountAsync());
 
-        foreach (var papeis in new[] { new[] { "OPERADOR" }, ["ADMINISTRADOR", "OPERADOR"] })
+        foreach (var tipoId in new long?[] { null, 999999 })
         {
             var cpf = Semente.NovoCpf();
-            var criar = await admin.PostAsJsonAsync("/api/admin/usuarios", new { cpf, nome = "Novo", email = $"{Guid.NewGuid():N}@teste.esclari", senhaTemporaria = "temporaria-1", papeis });
-            var editar = await admin.PutAsJsonAsync($"/api/admin/usuarios/{alvo.Id}", new { cpf = alvo.Cpf.Valor, nome = alvo.Nome, email = alvo.Email, papeis });
+            var criar = await admin.PostAsJsonAsync("/api/admin/usuarios", new { cpf, nome = "Novo", email = $"{Guid.NewGuid():N}@teste.esclari", senhaTemporaria = "temporaria-1", tipoId });
+            var editar = await admin.PutAsJsonAsync($"/api/admin/usuarios/{alvo.Id}", new { cpf = alvo.Cpf.Valor, nome = alvo.Nome, email = alvo.Email, tipoId });
             foreach (var r in new[] { criar, editar })
             {
                 Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode);
-                Assert.Equal("Escolha ao menos um papel.", (await r.Json()).GetProperty("errors").GetProperty("papeis")[0].GetString());
+                Assert.Equal("Escolha o tipo do usuário.", (await r.Json()).GetProperty("errors").GetProperty("tipoId")[0].GetString());
             }
             Assert.False(await f.Db(i.Id, db => db.Usuarios.AnyAsync(u => u.Cpf == Cpf.Ler(cpf))));
         }
-        Assert.Equal(antes, await f.Db(i.Id, db => db.UsuarioPapeis.CountAsync()));
+        Assert.Equal(antes, await f.Db(i.Id, db => db.Usuarios.CountAsync()));
+        Assert.Equal(TipoDeUsuario.Atendente, await f.Db(i.Id, db => db.Usuarios.Where(u => u.Id == alvo.Id).Select(u => u.Tipo!.Sistema).SingleAsync()));
     }
-
 
     [Fact]
     public async Task Listar_todas_ativas_primeiro()
@@ -146,7 +146,7 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 
 
     [Fact]
-    public async Task Criar_instituicao_201()
+    public async Task Criar_instituicao_201_com_tipos_e_gestor()
     {
         var op = await UmOperador();
         var cpf = Semente.NovoCpf();
@@ -165,9 +165,10 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             Assert.Equal(("Triagem", true), (setor.Nome, setor.Triagem));
             var categoria = await db.Categorias.SingleAsync();
             Assert.Equal(("Não classificado", true), (categoria.Nome, categoria.Padrao));
-            var admin = await db.Usuarios.Include(u => u.Papeis).SingleAsync();
+            var admin = await db.Usuarios.Include(u => u.Tipo).SingleAsync();
             Assert.Equal((cpf, "Dona Admin", "admin@demo.edu.br"), (admin.Cpf.Valor, admin.Nome, admin.Email));
-            Assert.Equal([Papeis.Administrador], admin.Papeis.Select(p => p.Papel));
+            Assert.Equal(TipoDeUsuario.Gestor, admin.Tipo!.Sistema);
+            Assert.Equal([TipoDeUsuario.Aluno, TipoDeUsuario.Atendente, TipoDeUsuario.Gestor], await db.TiposDeUsuario.Select(t => t.Sistema!).OrderBy(s => s).ToListAsync());
             Assert.Equal(admin.Id, (await db.Tokens.SingleAsync()).UsuarioId);
         });
     }
@@ -200,6 +201,7 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     public async Task Falha_ao_gravar_o_email_nao_cria_a_instituicao()
     {
         var op = await UmOperador();
+        var tiposAntes = await f.Db(null, db => db.TiposDeUsuario.IgnoreQueryFilters().CountAsync());
         f.Gravacoes.FalharAoGravarEmail = true;
         try { await op.Cliente.PostAsJsonAsync(Lista, Corpo(slug: "demo-sem-email", cpf: Semente.NovoCpf(), email: "admin@demo-sem-email.edu.br")); }
         catch (Exception) { }
@@ -207,6 +209,7 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 
         Assert.False(await f.Db(null, db => db.Instituicoes.AnyAsync(x => x.Slug == "demo-sem-email")));
         Assert.False(await f.Db(null, db => db.Usuarios.IgnoreQueryFilters().AnyAsync(u => u.Email == "admin@demo-sem-email.edu.br")));
+        Assert.Equal(tiposAntes, await f.Db(null, db => db.TiposDeUsuario.IgnoreQueryFilters().CountAsync()));
     }
 
     [Theory]

@@ -21,23 +21,9 @@ public static class PoliticaDeAcesso
         await db.TiposDeUsuario.Include(t => t.Funcoes).FirstOrDefaultAsync(t => t.Sistema == sistema)
         ?? db.TiposDeUsuario.Add(TipoDeUsuario.DeSistema(sistema)).Entity;
 
-    public static async Task<TipoDeUsuario> TipoPelosPapeis(this EsclariDb db, IEnumerable<string> papeis)
-    {
-        if (PonteDePapeis.Sistema(papeis) is { } sistema) return await db.TipoDeSistema(sistema);
-        return await db.TiposDeUsuario.Include(t => t.Funcoes).FirstOrDefaultAsync(t => t.Sistema == null && t.Nome == TipoDeUsuario.NomeDoLider)
-            ?? db.TiposDeUsuario.Add(TipoDeUsuario.Criar(TipoDeUsuario.NomeDoLider, null, Funcoes.DoLiderDeSemestre)).Entity;
-    }
-
-    public static async Task AplicarPapeis(this EsclariDb db, Usuario u, IEnumerable<string> papeis, IEnumerable<long> setores)
-    {
-        var lista = papeis.ToList();
-        u.DefinirAcesso(lista, setores);
-        u.DefinirTipo(await db.TipoPelosPapeis(lista));
-    }
-
     public static async Task<Usuario> NovoAluno(this EsclariDb db, Cpf cpf, string nome, string email)
     {
-        var u = Usuario.Criar(cpf, nome, email, PonteDePapeis.DoAluno);
+        var u = Usuario.Criar(cpf, nome, email);
         u.DefinirTipo(await db.TipoDeSistema(TipoDeUsuario.Aluno));
         return u;
     }

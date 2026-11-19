@@ -20,6 +20,11 @@ public static class AdministracaoExtensoes
         CriarUsuario.Mapear(usuarios);
         AlterarUsuario.Mapear(usuarios);
         DesativarUsuario.Mapear(usuarios);
+        ListarTipos.Mapear(api.MapAdmin(Funcoes.TiposGerenciar, Funcoes.UsuariosGerenciar));
+        var tipos = api.MapAdmin(Funcoes.TiposGerenciar);
+        CriarTipo.Mapear(tipos);
+        AlterarTipo.Mapear(tipos);
+        ApagarTipo.Mapear(tipos);
         ImportarMatriculas.Mapear(api.MapAdmin(Funcoes.MatriculasImportar));
         var admin = api.MapAdmin(Funcoes.CadastrosGerenciar);
         ListarSetores.Mapear(admin);
