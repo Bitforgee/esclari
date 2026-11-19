@@ -93,6 +93,8 @@ public class PlataformaAcessoTests(EsclariFactory f) : IClassFixture<EsclariFact
         var j = await r.Json();
         Assert.Equal("CODIGO", j.GetProperty("etapa").GetString());
         Assert.Equal(["etapa", "segredo", "uri"], j.EnumerateObject().Select(p => p.Name));
+        Assert.Equal(JsonValueKind.Null, j.GetProperty("segredo").ValueKind);
+        Assert.Equal(JsonValueKind.Null, j.GetProperty("uri").ValueKind);
         Assert.True(Grava(r, "esclari_plataforma_etapa"));
         Assert.False(Grava(r, "esclari_plataforma"));
     }

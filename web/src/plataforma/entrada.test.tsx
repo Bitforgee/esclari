@@ -178,6 +178,8 @@ describe('entrada no console', () => {
     })
     await userEvent.type(codigo, '123456')
     await userEvent.type(codigo, '7{Enter}{Enter}')
+    await userEvent.click(codigo)
+    await userEvent.paste('654321')
     expect(codigosEnviados(chamadas)).toEqual([{ codigo: '123456' }])
     liberar()
     await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Entrar' })).toBeEnabled())
