@@ -48,6 +48,30 @@ public class AvisarValidadeTests(EsclariFactory f) : IClassFixture<EsclariFactor
     }
 
     [Fact]
+    public async Task Avisa_quem_tem_conhecimento_gerenciar()
+    {
+        var i = await f.Instituicao();
+        var setor = await f.Setor(i, "Financeiro");
+        var comFuncao = await f.ComFuncoes(i, ["conhecimento.gerenciar"]);
+        await f.Atendente(i, setor);
+        await f.ArtigoQueVence(i, "Trancamento", f.Hoje(i).AddDays(5));
+
+        await Rodar();
+
+        var email = Assert.Single(await f.EmailsDeAviso(i));
+        Assert.Equal(await f.Db(i.Id, db => db.Usuarios.Where(u => u.Id == comFuncao.Usuario.Id).Select(u => u.Email).SingleAsync()), email.Destinatario);
+        Assert.Single(await f.Avisos(i));
+
+        var semNinguem = await f.Instituicao();
+        await f.Atendente(semNinguem, await f.Setor(semNinguem, "Financeiro"));
+        await f.ArtigoQueVence(semNinguem, "Rematrícula", f.Hoje(semNinguem).AddDays(5));
+
+        await Rodar();
+
+        Assert.Empty(await f.Avisos(semNinguem));
+        Assert.Empty(await f.EmailsDeAviso(semNinguem));
+    }
+    [Fact]
     public async Task Marco_de_30_dias()
     {
         var i = await ComAdmin();

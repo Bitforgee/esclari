@@ -29,14 +29,14 @@ public sealed class AutenticacaoMcp(IOptionsMonitor<AuthenticationSchemeOptions>
         var registro = await db.TokensMcp.FirstOrDefaultAsync(t => t.Hash == hash);
         if (registro is null || registro.Estado(agora) != TokenMcp.Estados.Ativo) return AuthenticateResult.Fail("token");
 
-        var usuario = await db.Usuarios.Include(u => u.Papeis).FirstOrDefaultAsync(u => u.Id == registro.UsuarioId);
+        var usuario = await db.Usuarios.ComTipo().FirstOrDefaultAsync(u => u.Id == registro.UsuarioId);
         if (!PodeUsar(usuario)) return AuthenticateResult.Fail("usuario");
 
         if (registro.RegistrarUso(agora)) await db.SaveChangesAsync();
         return AuthenticateResult.Success(new AuthenticationTicket(ContextoMcp.Principal(usuario!, instituicao, Esquema), Esquema));
     }
 
-    static bool PodeUsar(Usuario? u) => u is { Ativo: true, DeveTrocarSenha: false } && (u.Tem(Papeis.Atendente) || u.Tem(Papeis.Administrador));
+    static bool PodeUsar(Usuario? u) => u is { Ativo: true, DeveTrocarSenha: false } && u.Pode(Funcoes.McpUsar);
 
     protected override Task HandleChallengeAsync(AuthenticationProperties propriedades)
     {

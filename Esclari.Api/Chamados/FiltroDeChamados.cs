@@ -55,12 +55,12 @@ public sealed record FiltroDeChamados(string? Escopo, string? Q, string[]? Estad
     }
 
     public static async Task<Usuario> Quem(EsclariDb db, long usuarioId) =>
-        await db.Usuarios.Include(u => u.Papeis).SingleAsync(u => u.Id == usuarioId);
+        await db.Usuarios.ComTipo().SingleAsync(u => u.Id == usuarioId);
 
     public static IResult? Recusa(Usuario u, bool deTodos)
     {
-        if (!u.Tem(Papeis.Atendente) && !u.Tem(Papeis.Administrador)) return Problemas.Erro(403, "A lista de chamados é para a equipe.");
-        return deTodos && !u.Tem(Papeis.Administrador) ? Problemas.Erro(403, "Só o administrador vê os chamados de todos os setores.") : null;
+        if (!u.Pode(Funcoes.FilaAtender) && !u.Pode(Funcoes.ChamadosVerTodos)) return Problemas.Erro(403, "A lista de chamados é para a equipe.");
+        return deTodos && !u.Pode(Funcoes.ChamadosVerTodos) ? Problemas.Erro(403, "Só o administrador vê os chamados de todos os setores.") : null;
     }
 
     public static Task<List<long>> SetoresDe(EsclariDb db, Usuario u) =>

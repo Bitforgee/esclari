@@ -27,6 +27,45 @@ public class McpAcessoTests(EsclariFactory f, EsclariFactoryMcpComLimite limitad
         Assert.Equal(["buscar_conhecimento", "listar_chamados", "ver_chamado", "ver_indicadores"], ferramentas);
     }
 
+    [Fact]
+    public async Task Autentica_com_mcp_usar()
+    {
+        var i = await f.Instituicao();
+        var proprio = await f.ComFuncoes(i, ["mcp.usar"]);
+        var quem = new[]
+        {
+            await f.Usuario(i, [Papeis.Atendente]), await f.Usuario(i, [Papeis.Administrador]), proprio.Usuario,
+        };
+
+        foreach (var u in quem)
+        {
+            var token = await f.NovoTokenMcp(i, u);
+            var (resposta, listagem) = await f.Rpc(i.Slug, $"Bearer {token}", "tools/list");
+            Assert.Equal(HttpStatusCode.OK, resposta.StatusCode);
+            Assert.Equal(4, listagem.GetProperty("result").GetProperty("tools").GetArrayLength());
+        }
+    }
+
+    [Fact]
+    public async Task Sem_mcp_usar_401_na_chamada_seguinte()
+    {
+        var i = await f.Instituicao();
+        var proprio = await f.ComFuncoes(i, ["mcp.usar", "indicadores.ver"]);
+        var aluno = await f.Usuario(i, [Papeis.Aluno]);
+        var token = await f.NovoTokenMcp(i, proprio.Usuario);
+        var doAluno = await f.NovoTokenMcp(i, aluno);
+        Assert.Equal(HttpStatusCode.OK, (await f.RpcStatus(i.Slug, $"Bearer {token}")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await f.RpcStatus(i.Slug, $"Bearer {doAluno}")).StatusCode);
+
+        await f.Db(i.Id, db => db.FuncoesDoTipo.Where(x => x.TipoUsuarioId == proprio.Usuario.TipoUsuarioId && x.Funcao == "mcp.usar").ExecuteDeleteAsync());
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await f.RpcStatus(i.Slug, $"Bearer {token}")).StatusCode);
+        Assert.Equal(1, await f.Db(i.Id, db => db.TokensMcp.CountAsync(t => t.UsuarioId == proprio.Usuario.Id && t.RevogadoEm == null)));
+
+        await f.Db(i.Id, db => db.Database.ExecuteSqlRawAsync($"INSERT INTO tipo_usuario_funcao (instituicao_id, tipo_usuario_id, funcao) VALUES ({i.Id}, {proprio.Usuario.TipoUsuarioId}, 'mcp.usar')"));
+
+        Assert.Equal(HttpStatusCode.OK, (await f.RpcStatus(i.Slug, $"Bearer {token}")).StatusCode);
+    }
     [Theory]
     [InlineData("")]
     [InlineData("Bearer lixo")]

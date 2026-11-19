@@ -6,15 +6,13 @@ namespace Esclari.Api.Administracao.Usuarios;
 
 public static class ValidacaoDeUsuario
 {
-    static readonly string[] PapeisValidos = [Papeis.Aluno, Papeis.Atendente, Papeis.Administrador];
-
     public static async Task<IResult?> Validar(EsclariDb db, string? cpf, string? nome, string? email, string? senhaTemporaria, string[]? papeis, long[]? setores, long id) =>
         Pessoa(cpf, nome, email) ?? await PapeisESetores(db, senhaTemporaria, papeis, setores) ?? await Repetidos(db, cpf, email, id);
 
     public static async Task<IResult?> UltimoAdministrador(EsclariDb db, Usuario alvo, bool continuaAdministrador)
     {
-        if (continuaAdministrador || !alvo.Ativo || !alvo.Tem(Papeis.Administrador)) return null;
-        var existeOutro = await db.Usuarios.AnyAsync(u => u.Id != alvo.Id && u.Ativo && u.Papeis.Any(p => p.Papel == Papeis.Administrador));
+        if (continuaAdministrador || !alvo.Ativo || !await db.Usuarios.AnyAsync(u => u.Id == alvo.Id && u.Tipo!.Sistema == TipoDeUsuario.Gestor)) return null;
+        var existeOutro = await db.Usuarios.AnyAsync(u => u.Id != alvo.Id && u.Ativo && u.Tipo!.Sistema == TipoDeUsuario.Gestor);
         return existeOutro ? null : ErrosDeAdmin.SemAdministrador();
     }
 
@@ -30,9 +28,9 @@ public static class ValidacaoDeUsuario
 
     static async Task<IResult?> PapeisESetores(EsclariDb db, string? senhaTemporaria, string[]? papeis, long[]? setoresInformados)
     {
-        if (papeis is not { Length: > 0 } || papeis.Any(p => !PapeisValidos.Contains(p))) return Problemas.Invalido("Escolha ao menos um papel.", "papeis");
+        if (papeis is not { Length: > 0 } || papeis.Any(p => !PonteDePapeis.Validos.Contains(p))) return Problemas.Invalido("Escolha ao menos um papel.", "papeis");
         var setores = setoresInformados ?? [];
-        if (papeis.Contains(Papeis.Atendente) && setores.Length == 0) return Problemas.Invalido("Escolha ao menos um setor para o atendente.", "setores");
+        if (PonteDePapeis.ExigeSetor(papeis) && setores.Length == 0) return Problemas.Invalido("Escolha ao menos um setor para o atendente.", "setores");
         if (await db.Setores.CountAsync(s => setores.Contains(s.Id)) != setores.Distinct().Count()) return Problemas.Invalido("Setor inexistente.", "setores");
         if (senhaTemporaria is not null && !Senha.Valida(senhaTemporaria))
             return Problemas.Invalido($"A senha temporária deve ter de {Senha.Minimo} a {Senha.Maximo} caracteres.", "senhaTemporaria");

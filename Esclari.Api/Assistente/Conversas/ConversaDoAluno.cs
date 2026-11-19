@@ -15,7 +15,7 @@ public static class ConversaDoAluno
             .FirstOrDefaultAsync(c => c.Id == id && c.AlunoId == aluno.Id);
 
     public static async Task<bool> PodeUsarAssistente(EsclariDb db, Usuario u) =>
-        u.Tem(Papeis.Aluno) && await db.Matriculas.AnyAsync(m => m.UsuarioId == u.Id && m.Situacao == "ATIVA");
+        u.Pode(Funcoes.AssistenteUsar) && await db.Matriculas.AnyAsync(m => m.UsuarioId == u.Id && m.Situacao == "ATIVA");
 
     public static async Task<IResult> Transferido<TResposta>(EsclariDb db, Chamado chamado, Func<string, string, string, TResposta> resposta) =>
         Results.Created($"/api/chamados/{chamado.Numero}",

@@ -25,7 +25,7 @@ public class TempoRealHub(EsclariDb db) : Hub
     public async Task EntrarNaFila()
     {
         var u = await Reler();
-        if (!u.Tem(Papeis.Atendente)) throw new HubException("A fila é só para atendentes.");
+        if (!u.Pode(Funcoes.FilaAtender)) throw new HubException("A fila é só para atendentes.");
         var setores = await db.AtendenteSetores.Where(a => a.UsuarioId == u.Id).Select(a => a.SetorId).ToListAsync();
         foreach (var setorId in setores)
             await Groups.AddToGroupAsync(Context.ConnectionId, TempoRealGrupos.Fila(u.InstituicaoId, setorId));
@@ -37,7 +37,7 @@ public class TempoRealHub(EsclariDb db) : Hub
         var instituicaoId = long.Parse(Context.User!.FindFirstValue("instituicao_id")!);
         db.InstituicaoAtual = instituicaoId;
         var instituicao = await db.Instituicoes.FindAsync(instituicaoId);
-        var usuario = await db.Usuarios.Include(x => x.Papeis).FirstOrDefaultAsync(x => x.Id == sub);
+        var usuario = await db.Usuarios.ComTipo().FirstOrDefaultAsync(x => x.Id == sub);
         if (instituicao is not { Ativa: true } || usuario is not { Ativo: true }) throw new HubException("Sessão inválida.");
         return usuario;
     }

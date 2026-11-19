@@ -21,7 +21,7 @@ public sealed class ListarChamadosHandler(EsclariDb db, TimeProvider relogio) : 
     {
         var u = m.Usuario;
         if (m.Escopo != "fila") return Results.Ok(await Meus(u, m.Estado));
-        if (!u.Tem(Papeis.Atendente)) return Results.Ok(Array.Empty<ListarChamados.Resposta>());
+        if (!u.Pode(Funcoes.FilaAtender)) return Results.Ok(Array.Empty<ListarChamados.Resposta>());
         return Results.Ok(await Fila(u, m.Estado, relogio.GetUtcNow().UtcDateTime));
     }
 

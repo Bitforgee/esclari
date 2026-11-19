@@ -179,4 +179,29 @@ public class IsolamentoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.False((await b.Destino(await b.Conversa())).GetProperty("lideranca").GetBoolean());
         Assert.Equal(0, await f.Db(a.I.Id, db => db.Chamados.CountAsync()));
     }
+
+    [Fact]
+    public async Task Tipos_de_outra_instituicao_nao_aparecem()
+    {
+        var a = await f.Instituicao();
+        var b = await f.Instituicao();
+        await f.Tipo(a, "Só da A", "indicadores.ver");
+        await f.Tipo(b, "Só da B", "mcp.usar");
+
+        var daA = await f.Db(a.Id, db => db.TiposDeUsuario.Select(t => t.Nome).ToListAsync());
+        var funcoesDaA = await f.Db(a.Id, db => db.FuncoesDoTipo.Select(x => x.InstituicaoId).Distinct().ToListAsync());
+        var gravar = () => f.Db(a.Id, async db =>
+        {
+            var intruso = TipoDeUsuario.Criar("Intruso", null, ["indicadores.ver"]);
+            intruso.InstituicaoId = b.Id;
+            db.TiposDeUsuario.Add(intruso);
+            await db.SaveChangesAsync();
+        });
+
+        Assert.Contains("Só da A", daA);
+        Assert.DoesNotContain("Só da B", daA);
+        Assert.Equal([a.Id], funcoesDaA);
+        await Assert.ThrowsAsync<InvalidOperationException>(gravar);
+        Assert.DoesNotContain("Intruso", await f.Db(b.Id, db => db.TiposDeUsuario.Select(t => t.Nome).ToListAsync()));
+    }
 }

@@ -64,7 +64,7 @@ public sealed class AvisarAtrasos(IConfiguration cfg, Prazos prazos, ILogger<Age
     static int Contar(Dictionary<long, AtrasoDoChamado.Vencido> vencidos, string tipo) => vencidos.Values.Count(v => v.Tipo == tipo);
 
     static Task<List<string>> Administradores(EsclariDb db, CancellationToken parar) =>
-        db.Usuarios.Where(u => u.Ativo && u.Email != "" && u.Papeis.Any(p => p.Papel == Papeis.Administrador)).Select(u => u.Email).Distinct().ToListAsync(parar);
+        db.Usuarios.Where(u => u.Ativo && u.Email != "").Where(PoliticaDeAcesso.TemFuncao(Funcoes.ChamadosVerTodos)).Select(u => u.Email).Distinct().ToListAsync(parar);
 
     async Task<List<Carta>> AosSetores(EsclariDb db, Instituicao instituicao, List<Avisado> novos, DateTime agora, CancellationToken parar)
     {
@@ -74,7 +74,7 @@ public sealed class AvisarAtrasos(IConfiguration cfg, Prazos prazos, ILogger<Age
             .ToDictionary(p => p.Id, p => p.Email);
         var setores = novos.Where(a => a.Chamado.ResponsavelId is null).Select(a => a.Chamado.SetorId).Distinct().ToList();
         var equipes = (await db.AtendenteSetores.Where(a => setores.Contains(a.SetorId))
-                .Join(db.Usuarios.Where(u => u.Ativo && u.Email != "" && u.Papeis.Any(p => p.Papel == Papeis.Atendente)), a => a.UsuarioId, u => u.Id, (a, u) => new DoSetor(a.SetorId, u.Email))
+                .Join(db.Usuarios.Where(u => u.Ativo && u.Email != "").Where(PoliticaDeAcesso.TemFuncao(Funcoes.FilaAtender)), a => a.UsuarioId, u => u.Id, (a, u) => new DoSetor(a.SetorId, u.Email))
                 .ToListAsync(parar)).ToLookup(d => d.SetorId, d => d.Email);
         IEnumerable<string> Para(Chamado c) =>
             c.ResponsavelId is { } r ? (pessoas.TryGetValue(r, out var email) ? [email] : []) : equipes[c.SetorId].Distinct();

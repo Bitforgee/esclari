@@ -12,7 +12,7 @@ public static class InstituicoesExtensoes
     {
         BaixarImagemInstituicao.Mapear(api);
         ManifestoInstituicao.Mapear(api);
-        var admin = api.MapAdmin();
+        var admin = api.MapAdmin(Funcoes.AparenciaGerenciar);
         VerAparencia.Mapear(admin);
         AlterarAparencia.Mapear(admin);
         EnviarImagemInstituicao.Mapear(admin);

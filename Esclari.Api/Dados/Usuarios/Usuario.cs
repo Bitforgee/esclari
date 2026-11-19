@@ -1,5 +1,3 @@
-using Vocabulario = Esclari.Api.Dados.Usuarios.Papeis;
-
 namespace Esclari.Api.Dados.Usuarios;
 
 public class Usuario : IDaInstituicao
@@ -14,6 +12,8 @@ public class Usuario : IDaInstituicao
     public string? SenhaHash { get; private set; }
     public bool DeveTrocarSenha { get; private set; }
     public bool Ativo { get; private set; } = true;
+    public long TipoUsuarioId { get; private set; }
+    public TipoDeUsuario? Tipo { get; private set; }
     public List<UsuarioPapel> Papeis { get; private set; } = [];
     public List<Matricula> Matriculas { get; private set; } = [];
     public List<AtendenteSetor> Setores { get; private set; } = [];
@@ -21,7 +21,23 @@ public class Usuario : IDaInstituicao
     public static Usuario Criar(Cpf cpf, string nome, string email, IEnumerable<string>? papeis = null) =>
         new() { Cpf = cpf, Nome = nome, Email = email, Papeis = [.. (papeis ?? []).Distinct().Select(UsuarioPapel.Criar)] };
 
-    public bool Tem(string papel) => Papeis.Any(p => p.Papel == papel);
+    public void DefinirTipo(TipoDeUsuario tipo)
+    {
+        Tipo = tipo;
+        TipoUsuarioId = tipo.Id;
+    }
+
+    public IReadOnlyList<string> FuncoesEfetivas()
+    {
+        var tipo = Tipo ?? throw new InvalidOperationException("Usuário carregado sem o tipo.");
+        return [.. tipo.FuncoesDoTipo().Where(f => f != Funcoes.FilaAtender || Setores.Count > 0).Order(StringComparer.Ordinal)];
+    }
+
+    public bool Pode(string funcao) => FuncoesEfetivas().Contains(funcao);
+
+    public bool TipoLibera(string funcao) => (Tipo ?? throw new InvalidOperationException("Usuário carregado sem o tipo.")).FuncoesDoTipo().Contains(funcao);
+
+    public bool EDoTipoDeSistema(string sistema) => Tipo?.Sistema == sistema;
 
     public void Atualizar(DadosUsuario dados)
     {
@@ -37,7 +53,7 @@ public class Usuario : IDaInstituicao
 
     public void AdicionarPapel(string papel)
     {
-        if (!Tem(papel)) Papeis.Add(UsuarioPapel.Criar(papel));
+        if (!Papeis.Any(p => p.Papel == papel)) Papeis.Add(UsuarioPapel.Criar(papel));
     }
 
     public void RemoverPapel(string papel) => Papeis.RemoveAll(p => p.Papel == papel);
@@ -60,7 +76,7 @@ public class Usuario : IDaInstituicao
     {
         var lista = papeis.ToList();
         DefinirPapeis(lista);
-        VincularSetores(lista.Contains(Vocabulario.Atendente) ? setores : []);
+        VincularSetores(PonteDePapeis.ExigeSetor(lista) ? setores : []);
     }
 
     public Matricula AdicionarMatricula(string numero, long cursoId, int semestre, string situacao)

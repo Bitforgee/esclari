@@ -54,14 +54,14 @@ public sealed class LancamentoMoodleHandler(EsclariDb db, ValidadorLti validador
         var u = await Achar(vinculo, Cpf.Tentar(d.Username), ct);
         if (u is null) return Voltar(i, "sem-cadastro");
         if (!u.Ativo) return Voltar(i, "inativo");
-        if (u.Papeis.Count != 1 || !u.Tem(Papeis.Aluno)) return Voltar(i, "use-senha");
+        if (!u.EDoTipoDeSistema(TipoDeUsuario.Aluno)) return Voltar(i, "use-senha");
         if (vinculo is null) await Vincular(u, p, d.Sub, ct);
         return new(CookieDeSessao.Principal(u), Results.Redirect($"/{i.Slug}"));
     }
 
     async Task<Usuario?> Achar(VinculoMoodle? vinculo, Cpf? cpf, CancellationToken ct)
     {
-        var usuarios = db.Usuarios.Include(x => x.Papeis);
+        var usuarios = db.Usuarios.Include(x => x.Tipo);
         if (vinculo is not null) return await usuarios.FirstOrDefaultAsync(x => x.Id == vinculo.UsuarioId, ct);
         return cpf is null ? null : await usuarios.FirstOrDefaultAsync(x => x.Cpf == cpf, ct);
     }

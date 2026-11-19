@@ -18,7 +18,7 @@ public static class ContextoMcp
         if (!long.TryParse(principal?.FindFirstValue(DoUsuario), out var usuarioId) || !long.TryParse(principal.FindFirstValue(DaInstituicao), out var instituicaoId))
             throw new McpException("Não autenticado.");
         db.InstituicaoAtual = instituicaoId;
-        var usuario = await db.Usuarios.Include(u => u.Papeis).FirstAsync(u => u.Id == usuarioId);
+        var usuario = await db.Usuarios.ComTipo().FirstAsync(u => u.Id == usuarioId);
         return (usuario, await db.Instituicoes.FirstAsync(i => i.Id == instituicaoId));
     }
 }

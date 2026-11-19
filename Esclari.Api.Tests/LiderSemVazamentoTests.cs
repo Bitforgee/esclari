@@ -129,6 +129,48 @@ public class LiderSemVazamentoTests(EsclariFactory f) : IClassFixture<EsclariFac
     }
 
     [Fact]
+    public async Task Versao_de_artigo_e_documento_por_funcao()
+    {
+        var m = await Montar();
+        var gerencia = await f.ComFuncoes(m.I, ["conhecimento.gerenciar"]);
+        var atendeComum = await f.ComFuncoes(m.I, ["fila.atender"], null, m.Comum);
+        var soLideranca = await f.ComFuncoes(m.I, ["fila.atender", "indicadores.ver"], null, m.Lideranca);
+        var nenhuma = await f.ComFuncoes(m.I, ["indicadores.ver", "mcp.usar"], null, m.Comum);
+
+        foreach (var (nome, cliente, status) in new[] { ("gerencia", gerencia.Cliente, HttpStatusCode.OK), ("atende no comum", atendeComum.Cliente, HttpStatusCode.OK),
+            ("só liderança", soLideranca.Cliente, HttpStatusCode.NotFound), ("nenhuma", nenhuma.Cliente, HttpStatusCode.NotFound) })
+        {
+            var artigo = await cliente.GetAsync($"/api/artigos/versoes/{m.VersaoArtigo}");
+            var documento = await cliente.GetAsync($"/api/documentos/versoes/{m.VersaoDocumento}");
+            Assert.True(artigo.StatusCode == status, $"{nome}: artigo {(int)artigo.StatusCode}");
+            Assert.True(documento.StatusCode == status, $"{nome}: documento {(int)documento.StatusCode}");
+            if (status == HttpStatusCode.NotFound)
+            {
+                Assert.Equal("Versão de artigo não encontrada.", await Detalhe(artigo));
+                Assert.Equal("Documento não encontrado.", await Detalhe(documento));
+            }
+        }
+    }
+
+    [Fact]
+    public async Task So_lideranca_por_funcao()
+    {
+        var m = await Montar();
+        var gerenciaNaLideranca = await f.ComFuncoes(m.I, ["conhecimento.gerenciar", "fila.atender"], null, m.Lideranca);
+        var lider = await f.ComFuncoes(m.I, ["fila.atender", "indicadores.ver"], null, m.Lideranca);
+        var comum = await f.ComFuncoes(m.I, ["fila.atender"], null, m.Comum);
+
+        Task<bool> So(long id) => f.Db(m.I.Id, async db => await db.SoLideranca(await db.Usuarios.SingleAsync(u => u.Id == id)));
+
+        Assert.False(await So(gerenciaNaLideranca.Usuario.Id));
+        Assert.True(await So(lider.Usuario.Id));
+        Assert.False(await So(comum.Usuario.Id));
+        Assert.Equal(HttpStatusCode.Forbidden, (await lider.Cliente.GetAsync($"/api/indicadores?{Periodo}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await lider.Cliente.GetAsync($"/api/artigos/versoes/{m.VersaoArtigo}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await lider.Cliente.GetAsync($"/api/documentos/versoes/{m.VersaoDocumento}")).StatusCode);
+        Assert.Equal("Os indicadores não estão disponíveis para a liderança de turma.", await Detalhe(await lider.Cliente.GetAsync($"/api/indicadores?{Periodo}")));
+    }
+    [Fact]
     public async Task Lider_segue_vendo_a_fila_da_turma()
     {
         var t = await Turma.Criar(f);

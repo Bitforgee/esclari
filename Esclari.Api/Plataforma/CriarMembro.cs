@@ -25,11 +25,11 @@ public sealed class CriarMembroHandler(EsclariDb db, TimeProvider relogio, IConf
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var agora = relogio.GetUtcNow().UtcDateTime;
         var usuario = db.Usuarios.Add(Usuario.Criar(Cpf.Tentar(e.Cpf)!, e.Nome!.Trim(), e.Email!)).Entity;
-        usuario.DefinirAcesso(e.Papeis!, e.Setores ?? []);
+        await db.AplicarPapeis(usuario, e.Papeis!, e.Setores ?? []);
         await db.SaveChangesAsync(ct);
         var (token, registro) = TokenAcesso.Criar(instituicao.Slug, usuario.Id, agora);
         db.Tokens.Add(registro);
-        db.EmailsSaida.Add(Criacao.EmailDeAcesso(cfg, instituicao, usuario.Email, token, agora, e.Papeis!.Contains(Papeis.Administrador) ? "administrador" : "atendente"));
+        db.EmailsSaida.Add(Criacao.EmailDeAcesso(cfg, instituicao, usuario.Email, token, agora, PonteDePapeis.Funcao(e.Papeis!)));
         db.AuditoriaDaPlataforma.Add(AuditoriaPlataforma.Registrar(AcoesDaPlataforma.UsuarioCriado, m.Operador.Id, instituicao.Id, EquipeDaInstituicao.Resumo("Criou", usuario), agora));
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);

@@ -34,6 +34,7 @@ public static class Semente
             db.Instituicoes.Add(i);
             await db.SaveChangesAsync();
             db.InstituicaoAtual = i.Id;
+            db.TiposDeUsuario.AddRange(new[] { TipoDeUsuario.Aluno, TipoDeUsuario.Gestor, TipoDeUsuario.Atendente }.Select(TipoDeUsuario.DeSistema));
             db.Setores.Add(Setor.CriarTriagem());
             db.Categorias.Add(Esclari.Api.Dados.Cadastros.Categoria.CriarPadrao());
             await db.SaveChangesAsync();
@@ -41,10 +42,11 @@ public static class Semente
         });
 
     public static Task<Usuario> Usuario(this EsclariFactory f, Instituicao i, string[] papeis, string? senha = Senha, string? cpf = null,
-        string? email = null, string? matricula = null, string situacao = "ATIVA", bool deveTrocarSenha = false) =>
+        string? email = null, string? matricula = null, string situacao = "ATIVA", bool deveTrocarSenha = false, string? tipo = null) =>
         f.Db(i.Id, async db =>
         {
             var u = Esclari.Api.Dados.Usuarios.Usuario.Criar(Cpf.Ler(cpf ?? NovoCpf()), "Pessoa " + Guid.NewGuid().ToString("N")[..6], email ?? $"{Guid.NewGuid():N}@teste.esclari", papeis);
+            u.DefinirTipo(tipo is null ? await db.TipoPelosPapeis(papeis) : await db.TiposDeUsuario.Include(t => t.Funcoes).SingleAsync(t => t.Nome == tipo));
             if (senha is not null)
             {
                 var hash = new PasswordHasher<Usuario>().HashPassword(u, senha);
@@ -66,6 +68,22 @@ public static class Semente
             await db.SaveChangesAsync();
             return u;
         });
+
+    public static Task<TipoDeUsuario> Tipo(this EsclariFactory f, Instituicao i, string nome, params string[] funcoes) =>
+        f.Db(i.Id, async db =>
+        {
+            var t = db.TiposDeUsuario.Add(TipoDeUsuario.Criar(nome, null, funcoes)).Entity;
+            await db.SaveChangesAsync();
+            return t;
+        });
+
+    public static async Task<Atendente> ComFuncoes(this EsclariFactory f, Instituicao i, string[] funcoes, string? matricula = null, params Setor[] setores)
+    {
+        var tipo = await f.Tipo(i, "Tipo " + Guid.NewGuid().ToString("N")[..8], funcoes);
+        var u = await f.Usuario(i, [], tipo: tipo.Nome, matricula: matricula);
+        if (setores.Length > 0) await f.Db(i.Id, db => db.VincularSetores(u.Id, [.. setores.Select(s => s.Id)]));
+        return new Atendente(u, await f.Entrar(i, u));
+    }
 
     public static async Task<HttpResponseMessage> Login(this HttpClient c, string slug, string cpf, string senha = Senha) =>
         await c.PostAsJsonAsync("/api/auth/login", new { instituicao = slug, cpf, senha });

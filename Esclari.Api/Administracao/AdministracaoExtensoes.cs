@@ -15,12 +15,13 @@ public static class AdministracaoExtensoes
 
     public static void MapAdministracao(this RouteGroupBuilder api)
     {
-        var admin = api.MapAdmin();
-        ListarUsuarios.Mapear(admin);
-        CriarUsuario.Mapear(admin);
-        AlterarUsuario.Mapear(admin);
-        DesativarUsuario.Mapear(admin);
-        ImportarMatriculas.Mapear(admin);
+        var usuarios = api.MapAdmin(Funcoes.UsuariosGerenciar);
+        ListarUsuarios.Mapear(usuarios);
+        CriarUsuario.Mapear(usuarios);
+        AlterarUsuario.Mapear(usuarios);
+        DesativarUsuario.Mapear(usuarios);
+        ImportarMatriculas.Mapear(api.MapAdmin(Funcoes.MatriculasImportar));
+        var admin = api.MapAdmin(Funcoes.CadastrosGerenciar);
         ListarSetores.Mapear(admin);
         CriarSetor.Mapear(admin);
         AlterarSetor.Mapear(admin);
@@ -39,10 +40,11 @@ public static class AdministracaoExtensoes
         DescartarRascunho.Mapear(admin);
         PublicarFluxo.Mapear(admin);
         SimularFluxo.Mapear(admin);
-        VerMoodle.Mapear(admin);
-        AlterarMoodle.Mapear(admin);
-        VerMcp.Mapear(admin);
-        CriarTokenMcp.Mapear(admin);
-        RevogarTokenMcp.Mapear(admin);
+        var integracoes = api.MapAdmin(Funcoes.IntegracoesGerenciar);
+        VerMoodle.Mapear(integracoes);
+        AlterarMoodle.Mapear(integracoes);
+        VerMcp.Mapear(integracoes);
+        CriarTokenMcp.Mapear(integracoes);
+        RevogarTokenMcp.Mapear(integracoes);
     }
 }

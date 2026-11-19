@@ -21,7 +21,7 @@ public static class CookieDeSessao
         var instituicaoId = long.Parse(ctx.Principal!.FindFirstValue("instituicao_id")!);
         db.InstituicaoAtual = instituicaoId;
         var instituicao = await db.Instituicoes.FindAsync(instituicaoId);
-        var usuario = await db.Usuarios.Include(u => u.Papeis).FirstOrDefaultAsync(u => u.Id == sub);
+        var usuario = await db.Usuarios.ComTipo().Include(u => u.Papeis).FirstOrDefaultAsync(u => u.Id == sub);
         if (instituicao is not { Ativa: true } || usuario is not { Ativo: true })
         {
             db.InstituicaoAtual = null;

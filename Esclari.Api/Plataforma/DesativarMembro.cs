@@ -18,7 +18,7 @@ public sealed class DesativarMembroHandler(EsclariDb db, TimeProvider relogio) :
         if (instituicao is null) return Problemas.Erro(404, ErrosDaPlataforma.NaoEncontrada);
         var usuario = await EquipeDaInstituicao.Membro(db, m.Id, ct);
         if (usuario is null) return Problemas.Erro(404, ErrosDaPlataforma.NaoEncontrada);
-        if (usuario is { Ativo: true } && usuario.Tem(Papeis.Administrador) && !await OutroAdministradorAtivo(usuario.Id, ct))
+        if (usuario is { Ativo: true } && usuario.EDoTipoDeSistema(TipoDeUsuario.Gestor) && !await OutroAdministradorAtivo(usuario.Id, ct))
             return Problemas.Erro(409, "Este é o último administrador ativo da instituição.");
 
         usuario.Desativar();
@@ -28,5 +28,5 @@ public sealed class DesativarMembroHandler(EsclariDb db, TimeProvider relogio) :
     }
 
     Task<bool> OutroAdministradorAtivo(long id, CancellationToken ct) =>
-        db.Usuarios.AnyAsync(u => u.Id != id && u.Ativo && u.Papeis.Any(p => p.Papel == Papeis.Administrador), ct);
+        db.Usuarios.AnyAsync(u => u.Id != id && u.Ativo && u.Tipo!.Sistema == TipoDeUsuario.Gestor, ct);
 }

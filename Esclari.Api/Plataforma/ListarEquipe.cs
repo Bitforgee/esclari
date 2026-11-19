@@ -17,7 +17,7 @@ public sealed class ListarEquipeHandler(EsclariDb db) : IRequestHandler<ListarEq
     {
         if (await EquipeDaInstituicao.Alvo(db, m.Slug, ct) is null) return Problemas.Erro(404, ErrosDaPlataforma.NaoEncontrada);
         var equipe = await db.Usuarios.AsNoTracking().Include(u => u.Papeis)
-            .Where(u => u.Papeis.Any(p => p.Papel == Papeis.Administrador || p.Papel == Papeis.Atendente)).OrderBy(u => u.Nome).ToListAsync(ct);
+            .Where(u => u.Tipo!.Sistema != TipoDeUsuario.Aluno).OrderBy(u => u.Nome).ToListAsync(ct);
         return Results.Ok(equipe.Select(u => new ListarEquipe.Item(u.Id, u.Nome, EquipeDaInstituicao.MascararEmail(u.Email), EquipeDaInstituicao.Mascarar(u.Cpf),
             [.. u.Papeis.Select(p => p.Papel).Where(EquipeDaInstituicao.PapeisPermitidos.Contains).Order()], u.Ativo, u.SenhaHash is null)));
     }

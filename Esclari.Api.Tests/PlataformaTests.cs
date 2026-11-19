@@ -399,6 +399,23 @@ public class PlataformaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     }
 
     [Fact]
+    public async Task Reenviar_acesso_para_quem_tem_usuarios_gerenciar()
+    {
+        var op = await UmOperador();
+        var demo = await f.Instituicao(nome: "Faculdade Demo");
+        var comFuncao = await f.ComFuncoes(demo, ["usuarios.gerenciar"]);
+        await f.Atendente(demo, await f.Setor(demo, "Financeiro"));
+        var semNinguem = await f.Instituicao();
+        await f.Atendente(semNinguem, await f.Setor(semNinguem, "Financeiro"));
+
+        var r = await op.Cliente.PostAsync($"{Lista}/{demo.Slug}/reenviar-acesso", null);
+
+        Assert.Equal(HttpStatusCode.Accepted, r.StatusCode);
+        Assert.Equal(1, (await r.Json()).GetProperty("enviados").GetInt32());
+        Assert.Equal([comFuncao.Usuario.Email], await f.Db(demo.Id, db => db.EmailsSaida.Select(e => e.Destinatario).ToListAsync()));
+        Assert.Equal(HttpStatusCode.Conflict, (await op.Cliente.PostAsync($"{Lista}/{semNinguem.Slug}/reenviar-acesso", null)).StatusCode);
+    }
+    [Fact]
     public async Task Reenviar_sem_admin_ou_desativada_409()
     {
         var op = await UmOperador();

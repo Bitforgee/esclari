@@ -16,8 +16,8 @@ public sealed class VerVersaoArtigoHandler(EsclariDb db) : IRequestHandler<VerVe
 {
     public async ValueTask<IResult> Handle(VerVersaoArtigo m, CancellationToken ct)
     {
-        var u = await db.Usuarios.Include(x => x.Papeis).FirstAsync(x => x.Id == m.UsuarioId, ct);
-        if (!u.Tem(Papeis.Atendente) && !u.Tem(Papeis.Administrador) || await db.SoLideranca(u)) return Problemas.Erro(404, "Versão de artigo não encontrada.");
+        var u = await db.Usuarios.ComTipo().FirstAsync(x => x.Id == m.UsuarioId, ct);
+        if (!u.TipoLibera(Funcoes.FilaAtender) && !u.TipoLibera(Funcoes.ConhecimentoGerenciar) || await db.SoLideranca(u)) return Problemas.Erro(404, "Versão de artigo não encontrada.");
         var v = await db.VersoesArtigo.Include(x => x.Artigo).FirstOrDefaultAsync(x => x.Id == m.Id);
         if (v is null) return Problemas.Erro(404, "Versão de artigo não encontrada.");
         var atual = await db.VersoesAtuais().Where(x => x.ArtigoId == v.ArtigoId).Select(x => x.Id).FirstAsync();

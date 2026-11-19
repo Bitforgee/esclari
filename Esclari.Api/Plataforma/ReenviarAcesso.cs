@@ -20,7 +20,7 @@ public sealed class ReenviarAcessoHandler(EsclariDb db, TimeProvider relogio, IC
         if (!instituicao.Ativa) return Problemas.Erro(409, "A instituição está desativada.");
 
         db.InstituicaoAtual = instituicao.Id;
-        var admins = await db.Usuarios.Where(u => u.Ativo && u.Papeis.Any(p => p.Papel == Papeis.Administrador)).ToListAsync(ct);
+        var admins = await db.Usuarios.Where(u => u.Ativo).Where(PoliticaDeAcesso.TemFuncao(Funcoes.UsuariosGerenciar)).ToListAsync(ct);
         if (admins.Count == 0) return Problemas.Erro(409, "Esta instituição não tem administrador ativo para receber o acesso.");
 
         var agora = relogio.GetUtcNow().UtcDateTime;

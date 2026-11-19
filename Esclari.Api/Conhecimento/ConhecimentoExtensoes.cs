@@ -12,7 +12,7 @@ public static class ConhecimentoExtensoes
         VerVersaoArtigo.Mapear(api);
         CriarArtigoDoChamado.Mapear(api);
         BaixarVersaoDocumento.Mapear(api);
-        var admin = api.MapAdmin();
+        var admin = api.MapAdmin(Funcoes.ConhecimentoGerenciar);
         ListarArtigos.Mapear(admin);
         CriarArtigo.Mapear(admin);
         AlterarArtigo.Mapear(admin);

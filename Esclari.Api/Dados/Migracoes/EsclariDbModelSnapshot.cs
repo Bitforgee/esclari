@@ -1934,6 +1934,41 @@ namespace Esclari.Api.Dados.Migracoes
                     b.ToTable("atendente_setor");
                 });
 
+            modelBuilder.Entity("Esclari.Api.Dados.Usuarios.FuncaoDoTipo", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Funcao")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("funcao");
+
+                    b.Property<long>("InstituicaoId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("instituicao_id");
+
+                    b.Property<long>("TipoUsuarioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("tipo_usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tipo_usuario_funcao");
+
+                    b.HasIndex("InstituicaoId")
+                        .HasDatabaseName("ix_tipo_usuario_funcao_instituicao_id");
+
+                    b.HasIndex("TipoUsuarioId", "Funcao")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tipo_usuario_funcao_tipo_usuario_id_funcao");
+
+                    b.ToTable("tipo_usuario_funcao");
+                });
+
             modelBuilder.Entity("Esclari.Api.Dados.Usuarios.Matricula", b =>
                 {
                     b.Property<long>("Id")
@@ -1984,6 +2019,39 @@ namespace Esclari.Api.Dados.Migracoes
                         .HasDatabaseName("ix_matricula_instituicao_id_numero");
 
                     b.ToTable("matricula");
+                });
+
+            modelBuilder.Entity("Esclari.Api.Dados.Usuarios.TipoDeUsuario", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("InstituicaoId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("instituicao_id");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("nome");
+
+                    b.Property<string>("Sistema")
+                        .HasColumnType("text")
+                        .HasColumnName("sistema");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tipo_usuario");
+
+                    b.HasIndex("InstituicaoId", "Sistema")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tipo_usuario_instituicao_id_sistema")
+                        .HasFilter("sistema is not null");
+
+                    b.ToTable("tipo_usuario");
                 });
 
             modelBuilder.Entity("Esclari.Api.Dados.Usuarios.TokenAcesso", b =>
@@ -2076,8 +2144,15 @@ namespace Esclari.Api.Dados.Migracoes
                         .HasColumnType("text")
                         .HasColumnName("senha_hash");
 
+                    b.Property<long>("TipoUsuarioId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("tipo_usuario_id");
+
                     b.HasKey("Id")
                         .HasName("pk_usuario");
+
+                    b.HasIndex("TipoUsuarioId")
+                        .HasDatabaseName("ix_usuario_tipo_usuario_id");
 
                     b.HasIndex("InstituicaoId", "Cpf")
                         .IsUnique()
@@ -2711,6 +2786,23 @@ namespace Esclari.Api.Dados.Migracoes
                         .HasConstraintName("fk_atendente_setor_usuarios_usuario_id");
                 });
 
+            modelBuilder.Entity("Esclari.Api.Dados.Usuarios.FuncaoDoTipo", b =>
+                {
+                    b.HasOne("Esclari.Api.Dados.Instituicao", null)
+                        .WithMany()
+                        .HasForeignKey("InstituicaoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tipo_usuario_funcao_instituicoes_instituicao_id");
+
+                    b.HasOne("Esclari.Api.Dados.Usuarios.TipoDeUsuario", null)
+                        .WithMany("Funcoes")
+                        .HasForeignKey("TipoUsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tipo_usuario_funcao_tipos_de_usuario_tipo_usuario_id");
+                });
+
             modelBuilder.Entity("Esclari.Api.Dados.Usuarios.Matricula", b =>
                 {
                     b.HasOne("Esclari.Api.Dados.Cadastros.Curso", "Curso")
@@ -2735,6 +2827,16 @@ namespace Esclari.Api.Dados.Migracoes
                         .HasConstraintName("fk_matricula_usuarios_usuario_id");
 
                     b.Navigation("Curso");
+                });
+
+            modelBuilder.Entity("Esclari.Api.Dados.Usuarios.TipoDeUsuario", b =>
+                {
+                    b.HasOne("Esclari.Api.Dados.Instituicao", null)
+                        .WithMany()
+                        .HasForeignKey("InstituicaoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tipo_usuario_instituicao_instituicao_id");
                 });
 
             modelBuilder.Entity("Esclari.Api.Dados.Usuarios.TokenAcesso", b =>
@@ -2762,6 +2864,15 @@ namespace Esclari.Api.Dados.Migracoes
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_usuario_instituicao_instituicao_id");
+
+                    b.HasOne("Esclari.Api.Dados.Usuarios.TipoDeUsuario", "Tipo")
+                        .WithMany()
+                        .HasForeignKey("TipoUsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_usuario_tipo_usuario_tipo_usuario_id");
+
+                    b.Navigation("Tipo");
                 });
 
             modelBuilder.Entity("Esclari.Api.Dados.Usuarios.UsuarioPapel", b =>
@@ -2823,6 +2934,11 @@ namespace Esclari.Api.Dados.Migracoes
             modelBuilder.Entity("Esclari.Api.Dados.Fluxos.VersaoFluxo", b =>
                 {
                     b.Navigation("Etapas");
+                });
+
+            modelBuilder.Entity("Esclari.Api.Dados.Usuarios.TipoDeUsuario", b =>
+                {
+                    b.Navigation("Funcoes");
                 });
 
             modelBuilder.Entity("Esclari.Api.Dados.Usuarios.Usuario", b =>

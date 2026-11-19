@@ -14,7 +14,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 {
     static readonly string[] TabelasDaInstituicao =
     [
-        "usuario", "usuario_papel", "setor", "atendente_setor", "curso", "matricula", "categoria", "fluxo", "versao_fluxo", "etapa_fluxo",
+        "usuario", "usuario_papel", "tipo_usuario", "tipo_usuario_funcao", "setor", "atendente_setor", "curso", "matricula", "categoria", "fluxo", "versao_fluxo", "etapa_fluxo",
         "artigo", "versao_artigo", "token_acesso", "conversa", "mensagem_conversa", "citacao_artigo", "chamado",
         "mensagem_chamado", "anexo", "anexo_conversa", "evento_chamado", "resposta_pronta", "email_saida",
         "documento", "versao_documento", "trecho_fonte", "subscricao_push", "push_saida", "imagem_instituicao", "plataforma_moodle", "vinculo_moodle", "lti_lancamento", "token_mcp", "aviso_validade",
@@ -297,7 +297,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Equal([.. Fatias.Append("Dados").Order()], pastas);
         Assert.False(Directory.Exists(Path.Combine(Api, "Rotas")));
         Assert.False(Directory.Exists(Path.Combine(Api, "Comando")));
-        Assert.Equal(["Agendador", "Armazenamento", "Arquivos", "EnviadorSmtp", "EquipeDeSetor", "GrupoAdministrador", "LayoutEmail", "Persistencia", "Prazos", "PrazosAtuais", "Problemas", "Program", "ResultadoComTamanho", "Seguranca", "Sessao", "Terminal", "Tokens", "TratamentoDeErros"],
+        Assert.Equal(["Agendador", "Armazenamento", "Arquivos", "EnviadorSmtp", "EquipeDeSetor", "GrupoAdministrador", "LayoutEmail", "Persistencia", "PoliticaDeAcesso", "Prazos", "PrazosAtuais", "Problemas", "Program", "ResultadoComTamanho", "Seguranca", "Sessao", "Terminal", "Tokens", "TratamentoDeErros"],
             Directory.GetFiles(Api, "*.cs").Select(Path.GetFileNameWithoutExtension).Order());
     }
 
@@ -605,6 +605,15 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     }
 
     [Fact]
+    public void Autorizacao_so_pela_politica()
+    {
+        var foraDaPonte = CodigoApi().Where(p => Relativo(p) is not ("Dados/Usuarios/PonteDePapeis.cs" or "Dados/Usuarios/Papeis.cs")).ToList();
+
+        Assert.Empty(ArquivosQue(new Regex(@"\bPapeis\.(Aluno|Atendente|Administrador)\b|\.Tem\("), foraDaPonte));
+        Assert.Empty(ArquivosQue(new Regex("\"ADMINISTRADOR\""), foraDaPonte));
+        Assert.DoesNotContain("SoAdministrador", string.Concat(CodigoApi().Select(SemComentarios)));
+    }
+    [Fact]
     public void Permissao_so_no_AgirNoChamado()
     {
         var sep = Path.DirectorySeparatorChar;
@@ -678,7 +687,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         ["Artigos"] = ["Artigo", "VersaoArtigo"],
         ["Documentos"] = ["Documento", "VersaoDocumento"],
         ["Trechos"] = ["TrechoFonte"],
-        ["Usuarios"] = ["Usuario", "UsuarioPapel", "Matricula", "TokenAcesso", "AtendenteSetor"],
+        ["Usuarios"] = ["Usuario", "UsuarioPapel", "Matricula", "TokenAcesso", "AtendenteSetor", "TipoDeUsuario", "FuncaoDoTipo"],
         ["Cadastros"] = ["Setor", "Curso", "Categoria", "RespostaPronta"],
         ["Fluxos"] = ["Fluxo", "VersaoFluxo", "EtapaFluxo"],
         ["Emails"] = ["EmailSaida"],
@@ -695,7 +704,7 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
     {
         var modelo = await f.Db(null, db => Task.FromResult(db.Model));
         var tipos = modelo.GetEntityTypes().Select(e => e.ClrType).ToList();
-        Assert.Equal(37, tipos.Count);
+        Assert.Equal(39, tipos.Count);
         Assert.Equal(EntidadesPorPasta.Values.SelectMany(n => n).Order(), tipos.Select(t => t.Name).Order());
         foreach (var (pasta, nomes) in EntidadesPorPasta)
             foreach (var nome in nomes)
@@ -852,12 +861,12 @@ public class ArquiteturaTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             ["Dados/Mapeamento/AvisoValidadeMapeamento.cs"] = 1, ["Dados/Mapeamento/CategoriaMapeamento.cs"] = 1, ["Dados/Mapeamento/ChamadoMapeamento.cs"] = 1, ["Dados/Mapeamento/CursoMapeamento.cs"] = 1,
             ["Dados/Mapeamento/EtapaFluxoMapeamento.cs"] = 1, ["Dados/Mapeamento/FluxoMapeamento.cs"] = 1, ["Dados/Mapeamento/MatriculaMapeamento.cs"] = 1,
             ["Dados/Mapeamento/RespostaProntaMapeamento.cs"] = 1, ["Dados/Mapeamento/SetorMapeamento.cs"] = 2, ["Dados/Mapeamento/UsuarioMapeamento.cs"] = 2,
-            ["Dados/Mapeamento/UsuarioPapelMapeamento.cs"] = 1, ["Dados/Mapeamento/VersaoArtigoMapeamento.cs"] = 1, ["Dados/Mapeamento/VersaoDocumentoMapeamento.cs"] = 1,
+            ["Dados/Mapeamento/TipoDeUsuarioMapeamento.cs"] = 2, ["Dados/Mapeamento/UsuarioPapelMapeamento.cs"] = 1, ["Dados/Mapeamento/VersaoArtigoMapeamento.cs"] = 1, ["Dados/Mapeamento/VersaoDocumentoMapeamento.cs"] = 1,
             ["Dados/Mapeamento/VersaoFluxoMapeamento.cs"] = 1,
         };
         var achados = CodigoApi().Select(p => (arquivo: Relativo(p), n: anonimo.Matches(SemComentarios(p)).Count)).Where(x => x.n > 0).ToDictionary(x => x.arquivo, x => x.n);
         Assert.Equal(esperado.OrderBy(x => x.Key), achados.OrderBy(x => x.Key));
-        Assert.Equal(20, achados.Values.Sum());
+        Assert.Equal(22, achados.Values.Sum());
         foreach (var arquivo in esperado.Keys.Except(["Indicadores/ConsultarIndicadores.cs"]))
             Assert.DoesNotMatch(@"\b(Typed)?Results\.", CodigoDe(arquivo.Split('/')));
         var indicadores = CodigoDe("Indicadores", "ConsultarIndicadores.cs");

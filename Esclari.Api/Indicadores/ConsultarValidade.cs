@@ -12,7 +12,7 @@ public sealed record ConsultarValidade : IRequest<IResult>
     public sealed record Resposta(Contagem Artigos, Contagem Documentos);
 
     public static void Mapear(RouteGroupBuilder api) =>
-        api.MapGroup("/conhecimento").SoAdministrador().MapGet("/validade", (IMediator m) => m.Send(new ConsultarValidade()));
+        api.MapGroup("/conhecimento").ExigirFuncao(Funcoes.ConhecimentoGerenciar).MapGet("/validade", (IMediator m) => m.Send(new ConsultarValidade()));
 }
 
 public sealed class ConsultarValidadeHandler(EsclariDb db, TimeProvider relogio) : IRequestHandler<ConsultarValidade, IResult>

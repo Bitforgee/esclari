@@ -18,7 +18,7 @@ public sealed class CriarUsuarioHandler(EsclariDb db, IPasswordHasher<Usuario> h
         var e = m.Corpo;
         if (await ValidacaoDeUsuario.Validar(db, e.Cpf, e.Nome, e.Email, e.SenhaTemporaria, e.Papeis, e.Setores, 0) is { } erro) return erro;
         var u = db.Usuarios.Add(Usuario.Criar(Cpf.Tentar(e.Cpf)!, e.Nome!, e.Email!)).Entity;
-        u.DefinirAcesso(e.Papeis!, e.Setores ?? []);
+        await db.AplicarPapeis(u, e.Papeis!, e.Setores ?? []);
         if (e.SenhaTemporaria is not null) u.DefinirSenhaTemporaria(hasher.HashPassword(u, e.SenhaTemporaria));
         await db.SaveChangesAsync(ct);
         return Results.Created($"/api/admin/usuarios/{u.Id}", await UsuarioResposta.De(db, u));

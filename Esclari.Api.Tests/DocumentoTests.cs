@@ -379,7 +379,7 @@ public class DocumentoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             (await m.Admin.NovaVersao(id, Pdfs.Criar(Estagio)), "O documento está arquivado."),
             (await m.Admin.PostAsync("/api/admin/documentos/999999/arquivar", null), "Documento não encontrado."),
             (await m.Admin.PostAsync($"/api/admin/documentos/{id}/arquivar", null), "O documento já está arquivado."),
-            (await aluno.Cliente.GetAsync("/api/admin/documentos"), "Só administradores podem usar esta área."),
+            (await aluno.Cliente.GetAsync("/api/admin/documentos"), "Seu tipo de usuário não tem acesso a esta área."),
             (await aluno.Cliente.GetAsync("/api/documentos/versoes/1"), "Documento não encontrado."),
         })
         {

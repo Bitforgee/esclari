@@ -14,7 +14,7 @@ public sealed class LeitorIndicadores(EsclariDb db)
 
     public async Task<(PedidoValido?, IResult?)> Validar(Usuario u, DateOnly? de, DateOnly? ate, long? setorId)
     {
-        if (!u.Tem(Papeis.Administrador) && !u.Tem(Papeis.Atendente)) return (null, Problemas.Erro(403, "Os indicadores são para administradores e atendentes."));
+        if (!u.Pode(Funcoes.IndicadoresVer)) return (null, Problemas.Erro(403, "Os indicadores são para administradores e atendentes."));
         if (await db.SoLideranca(u)) return (null, Problemas.Erro(403, "Os indicadores não estão disponíveis para a liderança de turma."));
         if (de is null || ate is null) return (null, Problemas.Invalido("Informe o período (de e ate).", "de"));
         if (de > ate) return (null, Problemas.Invalido("A data inicial deve ser anterior ou igual à final.", "de"));
@@ -23,7 +23,7 @@ public sealed class LeitorIndicadores(EsclariDb db)
     }
     async Task<(List<long>?, IResult?)> Escopo(Usuario u, long? setorId)
     {
-        if (!u.Tem(Papeis.Administrador))
+        if (!u.Pode(Funcoes.ChamadosVerTodos))
         {
             var meus = await db.AtendenteSetores.Where(a => a.UsuarioId == u.Id).Select(a => a.SetorId).ToListAsync();
             if (setorId is not null && !meus.Contains(setorId.Value)) return (null, Problemas.Erro(403, "Este setor não é seu."));

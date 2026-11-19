@@ -49,8 +49,7 @@ public class UsuarioDominioTests
         var u = Novo();
 
         Assert.Equal(("11144477735", "Maria Teste", "maria@teste.esclari", true, (string?)null, false), (u.Cpf.Valor, u.Nome, u.Email, u.Ativo, u.SenhaHash, u.DeveTrocarSenha));
-        Assert.True(u.Tem(Papeis.Aluno));
-        Assert.False(u.Tem(Papeis.Atendente));
+        Assert.Equal([Papeis.Aluno], u.Papeis.Select(p => p.Papel));
     }
 
     [Fact]

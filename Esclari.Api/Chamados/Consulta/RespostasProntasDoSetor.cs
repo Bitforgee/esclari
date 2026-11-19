@@ -17,7 +17,7 @@ public sealed class RespostasProntasDoSetorHandler(EsclariDb db) : IRequestHandl
     public async ValueTask<IResult> Handle(RespostasProntasDoSetor m, CancellationToken ct)
     {
         var u = m.Usuario;
-        if (!u.Tem(Papeis.Atendente) || !await db.AtendenteSetores.AnyAsync(a => a.UsuarioId == u.Id && a.SetorId == m.SetorId))
+        if (!u.Pode(Funcoes.FilaAtender) || !await db.AtendenteSetores.AnyAsync(a => a.UsuarioId == u.Id && a.SetorId == m.SetorId))
             return Problemas.Erro(404, "Setor não encontrado.");
         return Results.Ok(await db.RespostasProntas.Where(r => r.SetorId == m.SetorId).OrderBy(r => r.Titulo)
             .Select(r => new RespostasProntasDoSetor.Resposta(r.Id, r.Titulo, r.Texto)).ToListAsync());

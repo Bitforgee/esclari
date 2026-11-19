@@ -12,6 +12,8 @@ public class EsclariDb(DbContextOptions<EsclariDb> options) : DbContext(options)
     public DbSet<Instituicao> Instituicoes => Set<Instituicao>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<UsuarioPapel> UsuarioPapeis => Set<UsuarioPapel>();
+    public DbSet<TipoDeUsuario> TiposDeUsuario => Set<TipoDeUsuario>();
+    public DbSet<FuncaoDoTipo> FuncoesDoTipo => Set<FuncaoDoTipo>();
     public DbSet<Setor> Setores => Set<Setor>();
     public DbSet<AtendenteSetor> AtendenteSetores => Set<AtendenteSetor>();
     public DbSet<Curso> Cursos => Set<Curso>();
@@ -59,6 +61,8 @@ mb.ApplyConfiguration(new InstituicaoMapeamento());
         mb.ApplyConfiguration(new TokenMcpMapeamento());
         mb.ApplyConfiguration(new UsuarioMapeamento());
         mb.ApplyConfiguration(new UsuarioPapelMapeamento());
+        mb.ApplyConfiguration(new TipoDeUsuarioMapeamento());
+        mb.ApplyConfiguration(new FuncaoDoTipoMapeamento());
         mb.ApplyConfiguration(new SetorMapeamento());
         mb.ApplyConfiguration(new CategoriaMapeamento());
         mb.ApplyConfiguration(new AtendenteSetorMapeamento());
@@ -95,7 +99,7 @@ mb.ApplyConfiguration(new InstituicaoMapeamento());
 
         foreach (var e in mb.Model.GetEntityTypes().OrderBy(t => t.ClrType.Name, StringComparer.Ordinal).ToList())
         {
-            e.SetTableName(Snake(e.ClrType.Name));
+            e.SetTableName(Tabela(e.ClrType));
             foreach (var p in e.GetProperties()) p.SetColumnName(Snake(p.Name));
             foreach (var k in e.GetKeys()) k.SetName(Snake(k.GetName()!));
             foreach (var fk in e.GetForeignKeys()) fk.SetConstraintName(Snake(fk.GetConstraintName()!));
@@ -109,6 +113,8 @@ mb.ApplyConfiguration(new InstituicaoMapeamento());
         mb.Entity<T>().HasOne<Instituicao>().WithMany().HasForeignKey(e => e.InstituicaoId).OnDelete(DeleteBehavior.Restrict);
     }
 
+    static string Tabela(Type tipo) =>
+        tipo == typeof(TipoDeUsuario) ? "tipo_usuario" : tipo == typeof(FuncaoDoTipo) ? "tipo_usuario_funcao" : Snake(tipo.Name);
     public static string Snake(string nome) => Regex.Replace(nome, "([a-z0-9])([A-Z])", "$1_$2").ToLowerInvariant();
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)

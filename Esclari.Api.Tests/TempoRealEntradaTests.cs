@@ -205,7 +205,9 @@ public class TempoRealEntradaTests(EsclariFactory f) : IClassFixture<EsclariFact
     {
         var b = await Balcao.Criar(f);
         var admin = await f.Usuario(b.Instituicao, [Papeis.Administrador]);
-        foreach (var quem in new[] { b.Aluno.Usuario, admin })
+        var semFuncao = await f.ComFuncoes(b.Instituicao, ["indicadores.ver"], null, b.Triagem);
+        var semSetor = await f.ComFuncoes(b.Instituicao, ["fila.atender"]);
+        foreach (var quem in new[] { b.Aluno.Usuario, admin, semFuncao.Usuario, semSetor.Usuario })
         {
             await using var c = await f.Abrir(b.Instituicao, quem);
             Assert.Equal(SoAtendentes, await c.Recusa(c.EntrarNaFila));
@@ -214,6 +216,21 @@ public class TempoRealEntradaTests(EsclariFactory f) : IClassFixture<EsclariFact
         }
     }
 
+    [Fact]
+    public async Task EntrarNaFila_entra_tipo_proprio_com_fila_atender()
+    {
+        var b = await Balcao.Criar(f);
+        var proprio = await f.ComFuncoes(b.Instituicao, ["fila.atender"], null, b.Triagem, b.Outro);
+        await using var c = await f.Abrir(b.Instituicao, proprio.Usuario);
+
+        await c.EntrarNaFila();
+
+        var (triagem, outro) = (TempoRealGrupos.Fila(b.Instituicao.Id, b.Triagem.Id), TempoRealGrupos.Fila(b.Instituicao.Id, b.Outro.Id));
+        await f.Sonda(triagem);
+        await f.Sonda(outro);
+        await c.Esperar(2);
+        Assert.Equal(new[] { $"Sonda:{outro}", $"Sonda:{triagem}" }.Order(), (await c.Quieto()).Order());
+    }
     [Fact]
     public async Task Sessao_invalida_nos_tres_metodos()
     {
@@ -247,7 +264,8 @@ public class TempoRealEntradaTests(EsclariFactory f) : IClassFixture<EsclariFact
         var numero = await b.Chamado();
         await using var ca = await f.Abrir(b.Instituicao, b.A.Usuario);
         await using var cb = await f.Abrir(b.Instituicao, b.B.Usuario);
-        await f.Db(b.Instituicao.Id, db => db.UsuarioPapeis.Where(p => p.UsuarioId == b.A.Usuario.Id && p.Papel == Papeis.Atendente).ExecuteDeleteAsync());
+        var tipoAluno = await f.Db(b.Instituicao.Id, db => db.TiposDeUsuario.Where(t => t.Sistema == TipoDeUsuario.Aluno).Select(t => t.Id).SingleAsync());
+        await f.Db(b.Instituicao.Id, db => db.Usuarios.Where(u => u.Id == b.A.Usuario.Id).ExecuteUpdateAsync(s => s.SetProperty(u => u.TipoUsuarioId, tipoAluno)));
         await f.Db(b.Instituicao.Id, db => db.AtendenteSetores.Where(s => s.UsuarioId == b.B.Usuario.Id).ExecuteDeleteAsync());
 
         Assert.Equal(SoAtendentes, await ca.Recusa(ca.EntrarNaFila));

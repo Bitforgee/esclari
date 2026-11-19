@@ -67,7 +67,7 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
                 var url = Regex.Replace(padrao, @"\{[^}]+\}", setor.Id.ToString());
                 var r = await c.SendAsync(new HttpRequestMessage(new HttpMethod(metodo), url) { Content = metodo == "GET" ? null : JsonContent.Create(new { nome = "Intruso" }) });
                 Assert.True(r.StatusCode == HttpStatusCode.Forbidden, $"{metodo} {padrao}: {(int)r.StatusCode}");
-                Assert.Equal("Só administradores podem usar esta área.", (await r.Json()).GetProperty("detail").GetString());
+                Assert.Equal("Seu tipo de usuário não tem acesso a esta área.", (await r.Json()).GetProperty("detail").GetString());
             }
     }
 

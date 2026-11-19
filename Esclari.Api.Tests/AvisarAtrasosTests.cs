@@ -112,6 +112,42 @@ public class AvisarAtrasosTests(EsclariFactory f) : IClassFixture<EsclariFactory
     }
 
     [Fact]
+    public async Task Resumo_vai_a_quem_tem_chamados_ver_todos()
+    {
+        var i = await f.Instituicao(nome: "Univag");
+        var b = await Balcao.Criar(f, i);
+        var comFuncao = await f.ComFuncoes(i, ["chamados.ver_todos"]);
+        var semFuncao = await f.ComFuncoes(i, ["indicadores.ver", "fila.atender"], null, b.Triagem);
+        var inativo = await f.Usuario(i, [Papeis.Administrador]);
+        await f.Db(i.Id, async db => { (await db.Usuarios.SingleAsync(u => u.Id == inativo.Id)).Desativar(); await db.SaveChangesAsync(); });
+        await Atrasado(b);
+
+        await Agendador.Executar();
+
+        var resumos = (await f.EmailsDeAtraso(i)).Where(e => e.Assunto == "[Univag] 1 chamado em atraso").ToList();
+        Assert.Equal([await f.EmailDe(i, comFuncao.Usuario.Id)], resumos.Select(e => e.Destinatario));
+        var todos = (await f.EmailsDeAtraso(i)).Where(e => e.Assunto == "[Univag] 1 chamado em atraso").Select(e => e.Destinatario).ToList();
+        Assert.DoesNotContain(inativo.Email, todos);
+        Assert.DoesNotContain(await f.EmailDe(i, b.A.Usuario.Id), todos);
+        Assert.DoesNotContain(await f.EmailDe(i, semFuncao.Usuario.Id), todos);
+    }
+
+    [Fact]
+    public async Task Atendentes_do_setor_pela_funcao_fila_atender()
+    {
+        var (i, b) = await f.ComAdmin();
+        var comFuncao = await f.ComFuncoes(i, ["fila.atender"], null, b.Triagem);
+        var semFuncao = await f.ComFuncoes(i, ["indicadores.ver"], null, b.Triagem);
+        var numero = await Atrasado(b);
+        Assert.Null((await b.Ler(numero)).ResponsavelId);
+
+        await Agendador.Executar();
+
+        var doSetor = (await f.EmailsDeAtraso(i)).Where(e => e.Assunto.EndsWith("no seu atendimento")).Select(e => e.Destinatario).ToList();
+        Assert.Contains(await f.EmailDe(i, comFuncao.Usuario.Id), doSetor);
+        Assert.DoesNotContain(await f.EmailDe(i, semFuncao.Usuario.Id), doSetor);
+    }
+    [Fact]
     public async Task Antes_de_24_horas_nao_repete()
     {
         var (i, b) = await f.ComAdmin();

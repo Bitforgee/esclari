@@ -5,7 +5,7 @@ namespace Esclari.Api.Plataforma;
 
 public static class EquipeDaInstituicao
 {
-    public static readonly string[] PapeisPermitidos = [Papeis.Administrador, Papeis.Atendente];
+    public static readonly string[] PapeisPermitidos = PonteDePapeis.DaEquipe;
 
     public static async Task<Instituicao?> Alvo(EsclariDb db, string slug, CancellationToken ct)
     {
@@ -15,8 +15,8 @@ public static class EquipeDaInstituicao
     }
 
     public static Task<Usuario?> Membro(EsclariDb db, long id, CancellationToken ct) =>
-        db.Usuarios.Include(u => u.Papeis).Include(u => u.Setores)
-            .FirstOrDefaultAsync(u => u.Id == id && u.Papeis.Any(p => p.Papel == Papeis.Administrador || p.Papel == Papeis.Atendente), ct);
+        db.Usuarios.Include(u => u.Papeis).Include(u => u.Setores).Include(u => u.Tipo)
+            .FirstOrDefaultAsync(u => u.Id == id && u.Tipo!.Sistema != TipoDeUsuario.Aluno, ct);
 
     public static string Resumo(string verbo, Usuario u) => $"{verbo} o usuário {u.Id} ({string.Join(", ", u.Papeis.Select(p => p.Papel).Order())})";
 
@@ -46,7 +46,7 @@ public static class EquipeDaInstituicao
     {
         if (e.Papeis is not { Length: > 0 } || e.Papeis.Any(p => !PapeisPermitidos.Contains(p))) return Problemas.Invalido("Escolha administrador, atendente ou os dois.", "papeis");
         var setores = e.Setores?.Distinct().ToArray() ?? [];
-        if (e.Papeis.Contains(Papeis.Atendente) && setores.Length == 0) return Problemas.Invalido("Escolha ao menos um setor para o atendente.", "setores");
+        if (PonteDePapeis.ExigeSetor(e.Papeis) && setores.Length == 0) return Problemas.Invalido("Escolha ao menos um setor para o atendente.", "setores");
         if (await db.Setores.CountAsync(s => setores.Contains(s.Id)) != setores.Length) return Problemas.Invalido("Setor inexistente.", "setores");
         return null;
     }

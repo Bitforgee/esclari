@@ -37,7 +37,7 @@ public sealed class AvisarValidade(IConfiguration cfg, ILogger<Agendador> log) :
         var instituicao = await db.Instituicoes.SingleAsync(i => i.Id == itens[0].InstituicaoId, parar);
         var novos = await Novos(db, Validade.HojeNoFuso(instituicao.Fuso, agora), parar);
         if (novos.Count == 0) return;
-        var admins = await db.Usuarios.Where(u => u.Ativo && u.Email != "" && u.Papeis.Any(p => p.Papel == Papeis.Administrador)).Select(u => u.Email).ToListAsync(parar);
+        var admins = await db.Usuarios.Where(u => u.Ativo && u.Email != "").Where(PoliticaDeAcesso.TemFuncao(Funcoes.ConhecimentoGerenciar)).Select(u => u.Email).ToListAsync(parar);
         if (admins.Count == 0)
         {
             log.LogWarning("Aviso de validade adiado: a instituição {InstituicaoId} não tem administrador ativo com e-mail", instituicao.Id);
