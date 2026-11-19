@@ -34,6 +34,27 @@ public class ManifestoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             Assert.Equal("/api/instituicoes/univag/imagens/icone?v=2", x.GetProperty("src").GetString());
             Assert.Equal("image/png", x.GetProperty("type").GetString());
         });
+        var publica = await (await f.Cliente().GetAsync("/api/instituicoes/univag")).Json();
+        Assert.Equal("image/png", publica.GetProperty("iconeTipo").GetString());
+    }
+
+    [Fact]
+    public async Task Icone_jpeg_declara_image_jpeg()
+    {
+        var i = await f.Instituicao();
+        await f.Db(i.Id, async db =>
+        {
+            db.ImagensInstituicao.Add(ImagemTeste.Icone(conteudo: "image/jpeg"));
+            await db.SaveChangesAsync();
+        });
+
+        var m = await (await f.Cliente().GetAsync($"/api/instituicoes/{i.Slug}/manifest.webmanifest")).Json();
+        var publica = await (await f.Cliente().GetAsync($"/api/instituicoes/{i.Slug}")).Json();
+
+        var icones = m.GetProperty("icons").EnumerateArray().ToList();
+        Assert.Equal(2, icones.Count);
+        Assert.All(icones, x => Assert.Equal("image/jpeg", x.GetProperty("type").GetString()));
+        Assert.Equal("image/jpeg", publica.GetProperty("iconeTipo").GetString());
     }
 
     [Fact]
@@ -69,6 +90,7 @@ public class ManifestoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
             var corpo = await r.Json();
             Assert.Equal(404, corpo.GetProperty("status").GetInt32());
             Assert.Equal("Não encontrado", corpo.GetProperty("title").GetString());
+            Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync($"/api/instituicoes/{slug}")).StatusCode);
         }
     }
 
@@ -154,6 +176,7 @@ public class ManifestoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         Assert.Null(linha.Cor);
         Assert.Equal(0, imagens);
         Assert.Equal(System.Text.Json.JsonValueKind.Null, publica.GetProperty("cor").ValueKind);
+        Assert.Equal(System.Text.Json.JsonValueKind.Null, publica.GetProperty("iconeTipo").ValueKind);
         var figuras = publica.GetProperty("imagens");
         foreach (var tipo in new[] { "logo", "icone", "login", "assistente" })
             Assert.Equal(System.Text.Json.JsonValueKind.Null, figuras.GetProperty(tipo).ValueKind);

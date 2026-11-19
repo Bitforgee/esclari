@@ -7,7 +7,7 @@ namespace Esclari.Api.Acesso;
 public sealed record VerInstituicao(string Slug) : IRequest<IResult>
 {
     public sealed record Resposta(
-        string Nome, string? NomeCurto, string? Cor, Resposta.DoLogin Login, Resposta.DoAssistente Assistente, Resposta.DoContato Contato, Resposta.DasImagens Imagens)
+        string Nome, string? NomeCurto, string? Cor, Resposta.DoLogin Login, Resposta.DoAssistente Assistente, Resposta.DoContato Contato, Resposta.DasImagens Imagens, string? IconeTipo)
     {
         public sealed record DoLogin(string? Titulo, string? Frase, IReadOnlyList<string>? Itens);
 
@@ -19,12 +19,14 @@ public sealed record VerInstituicao(string Slug) : IRequest<IResult>
 
         public static Resposta De(Instituicao i, IEnumerable<ImagemInstituicao> imagens)
         {
-            int? Versao(string tipo) => imagens.FirstOrDefault(x => x.Tipo == tipo && x.RemovidaEm is null)?.Versao;
+            ImagemInstituicao? Atual(string tipo) => imagens.FirstOrDefault(x => x.Tipo == tipo && x.RemovidaEm is null);
+            int? Versao(string tipo) => Atual(tipo)?.Versao;
             return new(i.Nome, i.NomeCurto, i.Cor,
                 new DoLogin(i.LoginTitulo, i.LoginFrase, i.LoginItens ?? []),
                 new DoAssistente(i.AssistenteNome, i.AssistenteBoasVindas, i.AssistentePerguntas ?? []),
                 new DoContato(i.ContatoHorario, i.ContatoTelefone, i.ContatoEmail),
-                new DasImagens(Versao(TiposDeImagem.Logo), Versao(TiposDeImagem.Icone), Versao(TiposDeImagem.Login), Versao(TiposDeImagem.Assistente)));
+                new DasImagens(Versao(TiposDeImagem.Logo), Versao(TiposDeImagem.Icone), Versao(TiposDeImagem.Login), Versao(TiposDeImagem.Assistente)),
+                Atual(TiposDeImagem.Icone)?.Conteudo);
         }
     }
 

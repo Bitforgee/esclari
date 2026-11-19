@@ -9,7 +9,7 @@ public sealed record EnviarImagemInstituicao(string Tipo, IFormCollection Form) 
 {
     public sealed record Resposta(string Tipo, int Versao);
 
-    public const string IconeInvalido = "O ícone deve ser um PNG quadrado de pelo menos 512 px.";
+    public const string IconeInvalido = "O ícone deve ser um PNG ou JPEG quadrado de pelo menos 512 px.";
     const long UmMb = 1024 * 1024;
 
     public static void Mapear(RouteGroupBuilder g) =>
@@ -18,12 +18,24 @@ public sealed record EnviarImagemInstituicao(string Tipo, IFormCollection Form) 
 
     public static long Limite(string tipo) => tipo == TiposDeImagem.Login ? 3 * UmMb : UmMb;
 
-    public static bool IconeAceito(byte[] png)
+    public static bool IconeAceito(byte[] imagem, string tipo) =>
+        (tipo == Arquivos.Png ? DoPng(imagem) : DoJpeg(imagem)) is var (largura, altura) && largura == altura && largura >= 512;
+
+    static (long, long)? DoPng(byte[] png) =>
+        png.Length < 24 ? null : (BinaryPrimitives.ReadUInt32BigEndian(png.AsSpan(16)), BinaryPrimitives.ReadUInt32BigEndian(png.AsSpan(20)));
+
+    static (long, long)? DoJpeg(byte[] jpeg)
     {
-        if (png.Length < 24) return false;
-        var (largura, altura) = (BinaryPrimitives.ReadUInt32BigEndian(png.AsSpan(16)), BinaryPrimitives.ReadUInt32BigEndian(png.AsSpan(20)));
-        return largura == altura && largura >= 512;
+        var i = 2;
+        while (i + 9 <= jpeg.Length && jpeg[i] == 0xFF)
+        {
+            if (InicioDeQuadro(jpeg[i + 1])) return (BinaryPrimitives.ReadUInt16BigEndian(jpeg.AsSpan(i + 7)), BinaryPrimitives.ReadUInt16BigEndian(jpeg.AsSpan(i + 5)));
+            i += 2 + BinaryPrimitives.ReadUInt16BigEndian(jpeg.AsSpan(i + 2));
+        }
+        return null;
     }
+
+    static bool InicioDeQuadro(byte marcador) => marcador is >= 0xC0 and <= 0xCF and not (0xC4 or 0xC8 or 0xCC);
 }
 
 public sealed class EnviarImagemInstituicaoHandler(EsclariDb db, Armazenamento armazenamento) : IRequestHandler<EnviarImagemInstituicao, IResult>
@@ -36,10 +48,10 @@ public sealed class EnviarImagemInstituicaoHandler(EsclariDb db, Armazenamento a
 
         var icone = tipo == TiposDeImagem.Icone;
         var limite = EnviarImagemInstituicao.Limite(tipo);
-        var (lido, recusa) = await Arquivos.Ler(arquivo, limite, icone ? [Arquivos.Png] : [Arquivos.Png, Arquivos.Jpeg],
-            $"A imagem passa de {limite / 1024 / 1024} MB.", icone ? "O ícone deve ser PNG." : "Envie uma imagem PNG ou JPEG.");
+        var (lido, recusa) = await Arquivos.Ler(arquivo, limite, [Arquivos.Png, Arquivos.Jpeg],
+            $"A imagem passa de {limite / 1024 / 1024} MB.", icone ? "O ícone deve ser PNG ou JPEG." : "Envie uma imagem PNG ou JPEG.");
         if (lido is null) return recusa!;
-        if (icone && !EnviarImagemInstituicao.IconeAceito(lido.Bytes)) return Problemas.Invalido(EnviarImagemInstituicao.IconeInvalido, "arquivo");
+        if (icone && !EnviarImagemInstituicao.IconeAceito(lido.Bytes, lido.Tipo)) return Problemas.Invalido(EnviarImagemInstituicao.IconeInvalido, "arquivo");
 
         var chave = Armazenamento.NovaChave(db.InstituicaoAtual!.Value, "aparencia");
         await armazenamento.Gravar(chave, lido.Bytes);

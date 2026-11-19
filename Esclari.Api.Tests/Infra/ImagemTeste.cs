@@ -15,10 +15,21 @@ public static class ImagemTeste
         return b;
     }
 
-    public static ImagemInstituicao Icone(int versao = 2, DateTimeOffset? removidaEm = null)
+    public static byte[] JpegDe(int largura, int altura, int tamanho = 64, bool comSof = true)
+    {
+        byte[] app0 = [0xFF, 0xE0, 0x00, 0x10, (byte)'J', (byte)'F', (byte)'I', (byte)'F', 0, 1, 1, 0, 0, 1, 0, 1, 0, 0];
+        byte[] sof = [0xFF, 0xC0, 0x00, 0x11, 0x08, (byte)(altura >> 8), (byte)altura, (byte)(largura >> 8), (byte)largura, 3, 1, 0x22, 0, 2, 0x11, 1, 3, 0x11, 1];
+        byte[] inicio = [0xFF, 0xD8, .. app0, .. (comSof ? sof : [])];
+        var b = new byte[Math.Max(tamanho, inicio.Length + 2)];
+        inicio.CopyTo(b, 0);
+        (b[^2], b[^1]) = ((byte)0xFF, (byte)0xD9);
+        return b;
+    }
+
+    public static ImagemInstituicao Icone(int versao = 2, DateTimeOffset? removidaEm = null, string conteudo = "image/png")
     {
         var imagem = ImagemInstituicao.Criar("icone");
-        for (var n = 0; n < versao; n++) imagem.Substituir("image/png", 1, new string('a', 64), "x/aparencia/y");
+        for (var n = 0; n < versao; n++) imagem.Substituir(conteudo, 1, new string('a', 64), "x/aparencia/y");
         if (removidaEm is { } quando) imagem.Remover(quando);
         return imagem;
     }

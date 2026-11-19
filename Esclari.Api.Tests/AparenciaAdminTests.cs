@@ -223,7 +223,9 @@ public class AparenciaAdminTests(EsclariFactory f) : IClassFixture<EsclariFactor
 
         Assert.Equal(HttpStatusCode.UnsupportedMediaType, (await ImagemTeste.Enviar(admin, "logo", Balcao.Arquivo("GIF89a"u8.ToArray(), 100))).StatusCode);
         Assert.Equal(HttpStatusCode.UnsupportedMediaType, (await ImagemTeste.Enviar(admin, "login", Balcao.Arquivo(Balcao.Pdf, 100))).StatusCode);
-        Assert.Equal(HttpStatusCode.UnsupportedMediaType, (await ImagemTeste.Enviar(admin, "icone", ImagemTeste.Jpeg(100))).StatusCode);
+        var icone = await ImagemTeste.Enviar(admin, "icone", Balcao.Arquivo("GIF89a"u8.ToArray(), 100));
+        Assert.Equal(HttpStatusCode.UnsupportedMediaType, icone.StatusCode);
+        Assert.Equal("O ícone deve ser PNG ou JPEG.", (await icone.Json()).GetProperty("detail").GetString());
 
         Assert.Empty(await Linhas(i.Id));
         Assert.Equal(antes, (await f.Chaves()).Count);
@@ -270,9 +272,53 @@ public class AparenciaAdminTests(EsclariFactory f) : IClassFixture<EsclariFactor
             return;
         }
         Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode);
-        Assert.Equal(["O ícone deve ser um PNG quadrado de pelo menos 512 px."], Erros(await r.Json(), "arquivo"));
+        Assert.Equal(["O ícone deve ser um PNG ou JPEG quadrado de pelo menos 512 px."], Erros(await r.Json(), "arquivo"));
         Assert.Empty(await Linhas(i.Id));
         Assert.Equal(antes, (await f.Chaves()).Count);
+    }
+
+    [Theory]
+    [InlineData(512, 511, true)]
+    [InlineData(511, 511, true)]
+    [InlineData(1024, 512, true)]
+    [InlineData(512, 512, false)]
+    public async Task Icone_jpeg_nao_quadrado_ou_pequeno_400(int largura, int altura, bool comSof)
+    {
+        var (i, admin) = await Admin();
+        var antes = (await f.Chaves()).Count;
+
+        var r = await ImagemTeste.Enviar(admin, "icone", ImagemTeste.JpegDe(largura, altura, comSof: comSof));
+
+        Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode);
+        Assert.Equal(["O ícone deve ser um PNG ou JPEG quadrado de pelo menos 512 px."], Erros(await r.Json(), "arquivo"));
+        Assert.Empty(await Linhas(i.Id));
+        Assert.Equal(antes, (await f.Chaves()).Count);
+    }
+
+    [Fact]
+    public async Task Icone_jpeg_quadrado_200()
+    {
+        var (i, admin) = await Admin();
+        const int Mb = 1024 * 1024;
+
+        var grande = await ImagemTeste.Enviar(admin, "icone", ImagemTeste.JpegDe(512, 512, Mb + 1));
+        Assert.Equal(HttpStatusCode.RequestEntityTooLarge, grande.StatusCode);
+        Assert.Contains("1 MB", (await grande.Json()).GetProperty("detail").GetString());
+        Assert.Empty(await Linhas(i.Id));
+
+        var jpeg = ImagemTeste.JpegDe(512, 512, 2048);
+        var r = await ImagemTeste.Enviar(admin, "icone", jpeg);
+
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        var corpo = await r.Json();
+        Assert.Equal(("icone", 1), (corpo.GetProperty("tipo").GetString(), corpo.GetProperty("versao").GetInt32()));
+        var linha = Assert.Single(await Linhas(i.Id));
+        Assert.Equal(("icone", "image/jpeg", (long)jpeg.Length), (linha.Tipo, linha.Conteudo, linha.Tamanho));
+        Assert.Equal(jpeg, await f.Objeto(linha.Chave));
+
+        var maior = await ImagemTeste.Enviar(admin, "icone", ImagemTeste.JpegDe(1024, 1024, Mb));
+        Assert.Equal(HttpStatusCode.OK, maior.StatusCode);
+        Assert.Equal(2, (await maior.Json()).GetProperty("versao").GetInt32());
     }
 
     [Fact]
