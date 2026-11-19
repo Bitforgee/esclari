@@ -150,7 +150,9 @@ ${alunoCpf};Aluno E2E ${rodada};${alunoEmail};E${rodada};${curso};1;ATIVA
 `
   const importado = await admin.post('/api/admin/matriculas/importacao', { multipart: { arquivo: { name: 'm.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) } } })
   expect(importado.status(), await importado.text()).toBe(200)
-  const criado = await admin.post('/api/admin/usuarios', { data: { cpf: atendenteCpf, nome: `Atendente E2E ${rodada}`, email: atendenteEmail, papeis: ['ATENDENTE'], setores: [triagem.id] } })
+  const { tipos } = await (await admin.get('/api/admin/tipos')).json()
+  const atendente = tipos.find((t: { sistema: string | null }) => t.sistema === 'ATENDENTE')
+  const criado = await admin.post('/api/admin/usuarios', { data: { cpf: atendenteCpf, nome: `Atendente E2E ${rodada}`, email: atendenteEmail, tipoId: atendente.id, setores: [triagem.id] } })
   expect(criado.status(), await criado.text()).toBe(201)
 
   const aluno = await playwright.request.newContext({ baseURL })

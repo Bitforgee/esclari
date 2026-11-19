@@ -36,6 +36,45 @@ export const InstituicoesSimuladas = [
   { slug: 'faculdade-antiga', nome: 'Faculdade Antiga', fuso: 'America/Sao_Paulo', ativa: false, criadaEm: '2026-09-15T12:00:00Z', administradores: 0, situacao: 'DESATIVADA', saude: { ultimaAtividadeEm: null, semBaseTaxa30Dias: null }, atencao: [] },
 ]
 
+const FuncoesDoPapel: Record<string, string[]> = {
+  ALUNO: ['assistente.usar'],
+  ATENDENTE: ['fila.atender', 'indicadores.ver', 'mcp.usar'],
+  ADMINISTRADOR: ['chamados.ver_todos', 'indicadores.ver', 'conhecimento.gerenciar', 'cadastros.gerenciar', 'usuarios.gerenciar', 'matriculas.importar', 'tipos.gerenciar', 'aparencia.gerenciar', 'integracoes.gerenciar', 'mcp.usar'],
+}
+const NomeDoPapel: [string, string][] = [
+  ['ADMINISTRADOR', 'Gestor'],
+  ['ATENDENTE', 'Atendente'],
+  ['ALUNO', 'Aluno'],
+]
+
+export const comoUsuario = (papeis: string[]) => ({
+  tipo: { id: 1, nome: NomeDoPapel.find(([p]) => papeis.includes(p))![1] },
+  permissoes: [...new Set(papeis.flatMap((p) => FuncoesDoPapel[p]))].sort(),
+})
+
+export const TiposSimulados = {
+  tipos: [
+    { id: 3, nome: 'Aluno', sistema: 'ALUNO', funcoes: FuncoesDoPapel.ALUNO, usuarios: 120 },
+    { id: 1, nome: 'Gestor', sistema: 'GESTOR', funcoes: FuncoesDoPapel.ADMINISTRADOR, usuarios: 2 },
+    { id: 2, nome: 'Atendente', sistema: 'ATENDENTE', funcoes: FuncoesDoPapel.ATENDENTE, usuarios: 8 },
+    { id: 4, nome: 'Coordenador de curso', sistema: null, funcoes: ['indicadores.ver', 'chamados.ver_todos', 'usuarios.gerenciar'], usuarios: 3 },
+  ],
+  catalogo: [
+    { codigo: 'assistente.usar', rotulo: 'Usar o assistente', descricao: 'Conversar com o assistente, pedir atendimento direto e acompanhar as próprias solicitações. Exige matrícula ativa.', expoeDadosPessoais: false, deAluno: true },
+    { codigo: 'fila.atender', rotulo: 'Atender a fila', descricao: 'Ver e atender os chamados dos setores em que a pessoa está vinculada. Exige ao menos um setor.', expoeDadosPessoais: true, deAluno: false },
+    { codigo: 'chamados.ver_todos', rotulo: 'Ver os chamados de todos os setores', descricao: 'Ler os chamados de qualquer setor, exportar a lista e receber o aviso de chamados atrasados.', expoeDadosPessoais: true, deAluno: false },
+    { codigo: 'indicadores.ver', rotulo: 'Ver os indicadores', descricao: 'Abrir os indicadores de atendimento dos setores a que a pessoa tem acesso.', expoeDadosPessoais: false, deAluno: false },
+    { codigo: 'conhecimento.gerenciar', rotulo: 'Gerenciar a base de conhecimento', descricao: 'Criar e editar artigos e documentos e receber o aviso de conteúdo perto de vencer.', expoeDadosPessoais: false, deAluno: false },
+    { codigo: 'cadastros.gerenciar', rotulo: 'Gerenciar cadastros', descricao: 'Manter setores, categorias, cursos, respostas prontas e fluxos de atendimento.', expoeDadosPessoais: false, deAluno: false },
+    { codigo: 'usuarios.gerenciar', rotulo: 'Gerenciar usuários', descricao: 'Criar, editar e desativar usuários, ver o CPF deles e escolher o tipo de cada um.', expoeDadosPessoais: true, deAluno: false },
+    { codigo: 'matriculas.importar', rotulo: 'Importar matrículas', descricao: 'Enviar o arquivo CSV de matrículas, que traz CPF, nome e e-mail dos alunos.', expoeDadosPessoais: true, deAluno: false },
+    { codigo: 'tipos.gerenciar', rotulo: 'Gerenciar tipos de usuário', descricao: 'Criar, editar e apagar tipos de usuário e escolher as funções de cada um.', expoeDadosPessoais: false, deAluno: false },
+    { codigo: 'aparencia.gerenciar', rotulo: 'Gerenciar a aparência', descricao: 'Mudar o nome, as cores e as imagens da instituição.', expoeDadosPessoais: false, deAluno: false },
+    { codigo: 'integracoes.gerenciar', rotulo: 'Gerenciar integrações', descricao: 'Configurar o Moodle e criar ou revogar tokens de acesso ao MCP.', expoeDadosPessoais: false, deAluno: false },
+    { codigo: 'mcp.usar', rotulo: 'Usar o acesso por MCP', descricao: 'Consultar a instituição por um token MCP, com os mesmos dados que a pessoa vê no sistema.', expoeDadosPessoais: true, deAluno: false },
+  ],
+}
+
 export async function trocaObrigatoria(page: Page, papeis: string[]) {
   await page.route('**/api/auth/me', (rota) =>
     rota.fulfill({
@@ -45,7 +84,7 @@ export async function trocaObrigatoria(page: Page, papeis: string[]) {
         id: 1,
         nome: 'Ana',
         cpfMascarado: '***.456.789-**',
-        papeis,
+        ...comoUsuario(papeis),
         deveTrocarSenha: true,
         instituicao: { slug: 'univag', nome: 'Centro Universitário de Várzea Grande', fuso: 'America/Cuiaba' },
         matriculas: [],
@@ -69,7 +108,7 @@ export async function simularApi(page: Page, papeis = ['ALUNO', 'ATENDENTE', 'AD
         id: 1,
         nome: 'Ana',
         cpfMascarado: '***.456.789-**',
-        papeis,
+        ...comoUsuario(papeis),
         deveTrocarSenha: false,
         instituicao: { slug: 'univag', nome: 'Centro Universitário de Várzea Grande', fuso: 'America/Cuiaba' },
         matriculas: [],
@@ -90,9 +129,10 @@ export async function simularApi(page: Page, papeis = ['ALUNO', 'ATENDENTE', 'AD
     }
     if (caminho === '/api/chamados') return json(200, [{ numero: 'ESC-000123', titulo: longo, estado: 'EM_ATENDIMENTO', criadoEm: '2026-11-02T12:00:00Z' }])
     if (caminho === '/api/chamados/ESC-000123') return json(200, chamadoSimulado())
+    if (caminho === '/api/admin/tipos') return json(200, TiposSimulados)
     if (caminho === '/api/admin/usuarios')
       {
-      const usuario = { id: 1, cpf: '12345678909', nome: 'Carla Regina de Souza Albuquerque', email: 'carla.regina.albuquerque@univag.edu.br', ativo: true, deveTrocarSenha: false, papeis: ['ATENDENTE', 'ADMINISTRADOR'], setores: [1] }
+      const usuario = { id: 1, cpf: '12345678909', nome: 'Carla Regina de Souza Albuquerque', email: 'carla.regina.albuquerque@univag.edu.br', ativo: true, deveTrocarSenha: false, tipo: { id: 1, nome: 'Gestor' }, setores: [1] }
       return json(200, mais([usuario], { ...usuario, id: 2, nome: 'Bruno', email: EmailLongo }))
     }
     if (caminho === '/api/admin/setores') return json(200, [{ id: 1, nome: 'Coordenação de Análise e Desenvolvimento de Sistemas', triagem: false, ativo: true }])

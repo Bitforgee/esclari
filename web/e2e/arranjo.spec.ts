@@ -877,7 +877,7 @@ test.describe('painel', () => {
     await expect(botao.getByText('A', { exact: true })).toHaveCount(0)
     await expect(botao.locator('svg.lucide-chevrons-up-down')).toHaveCount(0)
     const nome = botao.getByText('Ana', { exact: true })
-    const papel = botao.getByText('Administrador', { exact: true })
+    const papel = botao.getByText('Gestor', { exact: true })
     const [n, p] = [await caixa(nome), await caixa(papel)]
     expect(p.y, 'papel abaixo do nome').toBeGreaterThanOrEqual(n.y + n.height - 1)
     for (const t of [nome, papel]) expect(await t.evaluate((e) => getComputedStyle(e).textOverflow)).toBe('ellipsis')
@@ -896,9 +896,9 @@ test.describe('painel', () => {
       if (lado === 'direita') expect(m.x, 'à direita do botão').toBeGreaterThanOrEqual(b.x + b.width - 1)
       else expect(m.y + m.height, 'acima do botão').toBeLessThanOrEqual(b.y + 1)
       const itens = await menu.locator('> *').evaluateAll((es) => es.map((e) => [e.getAttribute('role'), e.textContent]))
-      expect(itens).toEqual([[null, 'AnaAdministrador'], ['separator', ''], ['menuitem', 'Sair']])
+      expect(itens).toEqual([[null, 'AnaGestor'], ['separator', ''], ['menuitem', 'Sair']])
       const nome = await caixa(menu.getByText('Ana', { exact: true }))
-      expect((await caixa(menu.getByText('Administrador', { exact: true }))).y, 'papel abaixo do nome').toBeGreaterThanOrEqual(nome.y + nome.height - 1)
+      expect((await caixa(menu.getByText('Gestor', { exact: true }))).y, 'papel abaixo do nome').toBeGreaterThanOrEqual(nome.y + nome.height - 1)
       await expect(menu.getByRole('menuitem', { name: 'Sair' }).locator('svg.lucide-log-out')).toBeVisible()
       await page.keyboard.press('Escape')
     }
@@ -1025,7 +1025,7 @@ test.describe('painel', () => {
     await page.route('**/api/admin/setores', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 1, nome: 'Secretaria', triagem: true, ativo: true }]) }))
     const Telas5: [string, string, string[], string][] = [
       ['/univag/fila', 'ESC-000123', ['Categoria', 'Responsável', 'Aberto'], 'Financeiro > Boletos e mensalidades'],
-      ['/univag/usuarios', 'Carla Regina de Souza Albuquerque', ['CPF', 'E-mail', 'Papéis'], '123.456.789-09 · carla.regina.albuquerque@univag.edu.br · Atendente, Administrador'],
+      ['/univag/usuarios', 'Carla Regina de Souza Albuquerque', ['CPF', 'E-mail', 'Tipo'], '123.456.789-09 · carla.regina.albuquerque@univag.edu.br · Gestor'],
       ['/univag/artigos', 'Como emitir a segunda via', ['Categoria', 'Versão', 'Validade'], 'Financeiro > Boletos e mensalidades · versão 12'],
       ['/univag/documentos', 'Regulamento do estágio', ['Categoria', 'Versão', 'Arquivo'], 'Financeiro > Boletos e mensalidades · versão 3 · 42 páginas · regulamento-do-estagio-supervisionado-obrigatorio-2026.pdf'],
       ['/univag/cadastros', 'Secretaria', ['Detalhe'], 'Triagem'],

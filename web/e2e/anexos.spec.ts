@@ -134,7 +134,9 @@ test('aluno anexa foto na conversa e a equipe baixa no chamado', async ({ browse
   const eu = await (await admin.get('/api/auth/me')).json()
   const setores = await (await admin.get('/api/admin/setores')).json()
   const triagem = (Array.isArray(setores) ? setores : setores.itens).find((s: { triagem: boolean }) => s.triagem)
-  const atualizado = await admin.put(`/api/admin/usuarios/${eu.id}`, { data: { cpf: adminCpf, nome: eu.nome, email: adminEmail, papeis: ['ADMINISTRADOR', 'ATENDENTE'], setores: [triagem.id] } })
+  const { tipos } = await (await admin.get('/api/admin/tipos')).json()
+  const gestor = tipos.find((t: { sistema: string | null }) => t.sistema === 'GESTOR')
+  const atualizado = await admin.put(`/api/admin/usuarios/${eu.id}`, { data: { cpf: adminCpf, nome: eu.nome, email: adminEmail, tipoId: gestor.id, setores: [triagem.id] } })
   expect(atualizado.status(), await atualizado.text()).toBe(200)
   await entrar(admin, adminCpf, senhaAdmin)
 

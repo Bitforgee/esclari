@@ -119,8 +119,10 @@ test.beforeAll(async ({ playwright, baseURL }) => {
   const setorDaLideranca = await criado(await admin.post('/api/admin/setores', { data: { nome: nomeDaLideranca, cursoId: curso, semestre: 3 } }))
   categoriaDoModelo = await criado(await admin.post('/api/admin/categorias', { data: { nome: nomeDaCategoria, ativa: true } }))
   const emails = { lider: `lider.${rodada}@e2e.esclari`, coord: `coord.${rodada}@e2e.esclari`, aluno: `aluna.${rodada}@e2e.esclari` }
-  await criado(await admin.post('/api/admin/usuarios', { data: { cpf: liderCpf, nome: `Líder ${rodada}`, email: emails.lider, papeis: ['ATENDENTE'], setores: [setorDaLideranca] } }))
-  await criado(await admin.post('/api/admin/usuarios', { data: { cpf: coordCpf, nome: `Coordenadora ${rodada}`, email: emails.coord, papeis: ['ATENDENTE'], setores: [setorDaCoordenacao] } }))
+  const { tipos } = await (await admin.get('/api/admin/tipos')).json()
+  const atendente = tipos.find((t: { sistema: string | null }) => t.sistema === 'ATENDENTE')
+  await criado(await admin.post('/api/admin/usuarios', { data: { cpf: liderCpf, nome: `Líder ${rodada}`, email: emails.lider, tipoId: atendente.id, setores: [setorDaLideranca] } }))
+  await criado(await admin.post('/api/admin/usuarios', { data: { cpf: coordCpf, nome: `Coordenadora ${rodada}`, email: emails.coord, tipoId: atendente.id, setores: [setorDaCoordenacao] } }))
   const csv = `cpf;nome;email;matricula;curso;semestre;situacao\n${alunoCpf};${nomeDoAluno};${emails.aluno};${numeroDaMatricula};${nomeDoCurso};3;ATIVA\n`
   const importado = await admin.post('/api/admin/matriculas/importacao', { multipart: { arquivo: { name: 'm.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) } } })
   expect(importado.status(), await importado.text()).toBe(200)

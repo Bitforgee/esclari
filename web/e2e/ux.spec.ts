@@ -249,7 +249,7 @@ test.describe('S1 contraste', () => {
     const estados = [['ABERTO', 'Aberto'], ['EM_ATENDIMENTO', 'Em atendimento'], ['AGUARDANDO_ALUNO', 'Aguardando aluno'], ['RESOLVIDO', 'Resolvido'], ['FECHADO', 'Fechado']]
     const fila = estados.map(([estado], i) => ({ numero: `ESC-${String(i + 1).padStart(6, '0')}`, titulo: `chamado ${i + 1}`, categoria: 'Boleto', estado, responsavel: null, criadoEm: '2026-11-02T12:00:00Z', dias: 1 }))
     const artigo = (id: number, estado: string) => ({ id, estado, categoriaId: 1, categoria: 'Boleto', versao: { id, numero: 1, titulo: `artigo ${id}`, perguntas: [], resposta: 'x', links: [] } })
-    const usuario = { id: 1, cpf: '12345678909', nome: 'Carla', email: 'c@univag.edu.br', ativo: false, deveTrocarSenha: false, papeis: ['ATENDENTE'], setores: [1] }
+    const usuario = { id: 1, cpf: '12345678909', nome: 'Carla', email: 'c@univag.edu.br', ativo: false, deveTrocarSenha: false, tipo: { id: 2, nome: 'Atendente' }, setores: [1] }
     let medidos = 0
     for (const tema of Temas)
       for (const marca of Marcas) {
