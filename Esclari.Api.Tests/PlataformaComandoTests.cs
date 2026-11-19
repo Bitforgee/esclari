@@ -95,6 +95,78 @@ public class PlataformaComandoTests(EsclariFactory f) : IClassFixture<EsclariFac
     }
 
     [Fact]
+    public async Task Redefinir_senha_imprime_o_link_de_60_minutos_e_a_senha_nova_entra()
+    {
+        var (operador, _) = await f.NovoOperador();
+
+        var (codigo, saida, erro) = await Rodar("operador", "--email", operador.Email, "--redefinir-senha");
+
+        Assert.Equal((0, ""), (codigo, erro));
+        var token = Token(saida);
+        Assert.NotEqual("", token);
+        Assert.Contains("http://localhost:8080/plataforma/definir-senha?token=", saida);
+        Assert.Equal(f.Relogio.GetUtcNow().UtcDateTime.AddMinutes(60), (await Linha(operador.Email)).ConviteExpiraEm);
+        Assert.Equal(HttpStatusCode.NoContent, (await f.Cliente().PostAsJsonAsync("/api/plataforma/auth/definir-senha", new { token, senha = "senha-nova-456" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await f.Cliente().EntrarComSenha(operador.Email, "senha-nova-456")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Redefinir_senha_mantem_o_segundo_fator()
+    {
+        var (operador, _) = await f.NovoOperador();
+        var antes = await Linha(operador.Email);
+        var token = Token((await Rodar("operador", "--email", operador.Email, "--redefinir-senha")).Saida);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await f.Cliente().PostAsJsonAsync("/api/plataforma/auth/definir-senha", new { token, senha = "senha-nova-456" })).StatusCode);
+
+        var depois = await Linha(operador.Email);
+        Assert.NotNull(depois.TotpSegredo);
+        Assert.Equal(antes.TotpSegredo, depois.TotpSegredo);
+        Assert.True(depois.TemSegundoFator);
+    }
+
+    [Fact]
+    public async Task Redefinir_senha_audita_o_comando()
+    {
+        var (operador, _) = await f.NovoOperador();
+
+        await Rodar("operador", "--email", operador.Email, "--redefinir-senha");
+
+        Assert.Equal(1, await Auditorias(operador.Id));
+        var detalhe = await f.Db(null, db => db.AuditoriaDaPlataforma.Where(a => a.OperadorId == operador.Id && a.Acao == "OPERADOR_ALTERADO").Select(a => a.Resumo).SingleAsync());
+        Assert.Equal($"Comando: novo link de senha para {operador.Nome}", detalhe);
+    }
+
+    [Fact]
+    public async Task Redefinir_senha_invalida_o_link_anterior()
+    {
+        var (operador, _) = await f.NovoOperador();
+        var primeiro = Token((await Rodar("operador", "--email", operador.Email, "--redefinir-senha")).Saida);
+        var segundo = Token((await Rodar("operador", "--email", operador.Email, "--redefinir-senha")).Saida);
+
+        Assert.NotEqual(primeiro, segundo);
+        Assert.Equal(HttpStatusCode.BadRequest, (await f.Cliente().PostAsJsonAsync("/api/plataforma/auth/definir-senha", new { token = primeiro, senha = "senha-nova-456" })).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await f.Cliente().PostAsJsonAsync("/api/plataforma/auth/definir-senha", new { token = segundo, senha = "senha-nova-456" })).StatusCode);
+    }
+
+    [Fact]
+    public async Task Redefinir_senha_recusa_email_desconhecido_e_invalido()
+    {
+        var desconhecido = Email();
+        var auditoriasAntes = await f.Db(null, db => db.AuditoriaDaPlataforma.CountAsync());
+
+        var sem = await Rodar("operador", "--email", desconhecido, "--redefinir-senha");
+        var invalido = await Rodar("operador", "--email", "nao-e-email", "--redefinir-senha");
+
+        Assert.Equal(1, sem.Codigo);
+        Assert.Contains("--email: não há operador com esse e-mail", sem.Erro);
+        Assert.Equal(1, invalido.Codigo);
+        Assert.Contains("--email: informe um e-mail válido", invalido.Erro);
+        Assert.Equal("", sem.Saida + invalido.Saida);
+        Assert.Equal(auditoriasAntes, await f.Db(null, db => db.AuditoriaDaPlataforma.CountAsync()));
+        Assert.False(await f.Db(null, db => db.OperadoresPlataforma.AnyAsync(o => o.Email == desconhecido)));
+    }
+    [Fact]
     public async Task Tipo_operador_nao_existe()
     {
         var i = await f.Instituicao();

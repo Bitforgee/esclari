@@ -6,7 +6,7 @@ namespace Esclari.Api.Plataforma;
 
 public static class PlataformaComando
 {
-    static readonly string[] Acoes = ["--desativar", "--reativar", "--redefinir-2fa"];
+    static readonly string[] Acoes = ["--desativar", "--reativar", "--redefinir-2fa", "--redefinir-senha"];
 
     public static async Task<int> Executar(IServiceProvider servicos, string[] args, TextWriter saida, TextWriter erro)
     {
@@ -20,7 +20,7 @@ public static class PlataformaComando
 
         var erros = args.FirstOrDefault() == "operador"
             ? await ActivatorUtilities.CreateInstance<ComandoOperadorDaPlataforma>(sp).Executar(opcoes, acao, saida)
-            : ["uso: plataforma operador --email --nome | plataforma operador --email [--desativar | --reativar | --redefinir-2fa]"];
+            : ["uso: plataforma operador --email --nome | plataforma operador --email [--desativar | --reativar | --redefinir-2fa | --redefinir-senha]"];
         foreach (var e in erros) erro.WriteLine(e);
         return erros.Count == 0 ? 0 : 1;
     }
@@ -58,6 +58,7 @@ public sealed class ComandoOperadorDaPlataforma(EsclariDb db, TimeProvider relog
     async Task<List<string>> Alterar(OperadorPlataforma? operador, string acao, TextWriter saida)
     {
         if (operador is null) return ["--email: não há operador com esse e-mail"];
+        if (acao == "--redefinir-senha") return await NovoLinkDeSenha(operador, saida);
         if (acao == "--desativar" && operador.Ativo && !await db.OperadoresPlataforma.AnyAsync(x => x.Ativo && x.Id != operador.Id)) return ["Não é possível desativar o último operador ativo."];
         var frase = acao switch
         {
@@ -68,6 +69,16 @@ public sealed class ComandoOperadorDaPlataforma(EsclariDb db, TimeProvider relog
         db.AuditoriaDaPlataforma.Add(AuditoriaPlataforma.Registrar(AcoesDaPlataforma.OperadorAlterado, operador.Id, null, $"Comando: {operador.Nome} {frase}", relogio.GetUtcNow().UtcDateTime));
         await db.SaveChangesAsync();
         saida.WriteLine($"Operador {operador.Nome} {frase}.");
+        return [];
+    }
+
+    async Task<List<string>> NovoLinkDeSenha(OperadorPlataforma operador, TextWriter saida)
+    {
+        var agora = relogio.GetUtcNow().UtcDateTime;
+        var token = operador.NovoConvite(agora);
+        db.AuditoriaDaPlataforma.Add(AuditoriaPlataforma.Registrar(AcoesDaPlataforma.OperadorAlterado, operador.Id, null, $"Comando: novo link de senha para {operador.Nome}", agora));
+        await db.SaveChangesAsync();
+        saida.WriteLine($"Link para criar a nova senha de {operador.Nome} (vale 60 minutos): {Tokens.UrlBase(cfg)}/plataforma/definir-senha?token={token}");
         return [];
     }
 
