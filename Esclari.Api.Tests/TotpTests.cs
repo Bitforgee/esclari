@@ -61,4 +61,10 @@ public class TotpTests
         Assert.Matches("^[A-Z2-7]{32}$", segredo);
         Assert.Equal($"otpauth://totp/Esclari:ana@equipe.esclari?secret={segredo}&issuer=Esclari", Totp.Uri("ana@equipe.esclari", segredo));
     }
+
+    [Fact]
+    public void Uri_com_imagem_codifica_o_endereco()
+    {
+        Assert.Equal("otpauth://totp/Esclari:ana@equipe.esclari?secret=ABC&issuer=Esclari&image=https%3A%2F%2Fesclari.exemplo%2Ficons%2Ficon-192.png", Totp.Uri("ana@equipe.esclari", "ABC", "https://esclari.exemplo/icons/icon-192.png"));
+    }
 }

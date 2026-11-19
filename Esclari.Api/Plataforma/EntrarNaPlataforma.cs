@@ -21,7 +21,7 @@ public sealed record EntrarNaPlataforma(EntrarNaPlataforma.Entrada Corpo) : IReq
         }).AllowAnonymous().RequireRateLimiting("auth");
 }
 
-public sealed class EntrarNaPlataformaHandler(EsclariDb db, IPasswordHasher<OperadorPlataforma> hasher, TimeProvider relogio) : IRequestHandler<EntrarNaPlataforma, ResultadoEntrada>
+public sealed class EntrarNaPlataformaHandler(EsclariDb db, IPasswordHasher<OperadorPlataforma> hasher, TimeProvider relogio, IConfiguration cfg) : IRequestHandler<EntrarNaPlataforma, ResultadoEntrada>
 {
     const string CredenciaisInvalidas = "E-mail ou senha inválidos.";
 
@@ -42,6 +42,6 @@ public sealed class EntrarNaPlataformaHandler(EsclariDb db, IPasswordHasher<Oper
         var expira = relogio.GetUtcNow() + SessaoDaPlataforma.DuracaoDaEtapa;
         if (operador!.TemSegundoFator) return new(new(operador.Id, expira, null), Results.Ok(new EntrarNaPlataforma.Resposta("CODIGO", null, null)));
         var segredo = Totp.NovoSegredo();
-        return new(new(operador.Id, expira, segredo), Results.Ok(new EntrarNaPlataforma.Resposta("CADASTRAR", segredo, Totp.Uri(operador.Email, segredo))));
+        return new(new(operador.Id, expira, segredo), Results.Ok(new EntrarNaPlataforma.Resposta("CADASTRAR", segredo, Totp.Uri(operador.Email, segredo, $"{Tokens.UrlBase(cfg)}/icons/icon-192.png"))));
     }
 }

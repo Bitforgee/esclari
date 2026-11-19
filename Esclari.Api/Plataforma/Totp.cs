@@ -32,8 +32,8 @@ public static class Totp
         return null;
     }
 
-    public static string Uri(string email, string segredoBase32) =>
-        $"otpauth://totp/Esclari:{email}?secret={segredoBase32}&issuer=Esclari";
+    public static string Uri(string email, string segredoBase32, string? imagem = null) =>
+        $"otpauth://totp/Esclari:{email}?secret={segredoBase32}&issuer=Esclari" + (imagem is null ? "" : $"&image={System.Uri.EscapeDataString(imagem)}");
 
     public static string Base32(byte[] dados)
     {

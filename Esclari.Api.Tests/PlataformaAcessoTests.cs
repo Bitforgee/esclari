@@ -108,7 +108,7 @@ public class PlataformaAcessoTests(EsclariFactory f) : IClassFixture<EsclariFact
         Assert.Equal("CADASTRAR", j.GetProperty("etapa").GetString());
         var segredo = j.GetProperty("segredo").GetString()!;
         Assert.Matches("^[A-Z2-7]{32}$", segredo);
-        Assert.Equal($"otpauth://totp/Esclari:{operador.Email}?secret={segredo}&issuer=Esclari", j.GetProperty("uri").GetString());
+        Assert.Equal($"otpauth://totp/Esclari:{operador.Email}?secret={segredo}&issuer=Esclari&image=http%3A%2F%2Flocalhost%3A8080%2Ficons%2Ficon-192.png", j.GetProperty("uri").GetString());
         Assert.True(Grava(r, "esclari_plataforma_etapa"));
         Assert.Null((await Recarregar(operador.Id)).TotpSegredo);
     }
