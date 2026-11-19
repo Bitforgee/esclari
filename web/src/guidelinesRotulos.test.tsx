@@ -6,7 +6,7 @@ import { abrir, api, escolher, me, type Rota } from './test/util'
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
 const ok = (corpo: unknown): Rota => () => [200, corpo]
 
-const usuario = { id: 7, cpf: '12345678909', nome: 'Ana Souza', email: 'u7@univag.edu.br', ativo: true, deveTrocarSenha: false, papeis: ['ALUNO'], setores: [] }
+const usuario = { id: 7, cpf: '12345678909', nome: 'Ana Souza', email: 'u7@univag.edu.br', ativo: true, deveTrocarSenha: false, tipo: { id: 3, nome: 'Aluno' }, setores: [] }
 const artigo = (id: number, titulo: string, estado: string) => ({ id, estado, indexacao: null, categoriaId: 3, categoria: 'Estágio', visivelDe: null, visivelAte: null, versao: { id, numero: 1, titulo, perguntas: [], resposta: 'x', links: [] } })
 const documento = { id: 6, titulo: 'Calendário', categoriaId: 3, categoria: 'Estágio', estado: 'ATIVO', indexacao: 'INDEXADO', versao: { id: 6, numero: 1, nomeArquivo: 'd6.pdf', paginas: 2, criadaEm: '2026-11-02T12:00:00Z' } }
 const categorias = ok([{ id: 3, nome: 'Estágio', ativa: true }])

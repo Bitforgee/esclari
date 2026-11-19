@@ -30,7 +30,8 @@ export type Me = {
   id: number
   nome: string
   cpfMascarado: string
-  papeis: string[]
+  tipo: { id: number; nome: string }
+  permissoes: string[]
   deveTrocarSenha: boolean
   instituicao: Instituicao
   matriculas: Matricula[]

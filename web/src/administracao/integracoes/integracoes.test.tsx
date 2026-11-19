@@ -378,7 +378,7 @@ describe('tela Integrações', () => {
       expect(nav.queryByRole('link', { name: 'Moodle' }), papel).not.toBeInTheDocument()
       if (papel === 'ADMINISTRADOR') {
         const grupo = within(nav.getByRole('group', { name: 'Administração' }))
-        expect(grupo.getAllByRole('link').map((l) => l.textContent)).toEqual(['Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações'])
+        expect(grupo.getAllByRole('link').map((l) => l.textContent)).toEqual(['Usuários', 'Tipos de usuário', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações'])
         const link = grupo.getByRole('link', { name: 'Integrações' })
         expect(link).toHaveAttribute('href', '/univag/integracoes')
         expect(link.querySelector('svg')).toHaveClass('lucide-plug')

@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { BookText, ChartColumn, ClipboardList, ChevronLeft, CircleAlert, CircleUser, FileText, Inbox, LayoutGrid, ListChecks, LogOut, MessageCircle, Menu as IconeMenu, Monitor, Moon, MoonStar, Palette, Phone, Plug, Settings, Sun, Upload, Users } from 'lucide-react'
+import { BookText, ChartColumn, ClipboardList, ChevronLeft, CircleAlert, CircleUser, FileText, Inbox, LayoutGrid, ListChecks, LogOut, MessageCircle, Menu as IconeMenu, Monitor, Moon, MoonStar, Palette, Phone, Plug, Settings, Sun, Upload, UserCog, Users } from 'lucide-react'
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Link as RouterLink, Navigate, NavLink, Outlet, useLocation, useMatch, useNavigate, useParams } from 'react-router'
 import { api, ErroApi, type Me } from './api'
@@ -18,38 +18,38 @@ import { useTheme } from './ui/theme-provider'
 import { Celular, Deitado, useConsulta } from './ui/use-mobile'
 
 const Menu = [
-  { grupo: 'Atendimento', papeis: ['ALUNO'], caminho: 'assistente', rotulo: 'Assistente', Icone: MessageCircle },
-  { grupo: 'Atendimento', papeis: ['ALUNO'], caminho: 'solicitacoes', rotulo: 'Minhas solicitações', abrev: 'Solicitações', Icone: ListChecks },
-  { grupo: 'Atendimento', papeis: ['ATENDENTE'], caminho: 'fila', rotulo: 'Fila', Icone: Inbox },
-  { grupo: 'Atendimento', papeis: ['ADMINISTRADOR'], caminho: 'chamados', rotulo: 'Chamados', Icone: ClipboardList },
-  { grupo: 'Atendimento', papeis: ['ATENDENTE', 'ADMINISTRADOR'], caminho: 'indicadores', rotulo: 'Indicadores', Icone: ChartColumn },
-  { grupo: 'Conhecimento', papeis: ['ADMINISTRADOR'], caminho: 'artigos', rotulo: 'Artigos', Icone: BookText },
-  { grupo: 'Conhecimento', papeis: ['ADMINISTRADOR'], caminho: 'documentos', rotulo: 'Documentos', Icone: FileText },
-  { grupo: 'Administração', papeis: ['ADMINISTRADOR'], caminho: 'usuarios', rotulo: 'Usuários', Icone: Users },
-  { grupo: 'Administração', papeis: ['ADMINISTRADOR'], caminho: 'matriculas', rotulo: 'Matrículas', Icone: Upload },
-  { grupo: 'Administração', papeis: ['ADMINISTRADOR'], caminho: 'cadastros', rotulo: 'Cadastros', Icone: Settings },
-  { grupo: 'Administração', papeis: ['ADMINISTRADOR'], caminho: 'aparencia', rotulo: 'Aparência', Icone: Palette },
-  { grupo: 'Administração', papeis: ['ADMINISTRADOR'], caminho: 'integracoes', rotulo: 'Integrações', Icone: Plug },
+  { grupo: 'Atendimento', funcao: 'assistente.usar', caminho: 'assistente', rotulo: 'Assistente', Icone: MessageCircle },
+  { grupo: 'Atendimento', funcao: 'assistente.usar', caminho: 'solicitacoes', rotulo: 'Minhas solicitações', abrev: 'Solicitações', Icone: ListChecks },
+  { grupo: 'Atendimento', funcao: 'fila.atender', caminho: 'fila', rotulo: 'Fila', Icone: Inbox },
+  { grupo: 'Atendimento', funcao: 'chamados.ver_todos', caminho: 'chamados', rotulo: 'Chamados', Icone: ClipboardList },
+  { grupo: 'Atendimento', funcao: 'indicadores.ver', caminho: 'indicadores', rotulo: 'Indicadores', Icone: ChartColumn },
+  { grupo: 'Conhecimento', funcao: 'conhecimento.gerenciar', caminho: 'artigos', rotulo: 'Artigos', Icone: BookText },
+  { grupo: 'Conhecimento', funcao: 'conhecimento.gerenciar', caminho: 'documentos', rotulo: 'Documentos', Icone: FileText },
+  { grupo: 'Administração', funcao: 'usuarios.gerenciar', caminho: 'usuarios', rotulo: 'Usuários', Icone: Users },
+  { grupo: 'Administração', funcao: 'tipos.gerenciar', caminho: 'tipos', rotulo: 'Tipos de usuário', Icone: UserCog },
+  { grupo: 'Administração', funcao: 'matriculas.importar', caminho: 'matriculas', rotulo: 'Matrículas', Icone: Upload },
+  { grupo: 'Administração', funcao: 'cadastros.gerenciar', caminho: 'cadastros', rotulo: 'Cadastros', Icone: Settings },
+  { grupo: 'Administração', funcao: 'aparencia.gerenciar', caminho: 'aparencia', rotulo: 'Aparência', Icone: Palette },
+  { grupo: 'Administração', funcao: 'integracoes.gerenciar', caminho: 'integracoes', rotulo: 'Integrações', Icone: Plug },
 ]
 export const Grupos = ['Atendimento', 'Conhecimento', 'Administração']
-const TodosOsPapeis = ['ALUNO', 'ATENDENTE', 'ADMINISTRADOR']
 const LimiteDeAbas = 5
 
 export { iniciais }
 
 export type Item = (typeof Menu)[number] & { abrev?: string }
 
-export const itensDo = (papeis: string[]): Item[] => Menu.filter((m) => m.papeis.some((p) => papeis.includes(p)))
+export const itensDo = (permissoes: string[]): Item[] => Menu.filter((m) => permissoes.includes(m.funcao))
 
-export function distribuir(papeis: string[]) {
-  const itens = itensDo(papeis)
+export function distribuir(permissoes: string[]) {
+  const itens = itensDo(permissoes)
   const cabe = (n: number) => n + (itens.length > n ? 1 : 0) + 1 <= LimiteDeAbas
   let fixas = itens.filter((i) => i.grupo === 'Atendimento')
   while (!cabe(fixas.length)) fixas = fixas.slice(0, -1)
   return { fixas, gerir: itens.filter((i) => !fixas.includes(i)) }
 }
 
-export const destinosDaGerir = (papeis: string[]) => distribuir(papeis).gerir
+export const destinosDaGerir = (permissoes: string[]) => distribuir(permissoes).gerir
 
 const Temas: ['light' | 'dark' | 'black' | 'system', string, typeof Sun][] = [
   ['light', 'Claro', Sun],
@@ -112,13 +112,6 @@ export function tituloDaRota(pathname: string, numero?: string) {
   return Menu.find((m) => m.caminho === caminho)?.rotulo ?? ''
 }
 
-const Papeis = [
-  ['ADMINISTRADOR', 'Administrador'],
-  ['ATENDENTE', 'Atendente'],
-  ['ALUNO', 'Aluno'],
-]
-export const papelDe = (papeis: string[]) => Papeis.find(([p]) => papeis.includes(p))?.[1]
-
 function Link({ item: { caminho, rotulo, Icone }, slug }: { item: Item; slug?: string }) {
   const ativo = !!useMatch({ path: `/${slug}/${caminho}`, end: false })
   const { setOpenMobile } = useSidebar()
@@ -155,7 +148,7 @@ function MenuUsuario({ me, sair }: { me: Me; sair: () => void }) {
   const dados = (
     <div className="grid min-w-0 flex-1 text-start text-sm leading-tight">
       <span className="truncate font-medium">{me.nome}</span>
-      <span className="truncate text-xs text-muted-foreground">{papelDe(me.papeis)}</span>
+      <span className="truncate text-xs text-muted-foreground">{me.tipo.nome}</span>
     </div>
   )
   return (
@@ -170,7 +163,7 @@ function MenuUsuario({ me, sair }: { me: Me; sair: () => void }) {
             )}
             <div className="grid min-w-0 flex-1 text-start text-sm leading-tight group-data-[collapsible=icon]:sr-only">
               <span className="truncate font-medium">{me.nome}</span>
-              <span className="truncate text-xs text-muted-foreground">{papelDe(me.papeis)}</span>
+              <span className="truncate text-xs text-muted-foreground">{me.tipo.nome}</span>
             </div>
           </SidebarMenuButton>
         </DropdownMenuTrigger>
@@ -272,8 +265,8 @@ function Topo({ titulo, aluno, abas, slug, icone, nome, voltar }: { titulo: stri
 
 type Aba = { caminho: string; rotulo: string; Icone: typeof Sun; ativas: string[] }
 
-function abasDe(papeis: string[]): Aba[] {
-  const { fixas, gerir } = distribuir(papeis)
+function abasDe(permissoes: string[]): Aba[] {
+  const { fixas, gerir } = distribuir(permissoes)
   const doMenu = fixas.map(({ caminho, rotulo, abrev, Icone }) => ({ caminho, rotulo: abrev ?? rotulo, Icone, ativas: caminho === 'solicitacoes' ? [caminho, 'chamados'] : [caminho] }))
   const deGerir = gerir.length > 0 ? [{ caminho: 'gerir', rotulo: 'Gerir', Icone: LayoutGrid, ativas: ['gerir', ...gerir.map((g) => g.caminho)] }] : []
   return [...doMenu, ...deGerir, { caminho: 'conta', rotulo: 'Conta', Icone: CircleUser, ativas: ['conta'] }]
@@ -282,9 +275,9 @@ function abasDe(papeis: string[]): Aba[] {
 const AlturaDaBarra = 'calc(3.5rem + 1px + env(safe-area-inset-bottom))'
 const AlturaDaBarraDeitada = 'calc(3rem + 1px + env(safe-area-inset-bottom))'
 
-function BarraDeAbas({ slug, papeis, deitado }: { slug?: string; papeis: string[]; deitado: boolean }) {
+function BarraDeAbas({ slug, permissoes, deitado }: { slug?: string; permissoes: string[]; deitado: boolean }) {
   const segmento = useLocation().pathname.split('/')[2]
-  const abas = abasDe(papeis)
+  const abas = abasDe(permissoes)
   return (
     <nav aria-label="Navegação" style={{ gridTemplateColumns: `repeat(${abas.length}, minmax(0, 1fr))` }} className="fixed inset-x-0 bottom-0 z-20 grid border-t bg-background pb-[env(safe-area-inset-bottom)]">
       {abas.map(({ caminho, rotulo, Icone, ativas }) => {
@@ -320,11 +313,10 @@ function PularParaOConteudo() {
   )
 }
 
-const Rotas = [...Menu.map(({ caminho, papeis }) => [caminho, papeis] as const), ['conta', TodosOsPapeis] as const]
-const rotaPermitida = (papeis: string[], caminho: string) => {
-  if (caminho === 'gerir') return destinosDaGerir(papeis).length > 0
-  const rota = Rotas.find(([c]) => c === caminho)
-  return !rota || rota[1].some((p) => papeis.includes(p))
+const rotaPermitida = (permissoes: string[], caminho: string) => {
+  if (caminho === 'gerir') return destinosDaGerir(permissoes).length > 0
+  const item = Menu.find((m) => m.caminho === caminho)
+  return !item || permissoes.includes(item.funcao)
 }
 
 function useBarra() {
@@ -363,9 +355,9 @@ function ErroDaSessao({ erro, tentar }: { erro: Error; tentar: () => void }) {
   )
 }
 
-function podeAbrir(papeis: string[], pathname: string, inicial: string) {
+function podeAbrir(permissoes: string[], pathname: string, inicial: string) {
   const [, , caminho, numero] = pathname.split('/')
-  return (caminho === 'chamados' && !!numero) || rotaPermitida(papeis, caminho) || caminho === inicial
+  return (caminho === 'chamados' && !!numero) || rotaPermitida(permissoes, caminho) || caminho === inicial
 }
 
 function desvio({ me, erro, slug, pathname }: { me?: Me; erro: Error | null; slug?: string; pathname: string }) {
@@ -374,7 +366,7 @@ function desvio({ me, erro, slug, pathname }: { me?: Me; erro: Error | null; slu
   if (me.instituicao.slug !== slug) return `/${me.instituicao.slug}`
   if (me.deveTrocarSenha && !pathname.endsWith('/trocar-senha')) return `/${slug}/trocar-senha`
   const inicial = telaInicial(me)
-  return podeAbrir(me.papeis, pathname, inicial) ? undefined : `/${slug}/${inicial}`
+  return podeAbrir(me.permissoes, pathname, inicial) ? undefined : `/${slug}/${inicial}`
 }
 
 export function Autenticado() {
@@ -402,9 +394,9 @@ export function Autenticado() {
 
 function perfilDoModo(me: Me) {
   return {
-    soAluno: me.papeis.length === 1 && me.papeis[0] === 'ALUNO',
-    equipe: me.papeis.some((p) => p === 'ATENDENTE' || p === 'ADMINISTRADOR'),
-    lista: me.papeis.includes('ATENDENTE') ? 'fila' : 'solicitacoes',
+    soAluno: me.permissoes.length === 1 && me.permissoes[0] === 'assistente.usar',
+    equipe: me.permissoes.some((p) => p === 'fila.atender' || p === 'chamados.ver_todos'),
+    lista: me.permissoes.includes('fila.atender') ? 'fila' : 'solicitacoes',
   }
 }
 
@@ -465,14 +457,14 @@ function Casca({ me, slug, ap }: { me: Me; slug?: string; ap: InstituicaoPublica
   return (
     <SidebarProvider open={barra.aberta} onOpenChange={barra.aoMudar}>
       <PularParaOConteudo />
-      {!abas && <Barra me={me} itens={itensDo(me.papeis)} slug={slug} sair={sair} ap={ap} />}
+      {!abas && <Barra me={me} itens={itensDo(me.permissoes)} slug={slug} sair={sair} ap={ap} />}
       <SidebarInset id="conteudo" tabIndex={-1} className="min-w-0 outline-none">
-        <Topo titulo={titulo} aluno={me.papeis.includes('ALUNO')} abas={abas} slug={slug} icone={ap.imagens.icone} nome={me.instituicao.nome} voltar={voltar} />
+        <Topo titulo={titulo} aluno={me.permissoes.includes('assistente.usar')} abas={abas} slug={slug} icone={ap.imagens.icone} nome={me.instituicao.nome} voltar={voltar} />
         <div className={`@container/main flex-1 px-4 py-4 md:py-6 lg:px-6 ${comBarra ? 'pb-[calc(var(--barra)+1rem)]' : ''}`}>
           <Outlet context={{ me, setMe } satisfies Sessao} />
         </div>
       </SidebarInset>
-      {comBarra && <BarraDeAbas slug={slug} papeis={me.papeis} deitado={deitado} />}
+      {comBarra && <BarraDeAbas slug={slug} permissoes={me.permissoes} deitado={deitado} />}
     </SidebarProvider>
   )
 }

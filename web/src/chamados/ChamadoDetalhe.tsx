@@ -492,7 +492,7 @@ export function ChamadoDetalhe() {
   const { numero } = useParams()
   const { me } = useSessao()
   const { chamado, erro, carregar, setChamado } = useChamado(numero!)
-  if (erro && !chamado) return <ErroDe erro={erro} oque={me.papeis.some((p) => ['ATENDENTE', 'ADMINISTRADOR'].includes(p)) ? 'o chamado' : 'a solicitação'} tentar={() => void carregar()} />
+  if (erro && !chamado) return <ErroDe erro={erro} oque={me.permissoes.some((p) => p === 'fila.atender' || p === 'chamados.ver_todos') ? 'o chamado' : 'a solicitação'} tentar={() => void carregar()} />
   if (!chamado) return <Carregando />
   return <Detalhe c={chamado} fuso={me.instituicao.fuso} carregar={carregar} setChamado={setChamado} />
 }

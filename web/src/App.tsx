@@ -11,6 +11,7 @@ import { Cadastros } from './administracao/cadastros/Cadastros'
 import { PaginaDoFluxo } from './administracao/fluxos/PaginaDoFluxo'
 import { Matriculas } from './administracao/cadastros/Matriculas'
 import { Integracoes } from './administracao/integracoes/Integracoes'
+import { Tipos } from './administracao/cadastros/Tipos'
 import { Usuarios } from './administracao/cadastros/Usuarios'
 import { Assistente } from './assistente/Assistente'
 import { Autenticado } from './Autenticado'
@@ -79,6 +80,7 @@ function Rotas() {
             <Route path="documentos" element={<Documentos />} />
             <Route path="indicadores" element={<Indicadores />} />
             <Route path="usuarios" element={<Usuarios />} />
+            <Route path="tipos" element={<Tipos />} />
             <Route path="matriculas" element={<Matriculas />} />
             <Route path="cadastros" element={<Cadastros />} />
             <Route path="cadastros/fluxos/:id" element={<PaginaDoFluxo />} />

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { abrir, api, me } from './test/util'
 
 const admin = me({ papeis: ['ADMINISTRADOR'], matriculas: [] })
-const carla = { id: 1, cpf: '123.456.789-09', nome: 'Carla', email: 'carla@univag.edu.br', ativo: true, deveTrocarSenha: false, papeis: ['ATENDENTE'], setores: [] }
+const carla = { id: 1, cpf: '123.456.789-09', nome: 'Carla', email: 'carla@univag.edu.br', ativo: true, deveTrocarSenha: false, tipo: { id: 2, nome: 'Atendente' }, setores: [] }
 
 const celular = () => vi.stubGlobal('matchMedia', (media: string) => ({ media, matches: media.startsWith('(max-width: 767px)'), addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }))
 

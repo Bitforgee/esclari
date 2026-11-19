@@ -8,8 +8,8 @@ const Base = '/api/plataforma/instituicoes/demo'
 const pendente = { itens: [{ codigo: 'ADMINISTRADOR_COM_SENHA', ok: true }, { codigo: 'ATENDENTE_NO_SETOR', ok: false }, { codigo: 'CATEGORIA_COM_REGRA', ok: false }, { codigo: 'ARTIGO_ATIVO', ok: false }], pronta: false }
 const detalhe = { slug: 'demo', nome: 'Faculdade Demo', situacao: 'CONFIGURANDO', prontidao: pendente }
 const modelo = { id: 'padrao-esclari', nome: 'Padrão Esclari', descricao: 'Três setores, seis categorias e uma regra por categoria.', setores: 3, categorias: 6, regras: 6 }
-const admin = { id: 10, nome: 'Dona Admin', emailMascarado: 'd***@demo.edu.br', cpfMascarado: '***.456.789-**', papeis: ['ADMINISTRADOR'], ativo: true, primeiroAcessoPendente: false }
-const carla = { id: 11, nome: 'Carla Atendente', emailMascarado: 'c***@demo.edu.br', cpfMascarado: '***.111.222-**', papeis: ['ATENDENTE'], ativo: true, primeiroAcessoPendente: true }
+const admin = { id: 10, nome: 'Dona Admin', emailMascarado: 'd***@demo.edu.br', cpfMascarado: '***.456.789-**', tipo: { id: 1, nome: 'Gestor', sistema: 'GESTOR' }, ativo: true, primeiroAcessoPendente: false }
+const carla = { id: 11, nome: 'Carla Atendente', emailMascarado: 'c***@demo.edu.br', cpfMascarado: '***.111.222-**', tipo: { id: 2, nome: 'Atendente', sistema: 'ATENDENTE' }, ativo: true, primeiroAcessoPendente: true }
 
 function tela(rotas: Record<string, Rota> = {}, equipe: unknown[] = [admin]) {
   const chamadas = api({
@@ -118,7 +118,7 @@ describe('implantação da instituição', () => {
     expect(gravacoes(chamadas)).toEqual([[`${Base}/equipe/11/desativar`, {}]])
   })
 
-  it('novo usuário convida com papéis e setores, sem senha', async () => {
+  it('novo usuário convida com tipo e setores, sem senha', async () => {
     const chamadas = tela({
       [`POST ${Base}/equipe`]: (corpo) => (corpo.setores.length === 0 ? [400, { status: 400, detail: 'Escolha ao menos um setor para o atendente.', errors: { setores: ['Escolha ao menos um setor para o atendente.'] } }] : [201, { id: 12 }]),
     })
@@ -128,13 +128,52 @@ describe('implantação da instituição', () => {
     await userEvent.type(d.getByLabelText('Nome'), 'Carla')
     await userEvent.type(d.getByLabelText('CPF'), '123.456.789-09')
     await userEvent.type(d.getByLabelText('E-mail'), 'carla@demo.edu.br')
-    await userEvent.click(d.getByLabelText('Atendente'))
+    await userEvent.selectOptions(d.getByLabelText('Tipo'), 'Atendente')
     await userEvent.click(d.getByRole('button', { name: 'Convidar' }))
     expect(await d.findByText('Escolha ao menos um setor para o atendente.')).toBeInTheDocument()
     await userEvent.click(d.getByLabelText('Financeiro'))
     await userEvent.click(d.getByRole('button', { name: 'Convidar' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(gravacoes(chamadas).at(-1)).toEqual([`${Base}/equipe`, { nome: 'Carla', cpf: '123.456.789-09', email: 'carla@demo.edu.br', papeis: ['ATENDENTE'], setores: [2] }])
+    expect(gravacoes(chamadas).at(-1)).toEqual([`${Base}/equipe`, { nome: 'Carla', cpf: '123.456.789-09', email: 'carla@demo.edu.br', tipo: 'ATENDENTE', setores: [2] }])
     expect(d.queryByLabelText(/senha/i)).toBeNull()
   })
-})
+
+  it('equipe por tipo: escolhe Gestor ou Atendente e mostra o tipo de cada membro', async () => {
+    const lider = { ...carla, id: 13, nome: 'Lia Líder', tipo: { id: 7, nome: 'Líder de semestre', sistema: null } }
+    const chamadas = tela({ [`POST ${Base}/equipe`]: () => [201, { id: 12, tipo: { id: 1, nome: 'Gestor', sistema: 'GESTOR' } }] }, [admin, carla, lider])
+    const secao = within(await screen.findByRole('region', { name: /Equipe inicial/ }))
+    const linha = (nome: string) => secao.getByText(nome).closest('tr') as HTMLElement
+    await secao.findByText('Lia Líder')
+    expect(within(linha('Dona Admin')).getAllByRole('cell')[1]).toHaveTextContent(/^Gestor$/)
+    expect(within(linha('Carla Atendente')).getAllByRole('cell')[1]).toHaveTextContent(/^Atendente$/)
+    expect(within(linha('Lia Líder')).getAllByRole('cell')[1]).toHaveTextContent(/^Líder de semestre$/)
+
+    await userEvent.click(secao.getByRole('button', { name: 'Novo usuário' }))
+    const d = within(await screen.findByRole('dialog', { name: 'Novo usuário' }))
+    expect(d.getByLabelText('Tipo')).toHaveValue('')
+    expect(within(d.getByLabelText('Tipo')).getAllByRole('option').map((o) => o.textContent)).toEqual(['Escolha o tipo', 'Gestor', 'Atendente'])
+    expect(d.queryByText('Setores do atendente')).not.toBeInTheDocument()
+    await userEvent.type(d.getByLabelText('Nome'), 'Gil')
+    await userEvent.type(d.getByLabelText('CPF'), '123.456.789-09')
+    await userEvent.type(d.getByLabelText('E-mail'), 'gil@demo.edu.br')
+    await userEvent.selectOptions(d.getByLabelText('Tipo'), 'Atendente')
+    expect(d.getByText('Setores do atendente')).toBeInTheDocument()
+    await userEvent.click(d.getByLabelText('Financeiro'))
+    await userEvent.selectOptions(d.getByLabelText('Tipo'), 'Gestor')
+    expect(d.queryByText('Setores do atendente')).not.toBeInTheDocument()
+    await userEvent.click(d.getByRole('button', { name: 'Convidar' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    const corpo = gravacoes(chamadas).at(-1)![1]
+    expect(corpo).toEqual({ nome: 'Gil', cpf: '123.456.789-09', email: 'gil@demo.edu.br', tipo: 'GESTOR', setores: [] })
+    expect(corpo).not.toHaveProperty('papeis')
+  })
+
+  it('equipe por tipo: sem escolher o tipo o servidor recusa e o formulário mostra o erro', async () => {
+    tela({ [`POST ${Base}/equipe`]: () => [400, { status: 400, detail: 'Escolha o tipo do usuário.', errors: { tipo: ['Escolha o tipo do usuário.'] } }] })
+    const secao = within(await screen.findByRole('region', { name: /Equipe inicial/ }))
+    await userEvent.click(secao.getByRole('button', { name: 'Novo usuário' }))
+    const d = within(await screen.findByRole('dialog', { name: 'Novo usuário' }))
+    await userEvent.click(d.getByRole('button', { name: 'Convidar' }))
+    expect(await d.findByText('Escolha o tipo do usuário.')).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })})

@@ -3,7 +3,7 @@ import { UserPlus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useGravacao, useLeituras } from '../acao'
 import { api } from '../api'
-import { Campo } from '../Campo'
+import { Campo, ErroDoCampo } from '../Campo'
 import { Confirmar } from '../Confirmar'
 import { Editor, useSujo } from '../Editor'
 import { ErroDe, errosDeCampo } from '../ErroDe'
@@ -11,22 +11,23 @@ import { Marca } from '../Marca'
 import { CelulaLargo, Detalhe, MenuAcoes, Principal, Tabela } from '../Tabela'
 import { Button } from '../ui/button'
 import { DropdownMenuItem } from '../ui/dropdown-menu'
+import { Label } from '../ui/label'
+import { NativeSelect } from '../ui/native-select'
 import { TableCell, TableRow } from '../ui/table'
 
-type Membro = { id: number; nome: string; emailMascarado: string; cpfMascarado: string; papeis: string[]; ativo: boolean; primeiroAcessoPendente: boolean }
+type Membro = { id: number; nome: string; emailMascarado: string; cpfMascarado: string; tipo: { id: number; nome: string; sistema: string | null }; ativo: boolean; primeiroAcessoPendente: boolean }
 type Setor = { id: number; nome: string }
-type Ficha = { nome: string; cpf: string; email: string; papeis: string[]; setores: number[] }
+type Ficha = { nome: string; cpf: string; email: string; tipo: string; setores: number[] }
 
-const Vazia: Ficha = { nome: '', cpf: '', email: '', papeis: [], setores: [] }
-const Papeis: [string, string][] = [
-  ['ADMINISTRADOR', 'Administrador'],
+const Vazia: Ficha = { nome: '', cpf: '', email: '', tipo: '', setores: [] }
+const Tipos: [string, string][] = [
+  ['GESTOR', 'Gestor'],
   ['ATENDENTE', 'Atendente'],
 ]
-const nomesDosPapeis = (papeis: string[]) => papeis.map((p) => Papeis.find(([v]) => v === p)?.[1] ?? p).join(', ')
 const alternar = <T,>(lista: T[], valor: T, marcado: boolean) => (marcado ? [...lista, valor] : lista.filter((v) => v !== valor))
 const situacao = (m: Membro) => (!m.ativo ? 'Desativado' : m.primeiroAcessoPendente ? 'Convite enviado' : 'Ativo')
 
-const Colunas = [{ titulo: 'Nome' }, { titulo: 'Papéis' }, { titulo: 'E-mail', largo: true }, { titulo: 'Situação', largo: true }, { titulo: '' }]
+const Colunas = [{ titulo: 'Nome' }, { titulo: 'Tipo' }, { titulo: 'E-mail', largo: true }, { titulo: 'Situação', largo: true }, { titulo: '' }]
 const SemEquipe = { Icone: Users, titulo: 'Equipe inicial', frase: 'Nenhum administrador ou atendente além do primeiro. Crie a equipe para a instituição atender.' }
 
 function Formulario({ ficha, mudar, setores, erros }: { ficha: Ficha; mudar: (f: Partial<Ficha>) => void; setores: Setor[]; erros: Record<string, string> }) {
@@ -35,14 +36,19 @@ function Formulario({ ficha, mudar, setores, erros }: { ficha: Ficha; mudar: (f:
       <Campo id="membro-nome" rotulo="Nome" autoComplete="off" value={ficha.nome} erro={erros.nome} onChange={(e) => mudar({ nome: e.target.value })} />
       <Campo id="membro-cpf" rotulo="CPF" inputMode="numeric" autoComplete="off" spellCheck={false} placeholder="Ex.: 000.000.000-00…" value={ficha.cpf} erro={erros.cpf} onChange={(e) => mudar({ cpf: e.target.value })} />
       <Campo id="membro-email" rotulo="E-mail" type="email" autoComplete="off" spellCheck={false} value={ficha.email} erro={erros.email} onChange={(e) => mudar({ email: e.target.value })} />
-      <fieldset className="flex flex-col gap-1">
-        <legend className="mb-1 text-sm font-medium">Papéis</legend>
-        {Papeis.map(([valor, rotulo]) => (
-          <Marca key={valor} id={`papel-${valor}`} rotulo={rotulo} marcado={ficha.papeis.includes(valor)} mudar={(v) => mudar({ papeis: alternar(ficha.papeis, valor, v) })} />
-        ))}
-        {erros.papeis && <p className="m-0 text-sm text-destructive">{erros.papeis}</p>}
-      </fieldset>
-      {ficha.papeis.includes('ATENDENTE') && (
+      <div className="flex min-w-0 flex-col gap-2">
+        <Label htmlFor="membro-tipo">Tipo</Label>
+        <NativeSelect id="membro-tipo" name="membro-tipo" className="w-full" aria-invalid={!!erros.tipo} value={ficha.tipo} onChange={(e) => mudar({ tipo: e.target.value })}>
+          <option value="">Escolha o tipo</option>
+          {Tipos.map(([valor, rotulo]) => (
+            <option key={valor} value={valor}>
+              {rotulo}
+            </option>
+          ))}
+        </NativeSelect>
+        <ErroDoCampo id="membro-tipo" erro={erros.tipo} />
+      </div>
+      {ficha.tipo === 'ATENDENTE' && (
         <fieldset className="flex flex-col gap-1">
           <legend className="mb-1 text-sm font-medium">Setores do atendente</legend>
           {setores.map((s) => (
@@ -64,7 +70,7 @@ function Linha({ m, agir, desativar, pendente }: { m: Membro; agir: (aviso: stri
           {m.emailMascarado} · {situacao(m)}
         </Detalhe>
       </TableCell>
-      <TableCell className={Principal}>{nomesDosPapeis(m.papeis)}</TableCell>
+      <TableCell className={Principal}>{m.tipo.nome}</TableCell>
       <CelulaLargo>{m.emailMascarado}</CelulaLargo>
       <CelulaLargo>{situacao(m)}</CelulaLargo>
       <TableCell data-celula="acoes" className="text-end">
@@ -86,7 +92,7 @@ function Linha({ m, agir, desativar, pendente }: { m: Membro; agir: (aviso: stri
 function NovoUsuario({ novo, setores }: { novo: ReturnType<typeof useNovo>; setores: Setor[] }) {
   const sujo = useSujo(novo.ficha)
   return (
-    <Editor sujo={sujo} titulo="Novo usuário" aberto={!!novo.ficha} fechar={() => novo.setFicha(undefined)} salvar={() => novo.mutacao.mutate(novo.ficha!)} botao="Convidar" pendente={novo.mutacao.isPending} alerta={<ErroDe erro={novo.mutacao.error} campos={['nome', 'cpf', 'email', 'papeis', 'setores']} />}>
+    <Editor sujo={sujo} titulo="Novo usuário" aberto={!!novo.ficha} fechar={() => novo.setFicha(undefined)} salvar={() => novo.mutacao.mutate(novo.ficha!)} botao="Convidar" pendente={novo.mutacao.isPending} alerta={<ErroDe erro={novo.mutacao.error} campos={['nome', 'cpf', 'email', 'tipo', 'setores']} />}>
       {novo.ficha && <Formulario ficha={novo.ficha} mudar={(p) => novo.setFicha((f) => f && { ...f, ...p })} setores={setores} erros={errosDeCampo(novo.mutacao.error)} />}
     </Editor>
   )
@@ -97,7 +103,7 @@ const alemDoPrimeiro = (equipe?: Membro[]) => equipe && (equipe.length > 1 ? equ
 function useNovo(base: string, recarregar: () => Promise<unknown>) {
   const [ficha, setFicha] = useState<Ficha>()
   const mutacao = useMutation({
-    mutationFn: (f: Ficha) => api(base, f),
+    mutationFn: (f: Ficha) => api(base, { ...f, setores: f.tipo === 'ATENDENTE' ? f.setores : [] }),
     onSuccess: async () => {
       setFicha(undefined)
       await recarregar()

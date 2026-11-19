@@ -21,8 +21,29 @@ export const detalheVazio = {
 
 export const validadeVazia = { artigos: { vigentes: 0, venceEm30Dias: 0, vencidos: 0 }, documentos: { vigentes: 0, venceEm30Dias: 0, vencidos: 0 } }
 
+const FuncoesDoPapel: Record<string, string[]> = {
+  ALUNO: ['assistente.usar'],
+  ATENDENTE: ['fila.atender', 'indicadores.ver', 'mcp.usar'],
+  ADMINISTRADOR: ['chamados.ver_todos', 'indicadores.ver', 'conhecimento.gerenciar', 'cadastros.gerenciar', 'usuarios.gerenciar', 'matriculas.importar', 'tipos.gerenciar', 'aparencia.gerenciar', 'integracoes.gerenciar', 'mcp.usar'],
+}
+const NomeDoPapel: [string, string][] = [
+  ['ADMINISTRADOR', 'Gestor'],
+  ['ATENDENTE', 'Atendente'],
+  ['ALUNO', 'Aluno'],
+]
+
+export const tiposPadrao = {
+  tipos: [
+    { id: 3, nome: 'Aluno', sistema: 'ALUNO', funcoes: ['assistente.usar'], usuarios: 0 },
+    { id: 1, nome: 'Gestor', sistema: 'GESTOR', funcoes: FuncoesDoPapel.ADMINISTRADOR, usuarios: 0 },
+    { id: 2, nome: 'Atendente', sistema: 'ATENDENTE', funcoes: FuncoesDoPapel.ATENDENTE, usuarios: 0 },
+  ],
+  catalogo: [],
+}
+
 const previaPadrao = (metodo: string, url: string): Rota | undefined => {
   if (metodo !== 'GET') return undefined
+  if (url === '/api/admin/tipos') return () => [200, tiposPadrao]
   if (/^\/api\/conversas\/\d+\/destino/.test(url)) return () => [200, { lideranca: false }]
   if (url.startsWith('/api/chamados/filtros?')) return () => [200, { setores: [], categorias: [] }]
   if (url === '/api/conhecimento/validade') return () => [200, validadeVazia]
@@ -73,12 +94,13 @@ export const abrir = abrirComRoteador
 
 export const comTexto = (esperado: string) => (_: string, el: Element | null) => !!el && el.textContent === esperado && ![...el.children].some((f) => f.textContent === esperado)
 
-export function me(parcial: Partial<Me> = {}): Me {
+export function me({ papeis = ['ALUNO'], ...parcial }: Partial<Me> & { papeis?: string[] } = {}): Me {
   return {
     id: 1,
     nome: 'Ana',
     cpfMascarado: '***.456.789-**',
-    papeis: ['ALUNO'],
+    tipo: { id: 1, nome: NomeDoPapel.find(([p]) => papeis.includes(p))![1] },
+    permissoes: [...new Set(papeis.flatMap((p) => FuncoesDoPapel[p]))].sort(),
     deveTrocarSenha: false,
     instituicao: { slug: 'univag', nome: 'Univag', fuso: 'America/Cuiaba' },
     matriculas: [{ id: 1, numero: '2000567890', curso: 'ADS', semestre: 3, situacao: 'ATIVA' }],

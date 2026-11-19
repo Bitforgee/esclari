@@ -151,7 +151,7 @@ describe('Tabela', () => {
     expect(document.querySelector('table')).not.toBeNull()
   })
   it('C39 o cabeçalho vazio de ações traz Ações em sr-only', async () => {
-    const usuario = { id: 7, cpf: '12345678909', nome: 'Ana Souza', email: 'a@univag.edu.br', ativo: true, deveTrocarSenha: false, papeis: ['ALUNO'], setores: [] }
+    const usuario = { id: 7, cpf: '12345678909', nome: 'Ana Souza', email: 'a@univag.edu.br', ativo: true, deveTrocarSenha: false, tipo: { id: 3, nome: 'Aluno' }, setores: [] }
     api({ 'GET /api/auth/me': () => [200, admin], 'GET /api/admin/usuarios': () => [200, [usuario]], 'GET /api/admin/setores': () => [200, []] })
     abrir('/univag/usuarios')
     await screen.findByText('Ana Souza')

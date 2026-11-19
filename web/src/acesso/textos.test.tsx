@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { estados } from '../test/textos'
 import { abrir, api, me } from '../test/util'
 
-const Papeis = ['Administrador', 'Atendente', 'Aluno']
-const Cabecalho = ['Esclari', 'Assistente', 'Minhas solicitações', 'Fila', 'Chamados', 'Artigos', 'Documentos', 'Indicadores', 'Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações', 'Sair', 'Tema', 'Claro', 'Escuro', 'Preto', 'Sistema', 'Atendimento', 'Conhecimento', 'Administração', ...Papeis]
+const Papeis = ['Gestor', 'Atendente', 'Aluno']
+const Cabecalho = ['Esclari', 'Assistente', 'Minhas solicitações', 'Fila', 'Chamados', 'Artigos', 'Documentos', 'Indicadores', 'Usuários', 'Tipos de usuário', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações', 'Sair', 'Tema', 'Claro', 'Escuro', 'Preto', 'Sistema', 'Atendimento', 'Conhecimento', 'Administração', ...Papeis]
 const Instituicao = 'Univag'
 const Nome = me().nome
 

@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { DialogoDeContato, temContato, useAparencia } from '../aparencia'
 import { useAvisos } from '../AvisosPush'
-import { OpcoesDeTema, papelDe } from '../Autenticado'
+import { itensDo, OpcoesDeTema } from '../Autenticado'
 import { useSair, useSessao } from '../sessao'
+import { Alert } from '../ui/alert'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { useTheme } from '../ui/theme-provider'
 
@@ -36,7 +37,7 @@ export function Conta() {
       <div>
         <p className="m-0 text-base font-medium">{me.nome}</p>
         <p translate="no" className="m-0 text-sm text-muted-foreground">{me.cpfMascarado}</p>
-        <p className="m-0 text-sm text-muted-foreground">{papelDe(me.papeis)}</p>
+        <p className="m-0 text-sm text-muted-foreground">{me.tipo.nome}</p>
       </div>
       <ul className="m-0 flex list-none flex-col divide-y rounded-md border p-0">
         <li>
@@ -51,7 +52,7 @@ export function Conta() {
             </PopoverContent>
           </Popover>
         </li>
-        {avisos.disponivel && me.papeis.includes('ALUNO') && (
+        {avisos.disponivel && me.permissoes.includes('assistente.usar') && (
           <li>
             <button type="button" className={Linha} disabled={avisos.ocupado} onClick={avisos.alternar}>
               <Conteudo Icone={Bell} rotulo="Avisos no celular" valor={avisos.inscrito ? 'Ativados' : 'Desativados'} />
@@ -77,6 +78,11 @@ export function Conta() {
           </button>
         </li>
       </ul>
+      {itensDo(me.permissoes).length === 0 && (
+        <Alert>
+          <p className="m-0">Seu tipo de usuário ainda não tem funções liberadas. Fale com o gestor da sua instituição.</p>
+        </Alert>
+      )}
       <DialogoDeContato contato={contato} aberto={contatoAberto} aoMudar={setContatoAberto} />
     </div>
   )

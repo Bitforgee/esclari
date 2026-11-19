@@ -8,7 +8,7 @@ const Linha = 'flex h-[52px] w-full items-center gap-3 px-4 text-start text-base
 export function Gerir() {
   const { me } = useSessao()
   const { slug } = useParams()
-  const itens = destinosDaGerir(me.papeis)
+  const itens = destinosDaGerir(me.permissoes)
   if (itens.length === 0) return <Navigate to={`/${slug}/${telaInicial(me)}`} replace />
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">

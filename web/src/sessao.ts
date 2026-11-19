@@ -5,12 +5,23 @@ import { api, type Me } from './api'
 export type Sessao = { me: Me; setMe: (me: Me) => void }
 export const useSessao = () => useOutletContext<Sessao>()
 
-export function telaInicial(u: { papeis: string[]; deveTrocarSenha: boolean }): string {
+const Entrada: [string, string][] = [
+  ['assistente.usar', 'assistente'],
+  ['fila.atender', 'fila'],
+  ['chamados.ver_todos', 'chamados'],
+  ['indicadores.ver', 'indicadores'],
+  ['conhecimento.gerenciar', 'artigos'],
+  ['usuarios.gerenciar', 'usuarios'],
+  ['tipos.gerenciar', 'tipos'],
+  ['matriculas.importar', 'matriculas'],
+  ['cadastros.gerenciar', 'cadastros'],
+  ['aparencia.gerenciar', 'aparencia'],
+  ['integracoes.gerenciar', 'integracoes'],
+]
+
+export function telaInicial(u: { permissoes: string[]; deveTrocarSenha: boolean }): string {
   if (u.deveTrocarSenha) return 'trocar-senha'
-  if (u.papeis.includes('ALUNO')) return 'assistente'
-  if (u.papeis.includes('ATENDENTE')) return 'fila'
-  if (u.papeis.includes('ADMINISTRADOR')) return 'artigos'
-  return 'assistente'
+  return Entrada.find(([funcao]) => u.permissoes.includes(funcao))?.[1] ?? 'conta'
 }
 
 export function useSair() {

@@ -26,6 +26,13 @@ export function useBuscaNaUrl() {
   return [busca, buscar] as const
 }
 
+export function useTipoNaUrl() {
+  const { params, gravar } = useParametro()
+  const valor = params.get('tipoId') ?? ''
+  const tipoId = /^\d+$/.test(valor) ? valor : ''
+  return [tipoId, (novo: string) => gravar('tipoId', novo === '' ? null : novo)] as const
+}
+
 export function useEditarNaUrl<F extends { id?: number }>(achar: (id: number) => F | undefined, novo: F, pronto: boolean) {
   const { params, gravar } = useParametro()
   const [editando, setEditando] = useState<F>()

@@ -5,8 +5,8 @@ import { estados } from '../../test/textos'
 import { abrir, api, escolher, me, type Rota } from '../../test/util'
 
 const Usuarios = [
-  'Usuários', 'Novo usuário', 'Desativado', 'CPF', 'Situação', '·', 'Aluno', 'Atendente', 'Administrador', 'Editar', 'Desativar', 'Nenhum usuário', 'Cadastre a equipe ou importe as matrículas.',
-  'Novo usuário', 'Editar usuário', 'Nome', 'E-mail', 'Papéis', 'Setores do atendente', 'Senha temporária (opcional)',
+  'Usuários', 'Novo usuário', 'Desativado', 'CPF', 'Situação', '·', 'Aluno', 'Atendente', 'Gestor', 'Todos os tipos', 'Editar', 'Desativar', 'Nenhum usuário', 'Cadastre a equipe ou importe as matrículas.',
+  'Novo usuário', 'Editar usuário', 'Nome', 'E-mail', 'Tipo', 'Escolha o tipo', 'Setores de quem atende', 'Senha temporária (opcional)',
   'Com senha temporária, a pessoa troca a senha no primeiro login. Sem ela, entra pelo primeiro acesso por e-mail.', 'Cancelar', 'Salvar usuário',
   'A pessoa perde o acesso na próxima requisição. Conversas, chamados e histórico ficam guardados; os chamados em que ela era responsável voltam para a fila do setor.',
   'Voltar', 'Usuário salvo.', 'Usuário desativado.',
@@ -38,8 +38,8 @@ const setores = [
   { id: 2, nome: 'Financeiro', triagem: false, ativo: true },
   { id: 3, nome: 'Antigo', triagem: false, ativo: false },
 ]
-const usuario = (id: number, nome: string, papeis: string[], ativo: boolean, setorIds: number[] = []) => ({
-  id, cpf: `000.000.000-0${id}`, nome, email: `${nome.toLowerCase()}@univag.edu.br`, ativo, deveTrocarSenha: false, papeis, setores: setorIds,
+const usuario = (id: number, nome: string, tipo: { id: number; nome: string }, ativo: boolean, setorIds: number[] = []) => ({
+  id, cpf: `000.000.000-0${id}`, nome, email: `${nome.toLowerCase()}@univag.edu.br`, ativo, deveTrocarSenha: false, tipo, setores: setorIds,
 })
 const Fixture = ['Triagem', 'Financeiro', 'Antigo', 'Reserva', 'Notas', 'Velha', 'Não classificado', 'Boleto', 'ADS', 'Direito', 'Seu boleto está no Portal.', '—']
 
@@ -63,7 +63,7 @@ describe('textos', () => {
     montada.unmount()
 
     api({
-      ...leituras([usuario(1, 'Carla', ['ATENDENTE', 'ADMINISTRADOR'], true, [2]), usuario(2, 'Bia', ['ALUNO'], false), usuario(3, 'Davi', ['ALUNO'], true)]),
+      ...leituras([usuario(1, 'Carla', { id: 2, nome: 'Atendente' }, true, [2]), usuario(2, 'Bia', { id: 3, nome: 'Aluno' }, false), usuario(3, 'Davi', { id: 3, nome: 'Aluno' }, true)]),
       'PUT /api/admin/usuarios/1': () => [200, {}],
       'POST /api/admin/usuarios/3/desativar': () => [200, {}],
     })

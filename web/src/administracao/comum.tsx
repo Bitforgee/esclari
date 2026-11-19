@@ -27,6 +27,9 @@ export function abrangenciaDoFluxo(f: Pick<Fluxo, 'cursoId' | 'semestre'>, curso
   const curso = cursos.find((c) => c.id === f.cursoId)?.nome ?? '—'
   return f.semestre === null ? curso : `${curso}, ${f.semestre}º semestre`
 }export type Pronta = Id & { setorId: number; titulo: string; texto: string }
-export type Usuario = Id & { cpf: string; nome: string; email: string; ativo: boolean; deveTrocarSenha: boolean; papeis: string[]; setores: number[] }
+export type Usuario = Id & { cpf: string; nome: string; email: string; ativo: boolean; deveTrocarSenha: boolean; tipo: Id & { nome: string }; setores: number[] }
+export type Funcao = { codigo: string; rotulo: string; descricao: string; expoeDadosPessoais: boolean; deAluno: boolean }
+export type TipoDeUsuario = Id & { nome: string; sistema: 'ALUNO' | 'ATENDENTE' | 'GESTOR' | null; funcoes: string[]; usuarios: number }
+export type Tipos = { tipos: TipoDeUsuario[]; catalogo: Funcao[] }
 
 export const cpfFormatado = (cpf: string) => (/^\d{11}$/.test(cpf) ? cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') : cpf)

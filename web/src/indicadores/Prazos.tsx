@@ -59,7 +59,7 @@ function EmAtraso({ p }: { p: Prazos }) {
   const { slug } = useParams()
   const { me } = useSessao()
   if (p.emAtrasoAgora === 0) return <p className="m-0 text-sm text-muted-foreground">Nenhum chamado em atraso</p>
-  const lista = me.papeis.includes('ADMINISTRADOR') ? 'chamados' : 'fila'
+  const lista = me.permissoes.includes('chamados.ver_todos') ? 'chamados' : 'fila'
   return (
     <div className="flex flex-col items-start gap-2">
       <p className="m-0 text-sm font-medium">{`Em atraso agora: ${numero(p.emAtrasoAgora)}`}</p>

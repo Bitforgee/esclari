@@ -94,7 +94,7 @@ describe('Conta de todos os papéis', () => {
   it.each([
     [['ALUNO'], 'Aluno', true],
     [['ATENDENTE'], 'Atendente', false],
-    [['ADMINISTRADOR'], 'Administrador', false],
+    [['ADMINISTRADOR'], 'Gestor', false],
   ])('Conta por papel (%j)', async (papeis, rotulo, comAvisos) => {
     celular()
     api(base(papeis, comPush()))
@@ -103,7 +103,7 @@ describe('Conta de todos os papéis', () => {
     expect(await within(principal).findByText('Ana')).toBeInTheDocument()
     for (const linha of ['Tema', 'Trocar senha', 'Sair']) expect(within(principal).getByText(linha)).toBeInTheDocument()
     if (rotulo) expect(within(principal).getByText(rotulo)).toBeInTheDocument()
-    else for (const outro of ['Aluno', 'Atendente', 'Administrador']) expect(within(principal).queryByText(outro)).toBeNull()
+    else for (const outro of ['Aluno', 'Atendente', 'Gestor']) expect(within(principal).queryByText(outro)).toBeNull()
     if (comAvisos) expect(await within(principal).findByText('Avisos no celular')).toBeInTheDocument()
     else {
       await new Promise((r) => setTimeout(r, 50))
@@ -111,7 +111,7 @@ describe('Conta de todos os papéis', () => {
     }
   })
 
-  const DestinosDoAdministrador = ['Artigos', 'Documentos', 'Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']
+  const DestinosDoAdministrador = ['Artigos', 'Documentos', 'Usuários', 'Tipos de usuário', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']
 
   it('Conta e Gerir fora do celular', async () => {
     api(base(['ADMINISTRADOR']))

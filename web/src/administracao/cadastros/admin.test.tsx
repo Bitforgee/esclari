@@ -33,7 +33,7 @@ describe('administração', () => {
     })
     let montada = abrir('/univag/usuarios')
     await screen.findByText('Cadastre a equipe ou importe as matrículas.')
-    expect(cabecalhos()).toEqual(['Nome', 'CPF', 'E-mail', 'Papéis', 'Situação', 'Ações'])
+    expect(cabecalhos()).toEqual(['Nome', 'CPF', 'E-mail', 'Tipo', 'Situação', 'Ações'])
     montada.unmount()
 
     montada = abrir('/univag/cadastros')
@@ -71,7 +71,7 @@ describe('administração', () => {
     esperaLinhaVazia('Nenhum item cadastrado.', 2)
   })
 
-  it('novo atendente envia papéis e setores', async () => {
+  it('novo atendente envia tipo e setores', async () => {
     const chamadas = api({
       'GET /api/auth/me': () => [200, admin],
       'GET /api/admin/usuarios': () => [200, []],
@@ -85,11 +85,12 @@ describe('administração', () => {
     await userEvent.type(d.getByLabelText('CPF'), '12345678909')
     await userEvent.type(d.getByLabelText('Nome'), 'Carla')
     await userEvent.type(d.getByLabelText('E-mail'), 'carla@univag.edu.br')
+    await userEvent.selectOptions(d.getByLabelText('Tipo'), 'Atendente')
     await userEvent.click(d.getByLabelText('Financeiro'))
     await userEvent.click(d.getByRole('button', { name: 'Salvar usuário' }))
 
     await waitFor(() => expect(chamadas.some((c) => c.metodo === 'POST')).toBe(true))
-    expect(chamadas.find((c) => c.metodo === 'POST')?.corpo).toEqual({ cpf: '12345678909', nome: 'Carla', email: 'carla@univag.edu.br', papeis: ['ATENDENTE'], setores: [2] })
+    expect(chamadas.find((c) => c.metodo === 'POST')?.corpo).toEqual({ cpf: '12345678909', nome: 'Carla', email: 'carla@univag.edu.br', tipoId: 2, setores: [2] })
   })
 
   it('fluxo para todos os cursos envia só a categoria', async () => {

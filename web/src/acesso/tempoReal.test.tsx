@@ -16,7 +16,7 @@ describe('tempo real: sessão', () => {
       'GET /api/auth/me': () => [200, me({ papeis: ['ATENDENTE'], matriculas: [] })],
       ...rotasDaFila([]),
       'POST /api/auth/logout': () => [204, undefined],
-      'POST /api/auth/login': () => [200, { id: 1, nome: 'Ana', papeis: ['ATENDENTE'], deveTrocarSenha: false, instituicao: { slug: 'univag', nome: 'Univag' } }],
+      'POST /api/auth/login': () => [200, { id: 1, nome: 'Ana', tipo: me({ papeis: ['ATENDENTE'] }).tipo, permissoes: me({ papeis: ['ATENDENTE'] }).permissoes, deveTrocarSenha: false, instituicao: { slug: 'univag', nome: 'Univag' } }],
     })
     abrir('/univag')
     await entrar()

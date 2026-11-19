@@ -189,7 +189,7 @@ describe('imagens com dimensões', () => {
 describe('translate no', () => {
   const contato = { horario: 'Seg a sex', telefone: '(65) 3688-6000', email: 'atendimento@univag.edu.br' }
   const fixo = (el: HTMLElement) => el.closest('[translate]')
-  const usuario = { id: 7, cpf: '12345678909', nome: 'Pessoa Sete', email: 'sete@univag.edu.br', ativo: true, deveTrocarSenha: false, papeis: ['ALUNO'], setores: [] }
+  const usuario = { id: 7, cpf: '12345678909', nome: 'Pessoa Sete', email: 'sete@univag.edu.br', ativo: true, deveTrocarSenha: false, tipo: { id: 3, nome: 'Aluno' }, setores: [] }
 
   it('C44 o CPF e o contato da Conta saem com translate no', async () => {
     api({ ...publica(instituicao({ contato })), 'GET /api/auth/me': () => [200, me()] })
@@ -277,7 +277,7 @@ describe('translate no nos tokens que faltavam', () => {
   }
 
   it('C44 CPF e e-mail do detalhe de celular de Usuários ficam em spans só do token', async () => {
-    const usuario = { id: 7, cpf: '12345678909', nome: 'Pessoa Sete', email: 'sete@univag.edu.br', ativo: true, deveTrocarSenha: false, papeis: ['ALUNO'], setores: [] }
+    const usuario = { id: 7, cpf: '12345678909', nome: 'Pessoa Sete', email: 'sete@univag.edu.br', ativo: true, deveTrocarSenha: false, tipo: { id: 3, nome: 'Aluno' }, setores: [] }
     api({ 'GET /api/auth/me': () => [200, admin], 'GET /api/admin/usuarios': () => [200, [usuario]], 'GET /api/admin/setores': () => [200, []] })
     abrir('/univag/usuarios')
     const linha = (await screen.findByText('Pessoa Sete')).closest('td') as HTMLElement

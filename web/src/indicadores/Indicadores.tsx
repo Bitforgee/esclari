@@ -263,7 +263,7 @@ export function Indicadores() {
       <ErroDe erro={error} oque="os indicadores" tentar={() => void refetch()} />
       {dados?.semDados && <BlocoVazio Icone={ChartColumn} frase="Sem atendimentos neste período." />}
       {dados && !dados.semDados && <Painel c={{ dados, anterior: anterior?.semDados ? undefined : anterior, detalhe, detalheAnterior }} />}
-      {me.papeis.includes('ADMINISTRADOR') && (
+      {me.permissoes.includes('conhecimento.gerenciar') && (
         <Secao titulo="A base de conhecimento está em dia?">
           <BaseDeConhecimento />
         </Secao>

@@ -80,7 +80,7 @@ describe('ux', () => {
     ATENDENTE: ['fila', 'indicadores', 'conta'],
     ADMINISTRADOR: ['indicadores', 'artigos', 'documentos', 'usuarios', 'matriculas', 'cadastros', 'aparencia', 'conta'],
   }
-  const Inicial: Record<string, string> = { ALUNO: 'assistente', ATENDENTE: 'fila', ADMINISTRADOR: 'artigos' }
+  const Inicial: Record<string, string> = { ALUNO: 'assistente', ATENDENTE: 'fila', ADMINISTRADOR: 'chamados' }
   const Todas = ['assistente', 'solicitacoes', 'conta', 'fila', 'indicadores', 'artigos', 'documentos', 'usuarios', 'matriculas', 'cadastros', 'aparencia']
   const fora = Object.entries(Rotas).flatMap(([papel, minhas]) => Todas.filter((r) => !minhas.includes(r)).map((rota) => [papel, rota] as const))
 

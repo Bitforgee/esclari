@@ -230,7 +230,7 @@ export function Login() {
         botao="Entrar"
         className="w-full"
         enviar={async (v) => {
-          const u = await api<{ papeis: string[]; deveTrocarSenha: boolean }>('/api/auth/login', { instituicao: slug, ...v })
+          const u = await api<{ permissoes: string[]; deveTrocarSenha: boolean }>('/api/auth/login', { instituicao: slug, ...v })
           navigate(`/${slug}/${telaInicial(u)}`)
         }}
       >

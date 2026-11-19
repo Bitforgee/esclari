@@ -55,7 +55,7 @@ it('estrutura em fatias', () => {
 it('administracao em subpastas', () => {
   const Subpastas = ['aparencia', 'fluxos', 'cadastros', 'integracoes']
   const dela = arquivos.filter((a) => a.startsWith('administracao/')).map((a) => a.slice('administracao/'.length))
-  expect(dela.length).toBe(51)
+  expect(dela.length).toBe(53)
   for (const arquivo of dela) {
     const partes = arquivo.split('/')
     expect(partes.length, arquivo).toBeLessThanOrEqual(2)
@@ -66,7 +66,7 @@ it('administracao em subpastas', () => {
   const Mapa: Record<string, string[]> = {
     aparencia: ['Aparencia.tsx', 'abasDaAparencia.ts', 'CampoImagem.tsx', 'CoresProntas.tsx', 'PreviaAparencia.tsx', 'aparencia.test.tsx', 'aparenciaAbas.test.tsx', 'guidelinesCores.test.tsx', 'guidelinesPrevia.test.tsx', 'identidade.test.tsx'],
     fluxos: ['Canvas.tsx', 'NosDoCanvas.tsx', 'PainelDoNo.tsx', 'AdicionarEtapa.tsx', 'LigacaoComMais.tsx', 'ListaDeEtapas.tsx', 'EdicaoDoFluxo.tsx', 'PaginaDoFluxo.tsx', 'Simulador.tsx', 'grafo.ts', 'canvas.test.tsx', 'paginaDoFluxo.test.tsx', 'guidelinesFluxo.test.tsx', 'guidelinesSimulador.test.tsx'],
-    cadastros: ['Cadastros.tsx', 'Gerir.tsx', 'Usuarios.tsx', 'Matriculas.tsx', 'admin.test.tsx', 'cadastros.test.tsx', 'fluxos.test.tsx', 'gerir.test.tsx', 'guidelinesBusca.test.tsx', 'icones.test.tsx', 'revisao.test.tsx', 'setorEmFluxo.test.tsx', 'textos.test.tsx', 'usuarios.test.tsx'],
+    cadastros: ['Cadastros.tsx', 'Gerir.tsx', 'Usuarios.tsx', 'Tipos.tsx', 'Matriculas.tsx', 'admin.test.tsx', 'cadastros.test.tsx', 'fluxos.test.tsx', 'gerir.test.tsx', 'guidelinesBusca.test.tsx', 'icones.test.tsx', 'revisao.test.tsx', 'setorEmFluxo.test.tsx', 'textos.test.tsx', 'tipos.test.tsx', 'usuarios.test.tsx'],
     integracoes: ['Integracoes.tsx', 'Moodle.tsx', 'Mcp.tsx', 'AbaIntegracao.tsx', 'integracoes.test.tsx', 'mcp.test.tsx', 'guidelinesCopiar.test.tsx', 'guidelinesMoodle.test.tsx'],
   }
   for (const subpasta of Subpastas)

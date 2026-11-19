@@ -87,11 +87,11 @@ describe('acesso', () => {
     for (const [papeis, tela] of [
       [['ALUNO'], 'Assistente'],
       [['ATENDENTE'], 'Fila'],
-      [['ADMINISTRADOR'], 'Artigos'],
+      [['ADMINISTRADOR'], 'Chamados'],
     ] as const) {
       api({
         ...instituicao,
-        'POST /api/auth/login': () => [200, { id: 1, nome: 'Ana', papeis, deveTrocarSenha: false, instituicao: { slug: 'univag', nome: 'Univag' } }],
+        'POST /api/auth/login': () => [200, { id: 1, nome: 'Ana', tipo: me({ papeis: [...papeis] }).tipo, permissoes: me({ papeis: [...papeis] }).permissoes, deveTrocarSenha: false, instituicao: { slug: 'univag', nome: 'Univag' } }],
         'GET /api/auth/me': () => [200, me({ papeis: [...papeis] })],
       })
       const { unmount } = abrir('/univag')
@@ -208,7 +208,7 @@ describe('acesso', () => {
     abrir('/univag/fila')
     const nav = await screen.findByRole('navigation')
     const links = await within(nav).findAllByRole('link')
-    expect(links.length).toBe(10)
+    expect(links.length).toBe(11)
     for (const link of links) {
       const ativo = link.textContent === 'Fila'
       expect(link.getAttribute('aria-current'), link.textContent!).toBe(ativo ? 'page' : null)
@@ -251,7 +251,7 @@ describe('acesso', () => {
     for (const [papel, links] of [
       ['ALUNO', ['Assistente', 'Minhas solicitações']],
       ['ATENDENTE', ['Fila', 'Indicadores']],
-      ['ADMINISTRADOR', ['Chamados', 'Indicadores', 'Artigos', 'Documentos', 'Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']],
+      ['ADMINISTRADOR', ['Chamados', 'Indicadores', 'Artigos', 'Documentos', 'Usuários', 'Tipos de usuário', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']],
     ] as const) {
       api({ 'GET /api/auth/me': () => [200, me({ papeis: [papel] })] })
       const { unmount } = abrir('/univag/trocar-senha')
@@ -433,7 +433,7 @@ describe('barra lateral com grupos', () => {
   const Esperado = [
     ['Atendimento', ['Assistente', 'Minhas solicitações', 'Fila', 'Chamados', 'Indicadores']],
     ['Conhecimento', ['Artigos', 'Documentos']],
-    ['Administração', ['Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']],
+    ['Administração', ['Usuários', 'Tipos de usuário', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']],
   ]
   const grupos = (raiz: HTMLElement) => within(raiz).getAllByRole('group').map((g) => [g.getAttribute('aria-labelledby') && document.getElementById(g.getAttribute('aria-labelledby')!)?.textContent, within(g).getAllByRole('link').map((l) => l.textContent)])
 
@@ -455,7 +455,7 @@ describe('barra lateral com grupos', () => {
   it.each([
     [['ALUNO'], [['Atendimento', ['Assistente', 'Minhas solicitações']]]],
     [['ATENDENTE'], [['Atendimento', ['Fila', 'Indicadores']]]],
-    [['ADMINISTRADOR'], [['Atendimento', ['Chamados', 'Indicadores']], ['Conhecimento', ['Artigos', 'Documentos']], ['Administração', ['Usuários', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']]]],
+    [['ADMINISTRADOR'], [['Atendimento', ['Chamados', 'Indicadores']], ['Conhecimento', ['Artigos', 'Documentos']], ['Administração', ['Usuários', 'Tipos de usuário', 'Matrículas', 'Cadastros', 'Aparência', 'Integrações']]]],
   ])('grupos por papel (%j)', async (papeis, esperado) => {
     api({ 'GET /api/auth/me': () => [200, me({ papeis })] })
     abrir('/univag/trocar-senha')
@@ -551,7 +551,7 @@ describe('barra lateral com grupos', () => {
   })
 
   it.each([
-    [['ADMINISTRADOR', 'ATENDENTE', 'ALUNO'], 'Administrador'],
+    [['ADMINISTRADOR', 'ATENDENTE', 'ALUNO'], 'Gestor'],
     [['ALUNO', 'ATENDENTE'], 'Atendente'],
     [['ALUNO'], 'Aluno'],
   ])('papel do usuário por precedência (%j)', async (papeis, papel) => {
@@ -561,6 +561,19 @@ describe('barra lateral com grupos', () => {
     const menu = await screen.findByRole('menu')
     expect(within(menu).getByText(me().nome)).toBeInTheDocument()
     expect(within(menu).getByText(papel)).toBeInTheDocument()
+  })
+
+  it.each(['Gestor', 'Atendente', 'Aluno', 'Líder de semestre'])('tipo do usuário no rodapé da barra e na conta: %s', async (nome) => {
+    api({ 'GET /api/auth/me': () => [200, me({ tipo: { id: 9, nome } })] })
+    const barraLateral = abrir('/univag/trocar-senha')
+    await screen.findByRole('button', { name: new RegExp(me().nome) })
+    expect(within(barra()).getByText(nome)).toBeInTheDocument()
+    barraLateral.unmount()
+    cleanup()
+    api({ 'GET /api/auth/me': () => [200, me({ tipo: { id: 9, nome } })] })
+    abrir('/univag/conta')
+    const principal = await screen.findByRole('main')
+    expect(await within(principal).findByText(nome)).toBeInTheDocument()
   })
 
   it('menu do usuário', async () => {

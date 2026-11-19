@@ -81,8 +81,8 @@ describe('erro de campo da API abaixo do campo', () => {
 })
 
 describe('CPF formatado e busca por nome, CPF ou e-mail', () => {
-  const carla = { id: 1, cpf: '12345678909', nome: 'Carla Souza', email: 'carla@univag.edu.br', ativo: true, deveTrocarSenha: false, papeis: ['ATENDENTE'], setores: [] }
-  const bruno = { id: 2, cpf: '98765432100', nome: 'Bruno Lima', email: 'bruno.albuquerque@univag.edu.br', ativo: true, deveTrocarSenha: false, papeis: ['ADMINISTRADOR'], setores: [] }
+  const carla = { id: 1, cpf: '12345678909', nome: 'Carla Souza', email: 'carla@univag.edu.br', ativo: true, deveTrocarSenha: false, tipo: { id: 2, nome: 'Atendente' }, setores: [] }
+  const bruno = { id: 2, cpf: '98765432100', nome: 'Bruno Lima', email: 'bruno.albuquerque@univag.edu.br', ativo: true, deveTrocarSenha: false, tipo: { id: 1, nome: 'Gestor' }, setores: [] }
   const tela = () => {
     api({ 'GET /api/auth/me': ok(admin), 'GET /api/admin/usuarios': ok([carla, bruno]), 'GET /api/admin/setores': ok([]) })
     abrir('/univag/usuarios')
