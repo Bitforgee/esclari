@@ -317,9 +317,8 @@ test.describe('acesso', () => {
 
     await page.setViewportSize({ width: 360, height: 740 })
     await page.goto('/')
-    const aviso = page.getByText('Abra o endereço da sua instituição')
-    await aviso.waitFor()
-    expect(await aviso.evaluate((e) => getComputedStyle(e).textAlign), 'raiz').toBe('center')
+    await page.getByLabel('Sua instituição').waitFor()
+    expect(await largura(), 'raiz').toBeLessThanOrEqual(360)
 
     for (const caminho of ['/univag', '/univag/primeiro-acesso', '/univag/definir-senha?token=t']) {
       await page.setViewportSize({ width: 360, height: 740 })
@@ -362,11 +361,10 @@ test.describe('acesso', () => {
         if (caminho === '/') {
           const titulo = page.getByRole('heading', { name: 'Esclari' })
           await titulo.waitFor()
-          const cartao = titulo.locator('xpath=../..')
+          const cartao = titulo.locator('xpath=..')
           const c = await caixa(cartao)
           expect(c.width, rotulo).toBeLessThanOrEqual(384)
           expect(Math.abs(c.x + c.width / 2 - largura / 2), rotulo).toBeLessThanOrEqual(1)
-          if (c.height < 740) expect(Math.abs(c.y + c.height / 2 - 370), rotulo).toBeLessThanOrEqual(1)
           continue
         }
         const bloco = page.locator('h1').locator('xpath=../..')
@@ -455,12 +453,10 @@ test.describe('arranjo restante', () => {
   const direita = (c: { x: number; width: number }) => c.x + c.width
   const abaixo = (a: { y: number; height: number }, b: { y: number }) => b.y >= a.y + a.height - 1
 
-  test('raiz com a marca e o texto centralizados', async ({ page }) => {
+  test('raiz com a marca centralizada', async ({ page }) => {
     await page.goto('/')
-    for (const t of [page.getByText('Esclari', { exact: true }), page.getByText('Abra o endereço da sua instituição')]) {
-      const c = await caixa(t)
-      expect(Math.abs(c.x + c.width / 2 - 180)).toBeLessThanOrEqual(1)
-    }
+    const c = await caixa(page.getByRole('heading', { name: 'Esclari' }).getByRole('img', { name: 'Esclari' }))
+    expect(Math.abs(c.x + c.width / 2 - 180)).toBeLessThanOrEqual(1)
   })
 
   test('Login: campos empilhados e o erro abaixo do formulário', async ({ page }) => {

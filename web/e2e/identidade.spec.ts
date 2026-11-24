@@ -566,15 +566,13 @@ test('raiz com Esclari em serifa', async ({ page }) => {
     await titulo.waitFor()
     await page.evaluate(() => document.fonts.ready)
     expect(await familia(titulo), `${largura}: serifa`).toMatch(/^"Source Serif 4 Variable"/)
-    for (const l of [titulo, page.getByText('Dúvidas, solicitações e respostas da sua instituição em um só lugar.', { exact: true }), page.getByText('Abra o endereço da sua instituição, por exemplo /univag.', { exact: true })]) {
-      const c = await l.evaluate((e) => {
-        const r = document.createRange()
-        r.selectNodeContents(e)
-        const b = r.getBoundingClientRect()
-        return b.x + b.width / 2
-      })
-      perto(c, largura / 2, `${largura}: centro do texto`)
-    }
+    const c = await titulo.evaluate((e) => {
+      const r = document.createRange()
+      r.selectNodeContents(e)
+      const b = r.getBoundingClientRect()
+      return b.x + b.width / 2
+    })
+    perto(c, largura / 2, `${largura}: centro da marca`)
   }
 })
 

@@ -93,11 +93,20 @@ export async function trocaObrigatoria(page: Page, papeis: string[]) {
   )
 }
 
+export const InstituicoesDaBusca = [
+  { slug: 'univag', nome: 'Centro Universitário de Várzea Grande', nomeCurto: 'Univag' },
+  { slug: 'unic', nome: 'Universidade de Cuiabá', nomeCurto: 'Unic' },
+  { slug: 'unemat', nome: 'Universidade do Estado de Mato Grosso', nomeCurto: 'Unemat' },
+  { slug: 'ufmt', nome: 'Universidade Federal de Mato Grosso', nomeCurto: null },
+  { slug: 'unirondon', nome: 'Centro Universitário Cândido Rondon', nomeCurto: 'Unirondon' },
+]
+
 export async function simularApi(page: Page, papeis = ['ALUNO', 'ATENDENTE', 'ADMINISTRADOR'], extremos = false, aparencia: object = semAparencia) {
   const mais = <T,>(linhas: T[], extra: T) => (extremos ? [...linhas, extra] : linhas)
   await page.route('**/api/**', (rota) => {
     const caminho = new URL(rota.request().url()).pathname
     const json = (status: number, corpo: unknown) => rota.fulfill({ status, contentType: 'application/json', body: JSON.stringify(corpo) })
+    if (caminho === '/api/instituicoes') return json(200, { itens: InstituicoesDaBusca })
     if (caminho === '/api/instituicoes/univag') return json(200, { nome: 'Centro Universitário de Várzea Grande', ...aparencia })
     if (/^\/api\/instituicoes\/univag\/imagens\/\w+$/.test(caminho)) return rota.fulfill({ status: 200, contentType: 'image/png', body: Png })
     if (caminho === '/api/admin/aparencia') return json(200, aparencia)
@@ -208,7 +217,15 @@ export const Telas: [string, string, (p: Page) => Promise<void>][] = [
     },
   ],
   ['Cadastros', '/univag/cadastros', async (p) => void (await p.getByText('Coordenação de Análise e Desenvolvimento de Sistemas').waitFor())],
-  ['Raiz', '/', async (p) => void (await p.getByText('Abra o endereço da sua instituição, por exemplo /univag.').waitFor())],
+  [
+    'Raiz',
+    '/',
+    async (p) => {
+      await p.evaluate(() => localStorage.removeItem('esclari-instituicao'))
+      await p.goto('/')
+      await p.getByLabel('Sua instituição').waitFor()
+    },
+  ],
   ['Aparência', '/univag/aparencia', async (p) => void (await p.getByLabel('Cor principal').waitFor())],
   ['Primeiro acesso', '/univag/primeiro-acesso', async (p) => void (await p.getByLabel('CPF').waitFor())],
   ['Criar senha', '/univag/definir-senha?token=x', async (p) => void (await p.getByLabel('Nova senha').waitFor())],

@@ -151,6 +151,7 @@ window.matchMedia ??= (media: string) =>
 afterEach(() => {
   cleanup()
   toast.dismiss()
+  localStorage.clear()
   vi.unstubAllGlobals()
 })
 

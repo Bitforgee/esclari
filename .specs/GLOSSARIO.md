@@ -100,3 +100,7 @@ uma vez no código, num grupo de constantes de `Esclari.Api/Dados/Entidades.cs`;
 ## Ação do e-mail (colunas `email_saida.acao_rotulo` e `email_saida.acao_url`)
 
 Rótulo e endereço do único botão de um e-mail (`AcaoDoEmail`). Anulável junto com `email_saida.titulo`: sem eles o e-mail sai no mesmo molde, sem título e sem botão. O `corpo` continua sendo o texto puro completo e a fonte do HTML.
+
+## Instituição lembrada (chave `localStorage['esclari-instituicao']`)
+
+É o slug da última instituição cujos dados públicos carregaram neste aparelho. Mora só no navegador, grava em `GET /api/instituicoes/{slug}` com `200`, apaga com `404` do mesmo slug ou ao tocar em "Trocar de instituição". Com ela, `/` (a `Raiz`) vai direto para `/{slug}`; sem ela, a `Raiz` é a escolha da instituição (busca por nome em `GET /api/instituicoes?busca=`).

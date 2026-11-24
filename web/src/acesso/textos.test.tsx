@@ -51,7 +51,7 @@ const Instituicoes = { 'GET /api/instituicoes/univag': () => [200, { nome: 'Univ
 
 describe('textos das telas de acesso', () => {
   it('textos raiz', () => {
-    const t = estados(['Dúvidas, solicitações e respostas da sua instituição em um só lugar.', 'Abra o endereço da sua instituição, por exemplo /univag.'])
+    const t = estados(['Sua instituição', 'Digite o nome ou a sigla da sua instituição.'])
     api({})
     const { container } = abrir('/')
     expect(within(container).getByRole('heading', { level: 1, name: 'Esclari' })).toContainElement(within(container).getByRole('img', { name: 'Esclari' }))
@@ -60,7 +60,7 @@ describe('textos das telas de acesso', () => {
   })
 
   it('textos Login', async () => {
-    const t = estados(['Entre com seu CPF e sua senha.', 'CPF', 'Senha', 'Entrar', 'Primeiro acesso ou esqueci minha senha', 'Instituição não encontrada.', ...Painel])
+    const t = estados(['Entre com seu CPF e sua senha.', 'CPF', 'Senha', 'Entrar', 'Primeiro acesso ou esqueci minha senha', 'Trocar de instituição', 'Escolher instituição', 'Instituição não encontrada.', ...Painel])
     api({ 'GET /api/instituicoes/univag': () => new Promise(() => {}) })
     let montada = abrir('/univag')
     expect(await screen.findByRole('status', { name: 'Carregando' })).toBeInTheDocument()

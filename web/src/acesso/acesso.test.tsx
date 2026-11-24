@@ -50,7 +50,7 @@ describe('acesso', () => {
   it('painel de entrada sem foco e sem ícones', async () => {
     api({ ...instituicao, 'POST /api/auth/primeiro-acesso': () => [200, { mensagem: 'x' }] })
     for (const [caminho, links] of [
-      ['/univag', ['Primeiro acesso ou esqueci minha senha']],
+      ['/univag', ['Primeiro acesso ou esqueci minha senha', 'Trocar de instituição']],
       ['/univag/primeiro-acesso', ['Voltar para o login']],
       ['/univag/definir-senha?token=t', []],
     ] as const) {

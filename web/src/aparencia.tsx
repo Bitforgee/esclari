@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useMatch } from 'react-router'
-import { api } from './api'
+import { api, ErroApi } from './api'
 import CorDaBarra from './corDaBarra.json'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
 import { useTheme } from './ui/theme-provider'
@@ -41,8 +41,34 @@ export function normalizar(d: Partial<InstituicaoPublica> & { nome: string }): I
 
 export const urlDaImagem = (slug: string, tipo: keyof Imagens, versao: number) => `/api/instituicoes/${slug}/imagens/${tipo}?v=${versao}`
 
+const ChaveLembrada = 'esclari-instituicao'
+
+export function instituicaoLembrada() {
+  try {
+    return localStorage.getItem(ChaveLembrada)
+  } catch {
+    return null
+  }
+}
+
+export function lembrarInstituicao(slug: string | null) {
+  try {
+    if (slug) localStorage.setItem(ChaveLembrada, slug)
+    else localStorage.removeItem(ChaveLembrada)
+  } catch {
+    return
+  }
+}
+
 export function useInstituicao(slug?: string) {
-  return useQuery({ queryKey: ['instituicao', slug], queryFn: () => api<InstituicaoPublica>(`/api/instituicoes/${slug}`), select: normalizar, enabled: !!slug, staleTime: 60_000 })
+  const consulta = useQuery({ queryKey: ['instituicao', slug], queryFn: () => api<InstituicaoPublica>(`/api/instituicoes/${slug}`), select: normalizar, enabled: !!slug, staleTime: 60_000 })
+  const { data, error } = consulta
+  useEffect(() => {
+    if (!slug) return
+    if (data) lembrarInstituicao(slug)
+    else if (error instanceof ErroApi && error.status === 404 && instituicaoLembrada() === slug) lembrarInstituicao(null)
+  }, [slug, data, error])
+  return consulta
 }
 
 function ponto(seletor: string, tag: 'link' | 'meta', atributos: Record<string, string>, atributo: 'href' | 'content', valor: string | null) {

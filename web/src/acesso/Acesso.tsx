@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Eye, EyeOff } from 'lucide-react'
 import { useState, type ComponentProps, type ReactNode } from 'react'
 import { useForm, type FieldValues, type Path, type Resolver, type UseFormReturn } from 'react-hook-form'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
 import { z } from 'zod'
 import { BotaoAcao } from '../acao'
 import { api, ErroApi } from '../api'
@@ -11,12 +11,15 @@ import { Carregando } from '../Carregando'
 import { ErroDe } from '../ErroDe'
 import { descricaoDoCampo } from '../Campo'
 import { cpfMascara, PropsDoCpf, soDigitos } from '../mascaras'
-import { urlDaImagem, useInstituicao, usePlaca, useTema, type InstituicaoPublica } from '../aparencia'
+import { instituicaoLembrada, lembrarInstituicao, urlDaImagem, useInstituicao, usePlaca, useTema, type InstituicaoPublica } from '../aparencia'
 import { telaInicial, useSessao } from '../sessao'
 import { Alert } from '../ui/alert'
+import { Escolha } from './Escolha'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
+
+export const LinkDeApoio = 'inline-flex min-h-11 items-center self-start text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground'
 
 const obrigatorio = z.string().min(1, 'Preencha este campo.')
 
@@ -50,16 +53,8 @@ export function NaoEncontrada() {
 }
 
 export function Raiz() {
-  const tema = useTema()
-  return (
-    <Centro>
-      <div className="flex flex-col items-center gap-3 text-center">
-        <H1 translate="no"><img src={tema === 'light' ? '/marca/logo-horizontal.svg' : '/marca/logo-horizontal-escuro.svg'} alt="Esclari" width={174} height={40} className="h-10 w-auto" /></H1>
-        <p className="m-0 text-muted-foreground">{Frase}</p>
-        <p className="m-0 text-muted-foreground">Abra o endereço da sua instituição, por exemplo /univag.</p>
-      </div>
-    </Centro>
-  )
+  const lembrada = instituicaoLembrada()
+  return lembrada ? <Navigate to={`/${lembrada}`} replace /> : <Escolha />
 }
 
 function Identidade({ slug, d }: { slug?: string; d?: InstituicaoPublica }) {
@@ -218,7 +213,16 @@ export function Login() {
   if (isError)
     return (
       <Centro>
-        {error instanceof ErroApi ? <Alert>Instituição não encontrada.</Alert> : <ErroDe erro={error} oque="a instituição" tentar={() => void refetch()} />}
+        {error instanceof ErroApi ? (
+          <div className="flex flex-col items-start gap-3">
+            <Alert>Instituição não encontrada.</Alert>
+            <Link to="/" className={LinkDeApoio}>
+              Escolher instituição
+            </Link>
+          </div>
+        ) : (
+          <ErroDe erro={error} oque="a instituição" tentar={() => void refetch()} />
+        )}
       </Centro>
     )
   if (isPending)
@@ -248,8 +252,11 @@ export function Login() {
           </>
         )}
       </Formulario>
-      <Link to={`/${slug}/primeiro-acesso`} className="inline-flex min-h-11 items-center self-start text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">
+      <Link to={`/${slug}/primeiro-acesso`} className={LinkDeApoio}>
         Primeiro acesso ou esqueci minha senha
+      </Link>
+      <Link to="/" onClick={() => lembrarInstituicao(null)} className={LinkDeApoio}>
+        Trocar de instituição
       </Link>
     </Entrada>
   )
