@@ -13,6 +13,8 @@ public static class Seguranca
             o.RejectionStatusCode = 429;
             o.AddPolicy("auth", c => RateLimitPartition.GetFixedWindowLimiter(c.Connection.RemoteIpAddress?.ToString() ?? "",
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = Limite(c, "Limites:AuthPorMinuto", 5), Window = TimeSpan.FromSeconds(60) }));
+            o.AddPolicy("instituicoes", c => RateLimitPartition.GetFixedWindowLimiter(c.Connection.RemoteIpAddress?.ToString() ?? "",
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = Limite(c, "Limites:BuscaDeInstituicaoPorMinuto", 60), Window = TimeSpan.FromSeconds(60) }));
             o.AddPolicy("mcp", c => RateLimitPartition.GetFixedWindowLimiter(Tokens.Hash(c.Request.Headers.Authorization.ToString()),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = Limite(c, "Limites:McpPorMinuto", 60), Window = TimeSpan.FromSeconds(60) }));
             o.AddPolicy("mensagens", c => RateLimitPartition.GetFixedWindowLimiter(c.User.FindFirstValue("sub") ?? "",

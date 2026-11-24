@@ -8,6 +8,7 @@ POST /api/auth/senha anonimo=False autorizacao=True limite=-
 GET,POST /api/moodle/{slug}/login anonimo=True autorizacao=True limite=auth
 POST /api/moodle/{slug}/lancamento anonimo=True autorizacao=True limite=auth
 GET /api/moodle/{slug}/jwks anonimo=True autorizacao=True limite=-
+GET /api/instituicoes anonimo=True autorizacao=True limite=instituicoes
 GET /api/instituicoes/{slug} anonimo=True autorizacao=True limite=-
 GET /api/instituicoes/{slug}/imagens/{tipo} anonimo=True autorizacao=True limite=-
 GET /api/instituicoes/{slug}/manifest.webmanifest anonimo=True autorizacao=True limite=-

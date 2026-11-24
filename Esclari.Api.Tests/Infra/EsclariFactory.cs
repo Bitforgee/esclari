@@ -80,6 +80,7 @@ public class EsclariFactory : WebApplicationFactory<Program>, IAsyncLifetime
             builder.UseSetting("Limites:AuthPorMinuto", "100000");
             builder.UseSetting("Limites:MensagensPorMinuto", "100000");
             builder.UseSetting("Limites:ExportarPorMinuto", "100000");
+            builder.UseSetting("Limites:BuscaDeInstituicaoPorMinuto", "100000");
         }
         if (WebRoot is not null)
         {

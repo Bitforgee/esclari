@@ -12,7 +12,7 @@ namespace Esclari.Api.Tests;
 
 public class SessaoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
 {
-    static readonly string[] Publicas = ["/api/instituicoes/{slug}", "/api/auth/login", "/api/auth/primeiro-acesso", "/api/auth/definir-senha", "/api/auth/logout", "/api/instituicoes/{slug}/imagens/{tipo}", "/api/instituicoes/{slug}/manifest.webmanifest", "/api/moodle/{slug}/login", "/api/moodle/{slug}/lancamento", "/api/moodle/{slug}/jwks", "/api/plataforma/auth/entrar", "/api/plataforma/auth/codigo", "/api/plataforma/auth/definir-senha", "/api/plataforma/auth/sair"];
+    static readonly string[] Publicas = ["/api/instituicoes", "/api/instituicoes/{slug}", "/api/auth/login", "/api/auth/primeiro-acesso", "/api/auth/definir-senha", "/api/auth/logout", "/api/instituicoes/{slug}/imagens/{tipo}", "/api/instituicoes/{slug}/manifest.webmanifest", "/api/moodle/{slug}/login", "/api/moodle/{slug}/lancamento", "/api/moodle/{slug}/jwks", "/api/plataforma/auth/entrar", "/api/plataforma/auth/codigo", "/api/plataforma/auth/definir-senha", "/api/plataforma/auth/sair"];
     static readonly string[] LivresDaTroca = ["/api/auth/login", "/api/auth/logout", "/api/auth/me", "/api/auth/senha"];
 
     List<(string metodo, string padrao)> Rotas() =>

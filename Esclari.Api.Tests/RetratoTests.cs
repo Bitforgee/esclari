@@ -34,18 +34,19 @@ public class RetratoTests(EsclariFactory f) : IClassFixture<EsclariFactory>
         var viva = endpoints.Select(Linha).ToList();
         File.WriteAllLines(Path.Combine(AppContext.BaseDirectory, "rotas.viva.txt"), viva);
 
-        Assert.Equal(123, viva.Count);
+        Assert.Equal(124, viva.Count);
         var fallbacks = endpoints.Where(e => e.Order == int.MaxValue).Select(e => e.RoutePattern.RawText).ToList();
         Assert.Equal(["/api/{**resto}", "{*path:nonfile}"], fallbacks);
-        Assert.Equal(119, endpoints.Count(e => e.Order != int.MaxValue && e.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods.Count == 1));
-        Assert.Equal(["/api/auth/login", "/api/auth/primeiro-acesso", "/api/auth/definir-senha", "/api/auth/logout", "/api/moodle/{slug}/login", "/api/moodle/{slug}/lancamento", "/api/moodle/{slug}/jwks", "/api/instituicoes/{slug}", "/api/instituicoes/{slug}/imagens/{tipo}", "/api/instituicoes/{slug}/manifest.webmanifest", "/api/plataforma/auth/entrar", "/api/plataforma/auth/codigo", "/api/plataforma/auth/definir-senha", "/api/plataforma/auth/sair"],
+        Assert.Equal(120, endpoints.Count(e => e.Order != int.MaxValue && e.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods.Count == 1));
+        Assert.Equal(["/api/auth/login", "/api/auth/primeiro-acesso", "/api/auth/definir-senha", "/api/auth/logout", "/api/moodle/{slug}/login", "/api/moodle/{slug}/lancamento", "/api/moodle/{slug}/jwks", "/api/instituicoes", "/api/instituicoes/{slug}", "/api/instituicoes/{slug}/imagens/{tipo}", "/api/instituicoes/{slug}/manifest.webmanifest", "/api/plataforma/auth/entrar", "/api/plataforma/auth/codigo", "/api/plataforma/auth/definir-senha", "/api/plataforma/auth/sair"],
             endpoints.Where(e => e.Metadata.GetMetadata<IAllowAnonymous>() is not null).Select(e => e.RoutePattern.RawText));
-        Assert.Equal(117, endpoints.Count(e => e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any()));
+        Assert.Equal(118, endpoints.Count(e => e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any()));
         string[] Com(string politica) => [.. endpoints.Where(e => e.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName == politica).Select(e => e.RoutePattern.RawText!)];
         Assert.Equal(["/api/auth/login", "/api/auth/primeiro-acesso", "/api/moodle/{slug}/login", "/api/moodle/{slug}/lancamento", "/api/plataforma/auth/entrar", "/api/plataforma/auth/codigo", "/api/plataforma/auth/definir-senha"], Com("auth"));
         Assert.Equal(["/api/conversas", "/api/conversas/{id:long}/mensagens", "/api/atendimento-direto"], Com("mensagens"));
         Assert.Equal(["/api/mcp/{slug}/"], Com("mcp"));
         Assert.Equal(["/api/chamados/exportar"], Com("exportar"));
+        Assert.Equal(["/api/instituicoes"], Com("instituicoes"));
 
         Assert.Equal(File.ReadAllLines(Retrato("rotas.txt")).Order(StringComparer.Ordinal), viva.Order(StringComparer.Ordinal));
     }

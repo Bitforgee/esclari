@@ -39,6 +39,7 @@ public static class AcessoExtensoes
         IniciarLoginMoodle.Mapear(api);
         LancamentoMoodle.Mapear(api);
         ChavesMoodle.Mapear(api);
+        BuscarInstituicoes.Mapear(api);
         VerInstituicao.Mapear(api);
     }
 
