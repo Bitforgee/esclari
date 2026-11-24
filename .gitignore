@@ -21,3 +21,5 @@ web/apresentacao/dados.json
 __pycache__/
 *.pyc
 *.tsbuildinfo
+.tmp-*/
+.artifacts-*/
