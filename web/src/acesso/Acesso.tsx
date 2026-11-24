@@ -214,9 +214,9 @@ export function Login() {
     return (
       <Centro>
         {error instanceof ErroApi ? (
-          <div className="flex flex-col items-start gap-3">
+          <div className="relative">
             <Alert>Instituição não encontrada.</Alert>
-            <Link to="/" className={LinkDeApoio}>
+            <Link to="/" className={`${LinkDeApoio} absolute top-full left-0`}>
               Escolher instituição
             </Link>
           </div>

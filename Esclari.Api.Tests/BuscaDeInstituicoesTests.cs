@@ -83,10 +83,12 @@ public class BuscaDeInstituicoesTests
         await f.InitializeAsync();
         await Detalhar(f, await f.Instituicao("curinga-um", "Curinga Um"), null);
         await Detalhar(f, await f.Instituicao("curinga-dois", "Curinga 100% Dois"), null);
+        await Detalhar(f, await f.Instituicao("curinga-tres", "Barra \\ Invertida"), null);
 
         Assert.Empty((await Buscar(f.Cliente(), "%%%")).GetProperty("itens").EnumerateArray());
         Assert.Empty((await Buscar(f.Cliente(), "c_r")).GetProperty("itens").EnumerateArray());
         Assert.Single((await Buscar(f.Cliente(), "100%")).GetProperty("itens").EnumerateArray());
+        Assert.Single((await Buscar(f.Cliente(), "a \\ I")).GetProperty("itens").EnumerateArray());
         Assert.Empty((await Buscar(f.Cliente(), @"\\\")).GetProperty("itens").EnumerateArray());
     }
 
@@ -99,6 +101,16 @@ public class BuscaDeInstituicoesTests
         var c = limitada.CreateClient();
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/api/instituicoes?busca=abc")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/api/instituicoes?busca=abc")).StatusCode);
+        Assert.Equal(HttpStatusCode.TooManyRequests, (await c.GetAsync("/api/instituicoes?busca=abc")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Limite_padrao_e_de_60_por_minuto()
+    {
+        await using var f = new EsclariFactoryComLimites();
+        await f.InitializeAsync();
+        var c = f.CreateClient();
+        for (var n = 0; n < 60; n++) Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/api/instituicoes?busca=abc")).StatusCode);
         Assert.Equal(HttpStatusCode.TooManyRequests, (await c.GetAsync("/api/instituicoes?busca=abc")).StatusCode);
     }
 }
